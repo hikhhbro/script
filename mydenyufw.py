@@ -39,7 +39,7 @@ class MyEventHandler(pyinotify.ProcessEvent):
     def process_IN_MODIFY(self, event):
         size = os.path.getsize('/var/log/btmp')
         print(size)
-        if size != 0:
+        if size > 1:
             read_str = os.popen("lastb |awk '{print $3}'|uniq -c|awk '{print $2\"=\"$1;}'").read()
             ip_list = read_str.split('\n')
             ip_list.pop()
