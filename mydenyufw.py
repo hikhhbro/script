@@ -37,44 +37,46 @@ def check_ip(ip):
 
 class MyEventHandler(pyinotify.ProcessEvent):
     def process_IN_MODIFY(self, event):
-        print(event)
-        read_str = os.popen("lastb |awk '{print $3}'|uniq -c|awk '{print $2\"=\"$1;}'").read()
-        ip_list = read_str.split('\n')
-        ip_list.pop()
-        ip_list.pop()
-        ip_list.pop()
-        # print(ip_list)
-        for ip_tmp in ip_list:
-            ip = ip_tmp.split('=')
-            # print(ip)
-            if ip_dic.get(ip[0]) :
-                ip_dic[ip[0]] = ip_dic[ip[0]] + int(ip[1])
-            else:
-                ip_dic[ip[0]] = int(ip[1])
-            if ip_dic[ip[0]] > MAX_FAIL:
-                tmp_fail_time = ip_dic[ip[0]]
-                del [ip_dic[ip[0]]]
-                with open("/etc/hosts.deny",mode="a") as data:
-                    out = "ALL: " + ip[0][0:ip[0].rfind('.')] + '.*' + '\n'
-                    data.write(out)
-                data.close()
-                try:
-                    ip_loc = []
-                    if check_ip(ip[0]):
-                        ip_loc = get_location(ip[0])
-                    msg_box = ip[0] + "尝试登录了" + str(tmp_fail_time) + "次" +"\n" + ip[0][0:ip[0].rfind('.')] + '.*' + "已加入内名单\n" + "IP地址位置 : " + ' '.join(ip_loc)
-                    print(msg_box)
-                    msg = MIMEText(msg_box)
-                    msg["Subject"] = "hik服务器提醒"
-                    msg["From"] = _user
-                    msg["To"] = _to
-                    qq_email.sendmail(_user, _to, msg.as_string())
-                    qq_email.quit()
-                    print ("发送成功")
-                except (qq_email.smtplib.SMTPException, e):
-                    print ("发送失败")
-            os.system("echo > /var/log/btmp")
-        print(ip_dic)
+        size = os.path.getsize('/var/log/btmp')
+        print(size)
+        if size != 0:
+            read_str = os.popen("lastb |awk '{print $3}'|uniq -c|awk '{print $2\"=\"$1;}'").read()
+            ip_list = read_str.split('\n')
+            ip_list.pop()
+            ip_list.pop()
+            ip_list.pop()
+            # print(ip_list)
+            for ip_tmp in ip_list:
+                ip = ip_tmp.split('=')
+                # print(ip)
+                if ip_dic.get(ip[0]) :
+                    ip_dic[ip[0]] = ip_dic[ip[0]] + int(ip[1])
+                else:
+                    ip_dic[ip[0]] = int(ip[1])
+                if ip_dic[ip[0]] > MAX_FAIL:
+                    tmp_fail_time = ip_dic[ip[0]]
+                    del [ip_dic[ip[0]]]
+                    with open("/etc/hosts.deny",mode="a") as data:
+                        out = "ALL: " + ip[0][0:ip[0].rfind('.')] + '.*' + '\n'
+                        data.write(out)
+                    data.close()
+                    try:
+                        ip_loc = []
+                        if check_ip(ip[0]):
+                            ip_loc = get_location(ip[0])
+                        msg_box = ip[0] + "尝试登录了" + str(tmp_fail_time) + "次" +"\n" + ip[0][0:ip[0].rfind('.')] + '.*' + "已加入内名单\n" + "IP地址位置 : " + ' '.join(ip_loc)
+                        print(msg_box)
+                        msg = MIMEText(msg_box)
+                        msg["Subject"] = "hik服务器提醒"
+                        msg["From"] = _user
+                        msg["To"] = _to
+                        qq_email.sendmail(_user, _to, msg.as_string())
+                        qq_email.quit()
+                        print ("发送成功")
+                    except (qq_email.smtplib.SMTPException, e):
+                        print ("发送失败")
+                os.system("echo > /var/log/btmp")
+            print(ip_dic)
 
 
 if __name__ == '__main__':
