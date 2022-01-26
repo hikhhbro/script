@@ -38,7 +38,7 @@ def check_ip(ip):
 class MyEventHandler(pyinotify.ProcessEvent):
     def process_IN_MODIFY(self, event):
         size = os.path.getsize('/var/log/btmp')
-        print(size)
+        # print(size)
         if size > 1:
             read_str = os.popen("lastb |awk '{print $3}'|uniq -c|awk '{print $2\"=\"$1;}'").read()
             ip_list = read_str.split('\n')
@@ -72,9 +72,9 @@ class MyEventHandler(pyinotify.ProcessEvent):
                         msg["To"] = _to
                         qq_email.sendmail(_user, _to, msg.as_string())
                         qq_email.quit()
-                        print ("发送成功")
+                        print ("邮件发送成功")
                     except (qq_email.smtplib.SMTPException, e):
-                        print ("发送失败")
+                        print ("邮件发送失败")
                 os.system("echo > /var/log/btmp")
             print(ip_dic)
 
@@ -89,10 +89,10 @@ if __name__ == '__main__':
         monitor_loop.loop()
     finally:
         if monitor_loop:
-            print("停止")
+            print("防火墙停止")
             monitor_loop.stop()
         json_str = json.dumps(ip_dic) #dumps
         with open('/root/lastb.log','w+') as f:
             f.write(json_str)
         f.close()
-        print("结束")
+        print("防火墙结束")
