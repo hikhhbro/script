@@ -13,40 +13,6 @@ _hikrun() {
         COMPREPLY=( $(compgen -W "${pre_opts}" -- ${cur}) )
         return 0
     fi
-
-    # case "$pre" in
-    # -f|-r )
-    #     COMPREPLY=( $( compgen -W "$READ_FORMAT" -- $cur ) )
-    #     return 0
-    #     ;;
-    # -t|-w )
-    #     COMPREPLY=( $( compgen -W "$WRITE_FORMAT" -- $cur ) )
-    #     return 0
-    # esac
-
-    # complete_options() {
-    #     local tmp_opts i
-    #     # opts="-f -r -t -w -o --output -v --version -h --help"
-    #     for i in "${COMP_WORDS[@]}"
-    #     do
-    #         if [ "$i" == "-B" -o "$i" == "-C" ]
-    #         then
-    #             opts="$opts"" -R -S --filter -p"
-    #             break
-    #         fi
-    #     done
-
-    #     for i in "${COMP_WORDS[@]}"
-    #     do
-    #         if [ "$i" == "-t" -o "$i" == "-w" ]
-    #         then
-    #             opts="$opts"" -s --template --toc"
-    #             break
-    #         fi
-    #     done
-    #     echo "$opts"
-    # }
-
     case "$pre" in
       -B | -C)
         tmp_opt="android y4 rpi"

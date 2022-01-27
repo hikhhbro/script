@@ -11,6 +11,7 @@ run_func=(
   ${machine}_${project}_${rootfs}
   ${rerun}_${script}
   ${run_adb}
+  ${run_gits}
 )
 run_adb_func() {
   _func
@@ -35,3 +36,6 @@ rerun_script() {
   done
 }
 
+run_gits_func() {
+  _func "gits"
+}

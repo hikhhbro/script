@@ -139,6 +139,9 @@ while true; do
           if [[ "$i" == "adb" ]];then
             run_adb="run_"$i"_func"
           fi
+          if [[ "$i" == "gits" ]];then
+            run_gits="run_"$i"_func"
+          fi
         fi
       done
     ;;
