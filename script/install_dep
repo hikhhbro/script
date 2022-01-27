@@ -1,0 +1,5 @@
+#!/bin/bash
+. ${HIK_SCRIPT_TOP_DIR}/base.sh
+ _task sudo apt update
+ _task sudo apt-get install aptitude
+. ${HIK_SCRIPT_TOP_DIR}/script/yocto_dep
