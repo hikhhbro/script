@@ -142,6 +142,7 @@ while true; do
           if [[ "$i" == "gits" ]];then
             run_gits="run_"$i"_func"
           fi
+          self_arg=(${self_arg[*]} $i)
         fi
       done
     ;;

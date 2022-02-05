@@ -38,4 +38,5 @@ rerun_script() {
 
 run_gits_func() {
   _func "gits"
+  . ${HIK_SCRIPT_TOP_DIR}/script/gits/gits.sh
 }

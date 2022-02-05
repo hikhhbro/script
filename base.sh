@@ -13,8 +13,8 @@ rerun="rerun"
 script_func=""
 run_adb=""
 run_gits=""
-
 script_arg=()
+self_arg=()
 rerun_j=1
 opts="--help --rerun= --build --rootfs --download= --script --code"
 pre_opts="native adb gits"
