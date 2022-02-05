@@ -18,7 +18,7 @@ gits_create_bare(){
         _task scp -r ${self_arg[2]}.git gits:/gits/
     fi
 
-# 下载判断
+# scp下载判断
     # if scp -r gits:/volume2/git-server/${self_arg[1]}.git ./ >& /dev/null
     # then 
     #     _task "${self_arg[1]} 已存在"
