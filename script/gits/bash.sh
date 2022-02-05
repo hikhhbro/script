@@ -1,1 +1,0 @@
-GITS_PATH="hik@192.168.1.12:/volume2/git-server/"
