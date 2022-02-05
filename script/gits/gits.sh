@@ -8,7 +8,6 @@ gits_run(){
     fi
 }
 gits_create_bare(){
-    echo ${self_arg[*]}
     if ssh gits test -e /gits/${self_arg[2]}.git; then 
         _task "${self_arg[2]} 已存在"
     else 
