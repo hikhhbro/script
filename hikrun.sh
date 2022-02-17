@@ -133,9 +133,9 @@ while true; do
           if [[ "$build" != "" ]];then
             out_target=(${out_target[*]} $i)
           fi
-          if [[  ${#script_arg[@]} == 1 ]];then
+          # if [[  ${#script_arg[@]} == 1 ]];then
             script_arg=(${script_arg[*]} $i)
-          fi
+          # fi
           if [[ "$i" == "adb" ]];then
             run_adb="run_"$i"_func"
           fi
