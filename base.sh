@@ -29,6 +29,11 @@ function _task() {
     echo -e "\033[33mRunning$FUNCNAME => ($*): \033[0m"  
     $*
 }
+function _debug_task() {
+    echo -e -n "\033[33mRunning$FUNCNAME => ($*): \033[0m"  
+    read 
+    $*
+}
 if [ -f "${HIK_SCRIPT_TOP_DIR}/company/companybase.sh" ];then
 source ${HIK_SCRIPT_TOP_DIR}/company/companybase.sh
 fi

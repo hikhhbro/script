@@ -15,10 +15,11 @@ run_func=(
 )
 run_adb_func() {
   _func
-  _task adb root
-  _task adb remount
-  _task adb disable-verity
-  _task adb shell
+  local db="_debug_task"
+  ${db} adb root
+  ${db} adb remount
+  ${db} adb disable-verity
+  ${db} adb shell
 }
 #执行外部脚本
 rerun_script() {
