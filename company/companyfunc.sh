@@ -62,6 +62,7 @@ android_native_rootfs() {
   source build/envsetup.sh
   lunch venus-userdebug
   ./device/xiaomi/venus/flash_scripts/build_all.sh
+  mv  build_full.log  ${RELEASE_ID}/
 }
 android_native_build() {
   _func
