@@ -15,7 +15,6 @@ run_func=(
 )
 run_adb_func() {
   _func
-  local db="_debug_task"
   ${db} adb root
   ${db} adb remount
   ${db} adb disable-verity
