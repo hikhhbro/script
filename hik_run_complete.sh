@@ -27,7 +27,7 @@ _hikrun() {
         return 0
         ;;
       --script)
-        tmp_opt="`ls ${HIK_SCRIPT_TOP_DIR}/script/` ""`ls -F | grep "*"`"
+        tmp_opt="`ls ${HIK_SCRIPT_TOP_DIR}/script/`"
         COMPREPLY=( $(compgen -W "${tmp_opt}" -- ${cur}) )
         tmp_opt=""
         return 0
