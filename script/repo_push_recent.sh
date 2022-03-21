@@ -1,4 +1,7 @@
 #!/bin/bash
+_describe() { echo "查找repo中最近提交的仓库"; }
+if [[ "${describe}" == "describe" ]];then _describe;exit 0;fi
+
 if [ $1 = 't' ];
 then
 repo forall -c 'committime=`git log --after "'$2' 07:00"   -1 --pretty=format:"%cd"`;

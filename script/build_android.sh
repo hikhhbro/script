@@ -1,4 +1,7 @@
 #!/bin/bash
+_describe() { echo "编译安卓, 不带参数编译全部, 带模块名参数,-m使用make, 否则使用quickbuild"; }
+if [[ "${describe}" == "describe" ]];then _describe;exit 0;fi
+
 quickbuild () {
   ninja_bin="$ANDROID_BUILD_TOP/prebuilts/build-tools/linux-x86/bin/ninja"
   ninja_build_file="$ANDROID_BUILD_TOP/out/combined-$TARGET_PRODUCT.ninja"

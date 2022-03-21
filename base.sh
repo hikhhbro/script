@@ -16,9 +16,10 @@ run_gits=""
 script_arg=()
 self_arg=()
 rerun_j=1
-opts="--help --rerun= --build --rootfs --download= --script --code"
+opts="--help --rerun= --build --rootfs --download= --script --code --rm"
 pre_opts="native adb gits"
 db="_task"
+describe=""
 function _func() {
   echo -en "\033[33mCurrent$FUNCNAME => (${FUNCNAME[1]}): \033[0m"
   for i in "$*"      #在"$*"中遍历参数，此时"$*"被扩展为包含所有位置参数的单个字符串，只遍历一次
@@ -45,8 +46,9 @@ touch_script() {
   if [[ "$1" == "-c" ]];then
       if [ ! -f "${HIK_SCRIPT_TOP_DIR}/company/$3" ];then
         echo "#!/bin/bash" >> ${HIK_SCRIPT_TOP_DIR}/company/$3
-        echo ". ${HIK_SCRIPT_TOP_DIR}/base.sh" >> ${HIK_SCRIPT_TOP_DIR}/company/$3
         echo 'db="_debug_task"' >> ${HIK_SCRIPT_TOP_DIR}/company/$3
+        echo '_describe() { echo ""; }' >>  ${HIK_SCRIPT_TOP_DIR}/company/$3
+        echo 'if [[ "${describe}" == "describe" ]];then _describe;exit 0;fi' >>  ${HIK_SCRIPT_TOP_DIR}/company/$3
         chmod 755 ${HIK_SCRIPT_TOP_DIR}/company/$3
       fi
       code ${HIK_SCRIPT_TOP_DIR}/company/$3
@@ -58,7 +60,8 @@ touch_script() {
   fi
   if [ ! -f "${HIK_SCRIPT_TOP_DIR}/script/$1" ];then
     echo "#!/bin/bash" >> ${HIK_SCRIPT_TOP_DIR}/script/$1
-    echo ". ${HIK_SCRIPT_TOP_DIR}/base.sh" >> ${HIK_SCRIPT_TOP_DIR}/script/$1
+    echo '_describe() { echo ""; }' >> ${HIK_SCRIPT_TOP_DIR}/script/$1
+    echo 'if [[ "${describe}" == "describe" ]];then _describe;exit 0;fi' >> ${HIK_SCRIPT_TOP_DIR}/script/$1
     echo 'db="_debug_task"' >> ${HIK_SCRIPT_TOP_DIR}/script/$1
     chmod 755 ${HIK_SCRIPT_TOP_DIR}/script/$1
   fi
@@ -71,6 +74,15 @@ rm_script() {
   if [[ "$1" == "-c" ]];then
       mv ${HIK_SCRIPT_TOP_DIR}/company/$3 ${HIK_SCRIPT_TOP_DIR}/company/.resycle/$3
   else
-    mv "${HIK_SCRIPT_TOP_DIR}/script/$1" ${HIK_SCRIPT_TOP_DIR}/.resycle/$1
+    if [ -f "${HIK_SCRIPT_TOP_DIR}/script/$1" ];then
+        mv "${HIK_SCRIPT_TOP_DIR}/script/$1" ${HIK_SCRIPT_TOP_DIR}/.resycle/$1
+    else
+        mv ${HIK_SCRIPT_TOP_DIR}/company/$1 ${HIK_SCRIPT_TOP_DIR}/company/.resycle/$1
+    fi
   fi
+}
+# 帮助
+usage() {
+  echo -e "Usage: ./$(basename $0) [-t value] [-t value] [-h] [value]\n"
+  echo "-h           help"
 }

@@ -1,7 +1,5 @@
 if [ -f "${HIK_SCRIPT_TOP_DIR}/company/companyfunc.sh" ];then
 source ${HIK_SCRIPT_TOP_DIR}/company/companyfunc.sh
-else
-_task "没有companyfunc.sh"
 fi
 
 run_func=(

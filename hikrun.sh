@@ -1,12 +1,6 @@
 source ${HIK_SCRIPT_TOP_DIR}/base.sh
-usage() {
-  echo -e "Usage: ./$(basename $0) [-t value] [-t value] [-h] [value]\n"
-  echo "-h           help"
-}
-
-
 # 输入
-ARGS=$(getopt -o hbrdpB:C: --long help,rerun:,build,rootfs,script:,download:,code: -n 'hikrun' -- "$@")
+ARGS=$(getopt -o hbrdpB:C: --long help,rerun:,build,rootfs,script:,download:,code:,rm: -n 'hikrun' -- "$@")
 if [ $? != 0 ]; then
   echo "please use '  hikrun -h ' to view details "
 fi
@@ -110,9 +104,10 @@ while true; do
     ;;
     #帮助
     -h | --help)
-      usage
+      describe="describe"
+    #   usage
       shift
-    exit 1 ;;
+    ;;
     # 可变参数
     --)
       shift 1
