@@ -148,11 +148,22 @@ done
 #函数定义和注册
 source ${HIK_SCRIPT_TOP_DIR}/function.sh
 # 函数执行
+exit_user=""
 for func in ${run_func[*]}
 do
   # echo $func
   if [ "$(type -t $func)" = "function" ] ; then
     $func
+    exit_user="yes"
   fi
 done
+if [[ "${exit_user}" == "yes" ]];then exit 0;fi
 
+if [ ! -f "${script_arg[0]}" ];then
+    if [ ! -f "${HIK_SCRIPT_TOP_DIR}/script/${script_arg[0]}" ];then
+        _func "${script_arg[0]} 不存在"
+        exit 0
+    fi
+    script_arg[0]="${HIK_SCRIPT_TOP_DIR}/script/${script_arg[0]}"
+fi
+$(echo ". ""${script_arg[*]}")

@@ -10,7 +10,10 @@ _hikrun() {
         return 0
     fi
     if [[ ${COMP_CWORD} < 2 ]];then
-        COMPREPLY=( $(compgen -W "${pre_opts}" -- ${cur}) )
+        # COMPREPLY=( $(compgen -W "${pre_opts}" -- ${cur}) )
+        tmp_opt="`ls ${HIK_SCRIPT_TOP_DIR}/script/`"" `ls ${HIK_SCRIPT_TOP_DIR}/company/`"
+        COMPREPLY=( $(compgen -W "${tmp_opt}" -- ${cur}) )
+        tmp_opt=""
         return 0
     fi
     case "$pre" in

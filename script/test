@@ -2,3 +2,5 @@
 _describe() { echo "测试用例"; }
 if [[ "${describe}" == "describe" ]];then _describe;exit 0;fi
 db="_debug_task"
+
+echo "test"
