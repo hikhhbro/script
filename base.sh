@@ -18,6 +18,7 @@ self_arg=()
 rerun_j=1
 opts="--help --rerun= --build --rootfs --download= --script --code"
 pre_opts="native adb gits"
+db="_task"
 function _func() {
   echo -en "\033[33mCurrent$FUNCNAME => (${FUNCNAME[1]}): \033[0m"
   for i in "$*"      #在"$*"中遍历参数，此时"$*"被扩展为包含所有位置参数的单个字符串，只遍历一次
