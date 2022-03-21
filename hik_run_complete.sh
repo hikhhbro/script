@@ -21,13 +21,13 @@ _hikrun() {
         return 0
         ;;
       --code)
-        tmp_opt="`ls ${HIK_SCRIPT_TOP_DIR}/script/`"" `ls ${HIK_SCRIPT_TOP_DIR}/`"
+        tmp_opt="`ls ${HIK_SCRIPT_TOP_DIR}/script/`"" `ls ${HIK_SCRIPT_TOP_DIR}/company/`"" `ls ${HIK_SCRIPT_TOP_DIR}/`"
         COMPREPLY=( $(compgen -W "${tmp_opt}" -- ${cur}) )
         tmp_opt=""
         return 0
         ;;
       --script)
-        tmp_opt="`ls ${HIK_SCRIPT_TOP_DIR}/script/`"
+        tmp_opt="`ls ${HIK_SCRIPT_TOP_DIR}/script/`"" `ls ${HIK_SCRIPT_TOP_DIR}/company/`"
         COMPREPLY=( $(compgen -W "${tmp_opt}" -- ${cur}) )
         tmp_opt=""
         return 0

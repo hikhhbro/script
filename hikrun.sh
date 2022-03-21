@@ -6,6 +6,16 @@ usage() {
 #创建脚本
 touch_script() {
   _func
+  if [[ "$1" == "-c" ]];then
+      if [ ! -f "${HIK_SCRIPT_TOP_DIR}/company/$3" ];then
+        echo "#!/bin/bash" >> ${HIK_SCRIPT_TOP_DIR}/company/$3
+        echo ". ${HIK_SCRIPT_TOP_DIR}/base.sh" >> ${HIK_SCRIPT_TOP_DIR}/company/$3
+        echo 'db="_debug_task"' >> ${HIK_SCRIPT_TOP_DIR}/company/$3
+        chmod 755 ${HIK_SCRIPT_TOP_DIR}/company/$3
+      fi
+      code ${HIK_SCRIPT_TOP_DIR}/company/$3
+      exit 0
+  fi
   if [ -f "${HIK_SCRIPT_TOP_DIR}/$1" ];then
       code ${HIK_SCRIPT_TOP_DIR}/$1
       exit 0
@@ -31,7 +41,7 @@ while true; do
     --code)
       case "$2" in
         *)
-          touch_script $2
+          touch_script ${@:2}
           exit 0
         ;;
       esac
