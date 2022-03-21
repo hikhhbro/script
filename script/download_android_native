@@ -1,9 +1,0 @@
-#!/bin/bash
-. /home/hik/private/script/base.sh
-# db="_debug_task"
-xml="bsp-venus-r"
-if [[ "$1" != "" ]];then
-  ${db} xml=$1
-fi
-${db} repo init -g all -u ssh://wangyingdong@git.mioffice.cn:29418/platform/manifest.git -b dev -m ${xml}".xml" --repo-url=ssh://wangyingdong@git.mioffice.cn:29418/tools/repo.git --no-repo-verif
-repo sync -j6 -d -c --no-tag
