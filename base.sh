@@ -38,3 +38,39 @@ function _debug_task() {
 if [ -f "${HIK_SCRIPT_TOP_DIR}/company/companybase.sh" ];then
 source ${HIK_SCRIPT_TOP_DIR}/company/companybase.sh
 fi
+
+#创建脚本
+touch_script() {
+  _func
+  if [[ "$1" == "-c" ]];then
+      if [ ! -f "${HIK_SCRIPT_TOP_DIR}/company/$3" ];then
+        echo "#!/bin/bash" >> ${HIK_SCRIPT_TOP_DIR}/company/$3
+        echo ". ${HIK_SCRIPT_TOP_DIR}/base.sh" >> ${HIK_SCRIPT_TOP_DIR}/company/$3
+        echo 'db="_debug_task"' >> ${HIK_SCRIPT_TOP_DIR}/company/$3
+        chmod 755 ${HIK_SCRIPT_TOP_DIR}/company/$3
+      fi
+      code ${HIK_SCRIPT_TOP_DIR}/company/$3
+      exit 0
+  fi
+  if [ -f "${HIK_SCRIPT_TOP_DIR}/$1" ];then
+      code ${HIK_SCRIPT_TOP_DIR}/$1
+      exit 0
+  fi
+  if [ ! -f "${HIK_SCRIPT_TOP_DIR}/script/$1" ];then
+    echo "#!/bin/bash" >> ${HIK_SCRIPT_TOP_DIR}/script/$1
+    echo ". ${HIK_SCRIPT_TOP_DIR}/base.sh" >> ${HIK_SCRIPT_TOP_DIR}/script/$1
+    echo 'db="_debug_task"' >> ${HIK_SCRIPT_TOP_DIR}/script/$1
+    chmod 755 ${HIK_SCRIPT_TOP_DIR}/script/$1
+  fi
+  code ${HIK_SCRIPT_TOP_DIR}/script/$1
+}
+
+#删除脚本
+rm_script() {
+    _func
+  if [[ "$1" == "-c" ]];then
+      mv ${HIK_SCRIPT_TOP_DIR}/company/$3 ${HIK_SCRIPT_TOP_DIR}/company/.resycle/$3
+  else
+    mv "${HIK_SCRIPT_TOP_DIR}/script/$1" ${HIK_SCRIPT_TOP_DIR}/.resycle/$1
+  fi
+}

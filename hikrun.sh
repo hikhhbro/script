@@ -3,31 +3,7 @@ usage() {
   echo -e "Usage: ./$(basename $0) [-t value] [-t value] [-h] [value]\n"
   echo "-h           help"
 }
-#创建脚本
-touch_script() {
-  _func
-  if [[ "$1" == "-c" ]];then
-      if [ ! -f "${HIK_SCRIPT_TOP_DIR}/company/$3" ];then
-        echo "#!/bin/bash" >> ${HIK_SCRIPT_TOP_DIR}/company/$3
-        echo ". ${HIK_SCRIPT_TOP_DIR}/base.sh" >> ${HIK_SCRIPT_TOP_DIR}/company/$3
-        echo 'db="_debug_task"' >> ${HIK_SCRIPT_TOP_DIR}/company/$3
-        chmod 755 ${HIK_SCRIPT_TOP_DIR}/company/$3
-      fi
-      code ${HIK_SCRIPT_TOP_DIR}/company/$3
-      exit 0
-  fi
-  if [ -f "${HIK_SCRIPT_TOP_DIR}/$1" ];then
-      code ${HIK_SCRIPT_TOP_DIR}/$1
-      exit 0
-  fi
-  if [ ! -f "${HIK_SCRIPT_TOP_DIR}/script/$1" ];then
-    echo "#!/bin/bash" >> ${HIK_SCRIPT_TOP_DIR}/script/$1
-    echo ". ${HIK_SCRIPT_TOP_DIR}/base.sh" >> ${HIK_SCRIPT_TOP_DIR}/script/$1
-    echo 'db="_debug_task"' >> ${HIK_SCRIPT_TOP_DIR}/script/$1
-    chmod 755 ${HIK_SCRIPT_TOP_DIR}/script/$1
-  fi
-  code ${HIK_SCRIPT_TOP_DIR}/script/$1
-}
+
 
 # 输入
 ARGS=$(getopt -o hbrdpB:C: --long help,rerun:,build,rootfs,script:,download:,code: -n 'hikrun' -- "$@")
@@ -37,11 +13,20 @@ fi
 eval set -- "${ARGS}"
 while true; do
   case "$1" in
-    #重复运行
+    #创建
     --code)
       case "$2" in
         *)
           touch_script ${@:2}
+          exit 0
+        ;;
+      esac
+    ;;
+    #删除
+    --rm)
+      case "$2" in
+        *)
+          rm_script ${@:2}
           exit 0
         ;;
       esac

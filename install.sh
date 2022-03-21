@@ -6,12 +6,18 @@ echo "卸载完成"
 fi
 echo "正在安装"
 if [ ! -d company/ ];then
-_task mkdir company
-_task  touch company/companybase.sh
-_task  touch company/companyfunc.sh
+    _task mkdir company
+    _task  touch company/companybase.sh
+    _task  touch company/companyfunc.sh
+fi
+if [ ! -d company/.resycle/ ];then
+    _task mkdir company/.resycle
 fi
 if [ ! -d script/ ];then
 _task mkdir script
+fi
+if [ ! -d .resycle/ ];then
+_task mkdir .resycle
 fi
 _task sed -i '/hik_run_complete.sh/d'  ~/.bashrc
 echo "source `pwd`/hik_run_complete.sh" >> ~/.bashrc
