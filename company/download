@@ -1,3 +1,0 @@
-#!/bin/bash
-. /home/hik/private/script/base.sh
-db="_debug_task"
