@@ -13,6 +13,7 @@ touch_script() {
   if [ ! -f "${HIK_SCRIPT_TOP_DIR}/script/$1" ];then
     echo "#!/bin/bash" >> ${HIK_SCRIPT_TOP_DIR}/script/$1
     echo ". ${HIK_SCRIPT_TOP_DIR}/base.sh" >> ${HIK_SCRIPT_TOP_DIR}/script/$1
+    echo 'db="_debug_task"' >> ${HIK_SCRIPT_TOP_DIR}/script/$1
     chmod 755 ${HIK_SCRIPT_TOP_DIR}/script/$1
   fi
   code ${HIK_SCRIPT_TOP_DIR}/script/$1

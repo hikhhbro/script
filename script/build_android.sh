@@ -21,7 +21,11 @@ lunch venus-userdebug
 if [[ "$1" == "" ]];then
   ./mibuild.sh dist -j16 | tee build_full.log
   ./device/xiaomi/venus/flash_scripts/build_all.sh
+
+elif  [[ "$1" == "-m" ]];then
+    make -j16 $2
 else 
   quickbuild $1
 fi
+
 cd $ORGDIR
