@@ -46,9 +46,10 @@ touch_script() {
   if [[ "$1" == "-c" ]];then
       if [ ! -f "${HIK_SCRIPT_TOP_DIR}/company/$3" ];then
         echo "#!/bin/bash" >> ${HIK_SCRIPT_TOP_DIR}/company/$3
-        echo 'db="_debug_task"' >> ${HIK_SCRIPT_TOP_DIR}/company/$3
         echo '_describe() { echo ""; }' >>  ${HIK_SCRIPT_TOP_DIR}/company/$3
         echo 'if [[ "${describe}" == "describe" ]];then _describe;exit 0;fi' >>  ${HIK_SCRIPT_TOP_DIR}/company/$3
+        echo 'db="_debug_task"' >> ${HIK_SCRIPT_TOP_DIR}/company/$3
+        echo  >>  ${HIK_SCRIPT_TOP_DIR}/company/$3
         chmod 755 ${HIK_SCRIPT_TOP_DIR}/company/$3
       fi
       code ${HIK_SCRIPT_TOP_DIR}/company/$3
@@ -63,6 +64,7 @@ touch_script() {
     echo '_describe() { echo ""; }' >> ${HIK_SCRIPT_TOP_DIR}/script/$1
     echo 'if [[ "${describe}" == "describe" ]];then _describe;exit 0;fi' >> ${HIK_SCRIPT_TOP_DIR}/script/$1
     echo 'db="_debug_task"' >> ${HIK_SCRIPT_TOP_DIR}/script/$1
+    echo  >> ${HIK_SCRIPT_TOP_DIR}/script/$1
     chmod 755 ${HIK_SCRIPT_TOP_DIR}/script/$1
   fi
   code ${HIK_SCRIPT_TOP_DIR}/script/$1

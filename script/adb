@@ -1,0 +1,9 @@
+#!/bin/bash
+_describe() { echo ""; }
+if [[ "${describe}" == "describe" ]];then _describe;exit 0;fi
+db="_debug_task"
+
+${db} adb root
+${db} adb remount
+${db} adb disable-verity
+${db} adb shell

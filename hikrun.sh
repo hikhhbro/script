@@ -1,9 +1,8 @@
 source ${HIK_SCRIPT_TOP_DIR}/base.sh
 # 输入
-ARGS=$(getopt -o hbrdpB:C: --long help,rerun:,build,rootfs,script:,download:,code:,rm: -n 'hikrun' -- "$@")
-if [ $? != 0 ]; then
-  echo "please use '  hikrun -h ' to view details "
-fi
+ARGS=$(getopt -o :hbrdpB:C: --long help,rerun:,build,rootfs,script:,download:,code:,rm: -n 'hikrun' -- "$@")
+error_return=$?
+
 eval set -- "${ARGS}"
 while true; do
   case "$1" in
@@ -110,32 +109,9 @@ while true; do
     ;;
     # 可变参数
     --)
-      shift 1
-      for i in $*  #"$*" 不能判断
-      do
-        if [[ ${project_type[@]/$i/} != ${project_type[@]} ]];then
-          project=(${project[*]} $i)
-          machine=${machine_type[0]}
-          if [[  ${#project[@]} > 1 ]];then
-            echo "不支持多个工程: ${project[*]}"
-            exit 1
-          fi
-        else
-          if [[ "$build" != "" ]];then
-            out_target=(${out_target[*]} $i)
-          fi
-          # if [[  ${#script_arg[@]} == 1 ]];then
-            script_arg=(${script_arg[*]} $i)
-          # fi
-          if [[ "$i" == "adb" ]];then
-            run_adb="run_"$i"_func"
-          fi
-          if [[ "$i" == "gits" ]];then
-            run_gits="run_"$i"_func"
-          fi
-          self_arg=(${self_arg[*]} $i)
-        fi
-      done
+      error_return=0
+      shift 
+      break
     ;;
     # 不支持
     *)
@@ -143,8 +119,14 @@ while true; do
     break;;
   esac
 done
-
-
+#状态决策
+if [ ${error_return} != 0 ]; then
+  echo "please use '  hikrun -h ' to view details "
+  exit 0
+fi
+#剩余参数
+script_arg=$@
+self_arg=$@
 #函数定义和注册
 source ${HIK_SCRIPT_TOP_DIR}/function.sh
 # 函数执行

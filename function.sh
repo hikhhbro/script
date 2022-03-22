@@ -8,16 +8,8 @@ run_func=(
   ${machine}_${project}_${build}
   ${machine}_${project}_${rootfs}
   ${rerun}_${script}
-  ${run_adb}
-  ${run_gits}
 )
-run_adb_func() {
-  _func
-  ${db} adb root
-  ${db} adb remount
-  ${db} adb disable-verity
-  ${db} adb shell
-}
+
 #执行外部脚本
 rerun_script() {
   if [ ! -f "${script_arg[0]}" ];then
@@ -34,7 +26,3 @@ rerun_script() {
   done
 }
 
-run_gits_func() {
-  _func "gits"
-  . ${HIK_SCRIPT_TOP_DIR}/script/gits/gits.sh
-}

@@ -1,0 +1,5 @@
+#!/bin/bash
+_describe() { echo "连接安卓11adb"; }
+if [[ "${describe}" == "describe" ]];then _describe;exit 0;fi
+db="_debug_task"
+
