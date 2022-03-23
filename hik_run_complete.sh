@@ -116,21 +116,15 @@ _hikrun() {
         return 0
         ;;
       --code)
-        tmp_opt="`ls ${HIK_SCRIPT_TOP_DIR}/script/`"" `ls ${HIK_SCRIPT_TOP_DIR}/company/`"" `ls ${HIK_SCRIPT_TOP_DIR}/`"
-        COMPREPLY=( $(compgen -W "${tmp_opt}" -- ${cur}) )
-        tmp_opt=""
+        __get_file ${HIK_SCRIPT_TOP_DIR}/script/  ${HIK_SCRIPT_TOP_DIR}/company/
         return 0
         ;;
       --rm)
-        tmp_opt="`ls ${HIK_SCRIPT_TOP_DIR}/script/`"" `ls ${HIK_SCRIPT_TOP_DIR}/company/`"" `ls ${HIK_SCRIPT_TOP_DIR}/`"
-        COMPREPLY=( $(compgen -W "${tmp_opt}" -- ${cur}) )
-        tmp_opt=""
+        __get_file ${HIK_SCRIPT_TOP_DIR}/script/  ${HIK_SCRIPT_TOP_DIR}/company/
         return 0
         ;;
       --script)
-        tmp_opt="`ls ${HIK_SCRIPT_TOP_DIR}/script/`"" `ls ${HIK_SCRIPT_TOP_DIR}/company/`"
-        COMPREPLY=( $(compgen -W "${tmp_opt}" -- ${cur}) )
-        tmp_opt=""
+        __get_file ${HIK_SCRIPT_TOP_DIR}/script/  ${HIK_SCRIPT_TOP_DIR}/company/
         return 0
         ;;
       *)
@@ -143,7 +137,6 @@ _hikrun() {
           return 0
         fi
         tmp_opt=( $(${COMP_WORDS[1]}_get_options) )
-        # echo ${tmp_opt[@]}
         local opt_
         local opt
         for i in ${tmp_opt[@]}
