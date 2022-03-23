@@ -4,7 +4,6 @@
 描述: 
 <_describe> end
 <_get_options> begin
--m -r test
+选项: 
 <_get_options> end
 !
-echo "template"

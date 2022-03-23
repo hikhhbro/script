@@ -1,11 +1,13 @@
 #!/bin/bash
-adb_describe() { echo "描述: 手机adb连接和remount"; }
-adb_get_options() {
-  echo ""
-}
-adb_probe() {
-${db} adb root
-${db} adb remount
-${db} adb disable-verity
-${db} adb shell
-}
+: << !
+<_describe> begin
+描述: 手机adb连接和remount
+<_describe> end
+<_get_options> begin
+选项: 
+<_get_options> end
+!
+adb root
+adb disable-verity
+    adb remount
+    adb shell

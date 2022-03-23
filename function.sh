@@ -19,7 +19,7 @@ my_compile() {
   prefix_=$1
   prefix_=${prefix_##*/}
   echo '#!/bin/bash' > ${HIK_SCRIPT_TOP_DIR}/.compile/$1
-  cat ${HIK_SCRIPT_TOP_DIR}/$1 | awk 'NR>2' | while read -r line
+  while read -r line || [[ -n ${line} ]]
   do
     head_=(${line})
         # echo ${flag_read}
@@ -42,7 +42,7 @@ my_compile() {
         elif [[ "${func_read}" == "_describe" ]] ;then
           echo "echo \"${line} \"" >> ${HIK_SCRIPT_TOP_DIR}/.compile/$1
         elif [[ "${func_read}" == "_get_options" ]] ;then
-          echo "echo \"${line} \"" >> ${HIK_SCRIPT_TOP_DIR}/.compile/$1
+          echo "echo \"${line:3:} \"" >> ${HIK_SCRIPT_TOP_DIR}/.compile/$1
         fi
         ;;
       end)
@@ -59,26 +59,23 @@ my_compile() {
         else
             flag_read="probe"
             func_read="_probe"
-
             echo "${prefix_}${func_read}() {" >> ${HIK_SCRIPT_TOP_DIR}/.compile/$1
         fi
       ;;
       probe)
         if [[ "$(type -t ${head_[0]})" == "builtin" ||  "$(type -t ${head_[0]})" == "file" ]] ; then
           line="${db} $line" 
+          echo 1 > ${HIK_SCRIPT_TOP_DIR}/.compile/.tmp
         fi
          echo $line >> ${HIK_SCRIPT_TOP_DIR}/.compile/$1
       ;;
     esac
-    # if [[ "${head_[0]}" == "<_describe>" ]] ;then
-    # elif [[ "${head_[0]}" == "<_describe>" ]] ;then
-    # fi
-
-    # if [[ "$(type -t ${efe[0]})" == "builtin" ||  "$(type -t ${efe[0]})" == "file" ]] ; then
-    #     line="${db} $line" 
-    # fi
-    # echo $line
-  done 
+  done < "${HIK_SCRIPT_TOP_DIR}/$1"
+  # if [[ cat ${HIK_SCRIPT_TOP_DIR}/$1" == "" ]];then
+  if [ `cat ${HIK_SCRIPT_TOP_DIR}/.compile/.tmp` -eq 1 ];then
+    echo "echo -e \"\033[33m${prefix_}未实现\033[0m\"" >> ${HIK_SCRIPT_TOP_DIR}/.compile/$1
+      echo 0 > ${HIK_SCRIPT_TOP_DIR}/.compile/.tmp
+  fi
   echo "}" >> ${HIK_SCRIPT_TOP_DIR}/.compile/$1
 }
 
