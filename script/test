@@ -1,6 +1,11 @@
 #!/bin/bash
-_describe() { echo "测试用例"; }
-if [[ "${describe}" == "describe" ]];then _describe;exit 0;fi
-db="_debug_task"
+: << !
+<_describe> begin
+描述: 
+<_describe> end
+<_get_options> begin
+-m -r
+<_get_options> end
+!
 
 echo "test"

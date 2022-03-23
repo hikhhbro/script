@@ -20,6 +20,8 @@ opts="--help --rerun= --build --rootfs --download= --script --code --rm"
 pre_opts="native adb gits"
 db="_task"
 describe=""
+#公共选项提示
+pub_opt=" -h -V"
 function _func() {
   echo -en "\033[33mCurrent$FUNCNAME => (${FUNCNAME[1]}): \033[0m"
   for i in "$*"      #在"$*"中遍历参数，此时"$*"被扩展为包含所有位置参数的单个字符串，只遍历一次
@@ -28,13 +30,17 @@ function _func() {
   done
 }
 function _task() {
+  # if [ "$(type -t $1)" = "builtin" ] || [ "$(type -t $1)" = "file" ]; then
     echo -e "\033[33mRunning$FUNCNAME => ($*): \033[0m"  
     $*
+  # fi
 }
 function _debug_task() {
+  # if [ "$(type -t $1)" = "builtin" ] || [ "$(type -t $1)" = "file" ]; then
     echo -e -n "\033[33mRunning$FUNCNAME => ($*): \033[0m"  
     read 
     $*
+  # fi
 }
 if [ -f "${HIK_SCRIPT_TOP_DIR}/company/companybase.sh" ];then
 source ${HIK_SCRIPT_TOP_DIR}/company/companybase.sh
@@ -45,11 +51,7 @@ touch_script() {
   _func
   if [[ "$1" == "-c" ]];then
       if [ ! -f "${HIK_SCRIPT_TOP_DIR}/company/$3" ];then
-        echo "#!/bin/bash" >> ${HIK_SCRIPT_TOP_DIR}/company/$3
-        echo '_describe() { echo ""; }' >>  ${HIK_SCRIPT_TOP_DIR}/company/$3
-        echo 'if [[ "${describe}" == "describe" ]];then _describe;exit 0;fi' >>  ${HIK_SCRIPT_TOP_DIR}/company/$3
-        echo 'db="_debug_task"' >> ${HIK_SCRIPT_TOP_DIR}/company/$3
-        echo  >>  ${HIK_SCRIPT_TOP_DIR}/company/$3
+        sed 's/template/'$3'/g' ${HIK_SCRIPT_TOP_DIR}/.template > ${HIK_SCRIPT_TOP_DIR}/company/$3
         chmod 755 ${HIK_SCRIPT_TOP_DIR}/company/$3
       fi
       code ${HIK_SCRIPT_TOP_DIR}/company/$3
@@ -60,11 +62,7 @@ touch_script() {
       exit 0
   fi
   if [ ! -f "${HIK_SCRIPT_TOP_DIR}/script/$1" ];then
-    echo "#!/bin/bash" >> ${HIK_SCRIPT_TOP_DIR}/script/$1
-    echo '_describe() { echo ""; }' >> ${HIK_SCRIPT_TOP_DIR}/script/$1
-    echo 'if [[ "${describe}" == "describe" ]];then _describe;exit 0;fi' >> ${HIK_SCRIPT_TOP_DIR}/script/$1
-    echo 'db="_debug_task"' >> ${HIK_SCRIPT_TOP_DIR}/script/$1
-    echo  >> ${HIK_SCRIPT_TOP_DIR}/script/$1
+    sed 's/template/'$1'/g' ${HIK_SCRIPT_TOP_DIR}/.template > ${HIK_SCRIPT_TOP_DIR}/script/$1
     chmod 755 ${HIK_SCRIPT_TOP_DIR}/script/$1
   fi
   code ${HIK_SCRIPT_TOP_DIR}/script/$1

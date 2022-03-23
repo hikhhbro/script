@@ -1,10 +1,10 @@
 #!/bin/bash
 : << !
 <_describe> begin
-描述: 
+描述: 推送sensor相关库到手机,默认推送libsensor.so 和libsensorservice.so 传入参数可推送 /system/lib/和/system/lib64/下的库
 <_describe> end
 <_get_options> begin
-选项: 
+选项: libsensorservice.so libsensor.so
 <_get_options> end
 !
 DIRPATH="/home/hik/ws/android/out/target/product/venus"

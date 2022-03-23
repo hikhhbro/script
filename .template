@@ -1,13 +1,9 @@
 #!/bin/bash
 : << !
 <_describe> begin
-描述: 手机adb连接和remount
+描述: 
 <_describe> end
 <_get_options> begin
 选项: 
 <_get_options> end
 !
-adb root
-adb disable-verity
-    adb remount
-    adb shell

@@ -1,0 +1,9 @@
+#!/bin/bash
+cdhome_describe() { echo "描述: 跳转到家目录"; }
+cdhome_get_options() {
+  echo ""
+}
+cdhome_probe() {
+echo "cd ~/"
+
+}
