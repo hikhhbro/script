@@ -1,4 +1,5 @@
 __get_file() {
+        # set -x
          trap exit 0 3
         COMPREPLY=()
         unset input2
@@ -21,69 +22,76 @@ __get_file() {
           COMPREPLY=( $(compgen -W "${input2}" -- ) )
           # echo "  111r"
         else
+          if [[ ${cur} != */ ]];then
+            if [[ ${cur} != */* ]];then
+              if [ -d "$1" ] && [ -d "$2" ];then 
+                input1="`ls $1`"" `ls $2`"
+                dir1=$1
+                dir2=$2
+              fi
+              cur_cur=${cur}
+            else
+                temp_cur=${cur%/*}
+                cur_cur=${cur##*/}
+              if [ -d "$1${temp_cur}" ];then
+                  input1="`ls $1${temp_cur}`"
+              elif [ -d "$2${temp_cur}" ];then
+                  input1="`ls $2${temp_cur}`"
+              else
+                echo $1 "32"
+                  echo $1${temp_cur} "32" "  "${cur}
+                return 0
+              fi
+            fi
 
-          if [ -d "$dir1$1" ];then
-              input1="`ls $dir1$1`"
-              # echo $input1
-                # return 0
-          elif [ -d "$dir2$1" ];then
-              input1="`ls $dir2$1`"
-                # return 0
+            for i in ${input1}
+            do
+                input2=${input2}" "$i
+                if [ -d "$1$i" ] || [ -d "$2$i" ];then
+                  input2=${input2}"/"
+                fi
+            done
+            compopt -o nospace
+            COMPREPLY=( $(compgen -W "${input2}" -- ${cur_cur}) )
+            if [[ ${cur} == */* ]];then
+                  compopt +o nospace
+                  for(( i=0;i<${#COMPREPLY[@]};i++)) do
+                    COMPREPLY[$i]="${temp_cur}/${COMPREPLY[$i]}"
+                  done; 
+            else
+                if [[ "${#COMPREPLY[@]}" == "1" && ${COMPREPLY[0]} != */ ]];then
+                    compopt +o nospace
+                fi
+            fi
+
+
           else
-            echo $1
-            return 0
-          fi
-          echo "  er"
-        fi
-        # if [ -d "$1" ] && [ -d "$2" ];then 
-        #   input1="`ls $1`"" `ls $2`"
-        #   dir1=$1
-        #   dir2=$2
-        # elif [ -d "$dir1$1" ];then
-        #     input1="`ls $dir1$1`"
-        #     # echo $input1
-        #       # return 0
-        # elif [ -d "$dir2$1" ];then
-        #     input1="`ls $dir2$1`"
-        #       # return 0
-        # else
-        #   echo $1
-        #   return 0
-        # fi
+            temp_cur=${cur%/*}
+            if [ -d "$1${temp_cur}" ];then
+                input1="`ls $1${temp_cur}`"
+            elif [ -d "$2${temp_cur}" ];then
+                input1="`ls $2${temp_cur}`"
+            else
+              echo $1 "dd"
+              return 0
+            fi
+            for i in ${input1}
+            do
+                input2=${input2}" "$i
+                if [ -d "$1$i" ] || [ -d "$2$i" ];then
+                  input2=${input2}"/"
+                fi
+            done
+            compopt -o nospace
+            COMPREPLY=( $(compgen -W "${input2}" -- ) )
+            if [[ "${#COMPREPLY[@]}" == "1"  ]];then
+                    compopt +o nospace
+                    COMPREPLY[0]="${temp_cur}/${COMPREPLY[0]}"
 
-            
-            # if [[ ${cur} == */ ]];then
-            #     echo $input1
-            #   COMPREPLY=( $(compgen -W "${input2}" -- ) )
-              
-            # else
-            
-            #   COMPREPLY=( $(compgen -W "${input2}" -- ${cur}) )
-            # fi
-            
-            # if [[ ${#COMPREPLY[@]} -eq 1 ]]; then
-            #   echo "de-1"
-            #   if [[ ${COMPREPLY} == */ ]];then
-            #       echo "de-2"
-            #       compopt -o nospace
-            #   fi 
-            # fi
-            # if [[ ${cur} == */ ]];then
-            #     echo "de-3"  
-            #     if [[ "${COMPREPLY}" != "${cur}" ]];then
-            #         echo ${COMPREPLY} ${cur} "rsi"
-            #         sleep 2
-            #         __get_file ${cur}
-            #         echo ${COMPREPLY} "ri"
-            #     else
-            #         #  echo ${COMPREPLY}"  "${cur}" "${input1} "  "${COMP_CWORD}
-            #         echo "de-5"
-            #         compopt -o nospace
-            #       return 0
-            #     fi 
-            # fi 
-            # echo "de-6"
-            # echo " re "${input1}
+            fi
+          fi
+        fi
+
 }
 _hikrun() {
     local pre cur tmp_opt
@@ -98,7 +106,6 @@ _hikrun() {
     fi
     if [[ ${COMP_CWORD} == 1 ]];then
         __get_file ${HIK_SCRIPT_TOP_DIR}/script/  ${HIK_SCRIPT_TOP_DIR}/company/
-
         return 0
     fi
     case "$pre" in
@@ -166,5 +173,5 @@ _hikrun() {
 }
 __hikrun_program="hikrun"
 have ${__hikrun_program} && \
- complete -F _hikrun  ${__hikrun_program}
+ complete -o filenames -F _hikrun  ${__hikrun_program}
  unset __hikrun_program
