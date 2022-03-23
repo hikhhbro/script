@@ -16,6 +16,7 @@ run_gits=""
 script_arg=()
 self_arg=()
 rerun_j=1
+pub_opt=" -h"
 opts="--help --rerun= --build --rootfs --download= --script --code --rm"
 pre_opts="native adb gits"
 db="_task"

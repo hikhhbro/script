@@ -2,12 +2,20 @@ if [ -f "${HIK_SCRIPT_TOP_DIR}/company/companyfunc.sh" ];then
 source ${HIK_SCRIPT_TOP_DIR}/company/companyfunc.sh
 fi
 
+if [ -f "${HIK_SCRIPT_TOP_DIR}/script/${script_arg[0]}" ];then
+  . ${HIK_SCRIPT_TOP_DIR}/script/${script_arg[0]}
+elif [ -f "${HIK_SCRIPT_TOP_DIR}/company/${script_arg[0]}" ];then
+  . ${HIK_SCRIPT_TOP_DIR}/company/${script_arg[0]}
+fi
+
 run_func=(
   ${machine}_${project}_${download}
   ${machine}_${project}_${prebuilt}
   ${machine}_${project}_${build}
   ${machine}_${project}_${rootfs}
   ${rerun}_${script}
+  ${script_arg[0]}_${describe} 
+  ${script_arg[0]}_${probe} ${script_arg[@]:1:}
 )
 
 #执行外部脚本
