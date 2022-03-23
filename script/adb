@@ -1,9 +1,11 @@
 #!/bin/bash
-_describe() { echo ""; }
-if [[ "${describe}" == "describe" ]];then _describe;exit 0;fi
-db="_debug_task"
-
+adb_describe() { echo "描述: 手机adb连接和remount"; }
+adb_get_options() {
+  echo ""
+}
+adb_probe() {
 ${db} adb root
 ${db} adb remount
 ${db} adb disable-verity
 ${db} adb shell
+}

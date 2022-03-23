@@ -1,7 +1,7 @@
 source ${HIK_SCRIPT_TOP_DIR}/base.sh
 probe="probe"
 # 输入
-ARGS=$(getopt -o :hbrdpB:C: --long help,rerun:,build,rootfs,script:,download:,code:,rm: -n 'hikrun' -- "$@")
+ARGS=$(getopt -o :hVbrdpB:C: --long help,rerun:,build,rootfs,script:,download:,code:,rm: -n 'hikrun' -- "$@")
 error_return=$?
 
 eval set -- "${ARGS}"
@@ -28,6 +28,11 @@ while true; do
     #下载重包或者使用cache
     -p)
       prebuilt="prebuilt"
+      shift
+    ;;
+    #调试选项
+    -V)
+      db="_debug_task"
       shift
     ;;
     #base 选项
@@ -126,16 +131,20 @@ if [ ${error_return} != 0 ]; then
   exit 0
 fi
 #剩余参数
-script_arg=$@
-self_arg=$@
+script_arg=($@)
+self_arg=($@)
+# echo  ${@:2} 从第二个开始
+# echo ${script_arg[0]}
+
 #函数定义和注册
 source ${HIK_SCRIPT_TOP_DIR}/function.sh
 # 函数执行
 for func in ${run_func[*]}
 do
-  # echo $func
+  # echo $func ${@:1}
   if [ "$(type -t $func)" = "function" ] ; then
-    $func
+    # echo $func ${@:1}
+    $func ${@:2}
     unset $func
   fi
 done

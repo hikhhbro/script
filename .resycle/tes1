@@ -5,5 +5,5 @@ test_get_options() {
 }
 test_probe() {
 local db="_debug_task"
-
+  ${db} echo "ces"
 }

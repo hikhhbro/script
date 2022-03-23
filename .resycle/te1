@@ -1,0 +1,9 @@
+#!/bin/bash
+te1_describe() { echo "描述: "; }
+te1_get_options() {
+  echo ""
+}
+te1_probe() {
+local db="_debug_task"
+${db}  echo "ddd"
+}

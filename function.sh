@@ -15,7 +15,7 @@ run_func=(
   ${machine}_${project}_${rootfs}
   ${rerun}_${script}
   ${script_arg[0]}_${describe} 
-  ${script_arg[0]}_${probe} ${script_arg[@]:1:}
+  ${script_arg[0]}_${probe}
 )
 
 #执行外部脚本

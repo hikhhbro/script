@@ -151,10 +151,10 @@ _hikrun() {
         local opt_e=${opt}
         case "$cur" in
           -*)
-            opt_e=${opt_}
+            opt_e="${opt_} ${pub_opt}"
           ;;
         esac
-        COMPREPLY=( $(compgen -W " ${opt_e}${pub_opt}" -- ${cur}) )
+        COMPREPLY=( $(compgen -W " ${opt_e}" -- ${cur}) )
         unset tmp_opt
         unset ${COMP_WORDS[1]}"_probe"
         unset ${COMP_WORDS[1]}"_describe"

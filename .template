@@ -1,0 +1,9 @@
+#!/bin/bash
+template_describe() { echo "描述: "; }
+template_get_options() {
+  echo ""
+}
+template_probe() {
+
+
+}
