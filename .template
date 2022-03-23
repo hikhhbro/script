@@ -1,9 +1,10 @@
 #!/bin/bash
-template_describe() { echo "描述: "; }
-template_get_options() {
-  echo ""
-}
-template_probe() {
-
-
-}
+: << !
+<_describe> begin
+描述: 
+<_describe> end
+<_get_options> begin
+-m -r test
+<_get_options> end
+!
+echo "template"

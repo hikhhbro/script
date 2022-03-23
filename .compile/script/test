@@ -1,0 +1,11 @@
+#!/bin/bash
+test_describe() {
+echo "描述: "
+}
+test_get_options() {
+echo "-m -r "
+}
+test_probe() {
+
+_debug_task echo "test"
+}

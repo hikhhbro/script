@@ -129,12 +129,13 @@ _hikrun() {
         ;;
       *)
 
-        if [[ -f ${HIK_SCRIPT_TOP_DIR}/script/${COMP_WORDS[1]} ]];then
-          . ${HIK_SCRIPT_TOP_DIR}/script/${COMP_WORDS[1]}
-        elif [[ -f ${HIK_SCRIPT_TOP_DIR}/company/${COMP_WORDS[1]} ]];then
-          . ${HIK_SCRIPT_TOP_DIR}/company/${COMP_WORDS[1]}
+        if [[ -f ${HIK_SCRIPT_TOP_DIR}/.compile/script/${COMP_WORDS[1]} ]];then
+          . ${HIK_SCRIPT_TOP_DIR}/.compile/script/${COMP_WORDS[1]}
+        elif [[ -f ${HIK_SCRIPT_TOP_DIR}/.compile/company/${COMP_WORDS[1]} ]];then
+          . ${HIK_SCRIPT_TOP_DIR}/.compile/company/${COMP_WORDS[1]}
         else
           return 0
+          # echo "${HIK_SCRIPT_TOP_DIR}/.compile/company/${COMP_WORDS[1]}"
         fi
         tmp_opt=( $(${COMP_WORDS[1]}_get_options) )
         local opt_

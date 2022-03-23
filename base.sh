@@ -30,13 +30,17 @@ function _func() {
   done
 }
 function _task() {
+  # if [ "$(type -t $1)" = "builtin" ] || [ "$(type -t $1)" = "file" ]; then
     echo -e "\033[33mRunning$FUNCNAME => ($*): \033[0m"  
     $*
+  # fi
 }
 function _debug_task() {
+  # if [ "$(type -t $1)" = "builtin" ] || [ "$(type -t $1)" = "file" ]; then
     echo -e -n "\033[33mRunning$FUNCNAME => ($*): \033[0m"  
     read 
     $*
+  # fi
 }
 if [ -f "${HIK_SCRIPT_TOP_DIR}/company/companybase.sh" ];then
 source ${HIK_SCRIPT_TOP_DIR}/company/companybase.sh

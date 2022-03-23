@@ -2,11 +2,99 @@ if [ -f "${HIK_SCRIPT_TOP_DIR}/company/companyfunc.sh" ];then
 source ${HIK_SCRIPT_TOP_DIR}/company/companyfunc.sh
 fi
 
+# if [ -f "${HIK_SCRIPT_TOP_DIR}/script/${script_arg[0]}" ];then
+#   . ${HIK_SCRIPT_TOP_DIR}/script/${script_arg[0]}
+# elif [ -f "${HIK_SCRIPT_TOP_DIR}/company/${script_arg[0]}" ];then
+#   . ${HIK_SCRIPT_TOP_DIR}/company/${script_arg[0]}
+# fi
+# my_compile_get_describec() {
+#   if [[ "$1" == "<_describe>" ]] ;then
+  
+# }
+my_compile() {
+  tem_line=""
+  line_nub=0
+  flag_read="begin"
+  func_read=""
+  prefix_=$1
+  prefix_=${prefix_##*/}
+  echo '#!/bin/bash' > ${HIK_SCRIPT_TOP_DIR}/.compile/$1
+  cat ${HIK_SCRIPT_TOP_DIR}/$1 | awk 'NR>2' | while read -r line
+  do
+    head_=(${line})
+        # echo ${flag_read}
+    case "${flag_read}" in
+      begin)
+          # echo ${flag_read}
+          # echo ${func_read}
+        if [[ "${head_[0]}" == "<_describe>" ]] ;then
+          func_read=${head_[0]:1:-1}
+          flag_read=${head_[1]}
+          if [[ "${flag_read}" == "begin" ]] ;then
+            echo "${prefix_}${func_read}() {" >> ${HIK_SCRIPT_TOP_DIR}/.compile/$1
+          else
+            echo "}" >> ${HIK_SCRIPT_TOP_DIR}/.compile/$1
+          fi
+        elif [[ "${head_[0]}" == "<_get_options>" ]] ;then  
+          func_read=${head_[0]:1:-1}
+          flag_read=${head_[1]}
+          echo "}" >> ${HIK_SCRIPT_TOP_DIR}/.compile/$1
+        elif [[ "${func_read}" == "_describe" ]] ;then
+          echo "echo \"${line} \"" >> ${HIK_SCRIPT_TOP_DIR}/.compile/$1
+        elif [[ "${func_read}" == "_get_options" ]] ;then
+          echo "echo \"${line} \"" >> ${HIK_SCRIPT_TOP_DIR}/.compile/$1
+        fi
+        ;;
+      end)
+        if [[ "${head_[0]}" == "<_describe>" ]] ;then
+          func_read=${head_[0]:1:-1}
+          flag_read=${head_[1]}
+          # echo ${func_read}
+        elif [[ "${head_[0]}" == "<_get_options>" ]] ;then  
+          func_read=${head_[0]:1:-1}
+          flag_read=${head_[1]}
+          if [[ "${flag_read}" == "begin" ]] ;then
+            echo "${prefix_}${func_read}() {" >> ${HIK_SCRIPT_TOP_DIR}/.compile/$1
+          fi
+        else
+            flag_read="probe"
+            func_read="_probe"
+
+            echo "${prefix_}${func_read}() {" >> ${HIK_SCRIPT_TOP_DIR}/.compile/$1
+        fi
+      ;;
+      probe)
+        if [[ "$(type -t ${head_[0]})" == "builtin" ||  "$(type -t ${head_[0]})" == "file" ]] ; then
+          line="${db} $line" 
+        fi
+         echo $line >> ${HIK_SCRIPT_TOP_DIR}/.compile/$1
+      ;;
+    esac
+    # if [[ "${head_[0]}" == "<_describe>" ]] ;then
+    # elif [[ "${head_[0]}" == "<_describe>" ]] ;then
+    # fi
+
+    # if [[ "$(type -t ${efe[0]})" == "builtin" ||  "$(type -t ${efe[0]})" == "file" ]] ; then
+    #     line="${db} $line" 
+    # fi
+    # echo $line
+  done 
+  echo "}" >> ${HIK_SCRIPT_TOP_DIR}/.compile/$1
+}
+
 if [ -f "${HIK_SCRIPT_TOP_DIR}/script/${script_arg[0]}" ];then
-  . ${HIK_SCRIPT_TOP_DIR}/script/${script_arg[0]}
+    # temp_dir_s="${HIK_SCRIPT_TOP_DIR}/script/${script_arg[0]}"
+    # mkdir -p  ${temp_dir_s%/*}
+    # set -x
+    my_compile script/${script_arg[0]}
+    # set +x
+  . ${HIK_SCRIPT_TOP_DIR}/.compile/script/${script_arg[0]}
 elif [ -f "${HIK_SCRIPT_TOP_DIR}/company/${script_arg[0]}" ];then
+    # temp_dir_s="${HIK_SCRIPT_TOP_DIR}/script/${script_arg[0]}"
+
   . ${HIK_SCRIPT_TOP_DIR}/company/${script_arg[0]}
 fi
+unset temp_dir_s
 
 run_func=(
   ${machine}_${project}_${download}

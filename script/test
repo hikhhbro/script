@@ -1,9 +1,11 @@
 #!/bin/bash
-test_describe() { echo "描述: "; }
-test_get_options() {
-  echo ""
-}
-test_probe() {
-local db="_debug_task"
+: << !
+<_describe> begin
+描述: 
+<_describe> end
+<_get_options> begin
+-m -r
+<_get_options> end
+!
 
-}
+echo "test"
