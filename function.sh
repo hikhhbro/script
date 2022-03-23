@@ -18,6 +18,7 @@ my_compile() {
   func_read=""
   prefix_=$1
   prefix_=${prefix_##*/}
+  echo 0 > ${HIK_SCRIPT_TOP_DIR}/.compile/.tmp
   echo '#!/bin/bash' > ${HIK_SCRIPT_TOP_DIR}/.compile/$1
   while read -r line || [[ -n ${line} ]]
   do
@@ -72,9 +73,9 @@ my_compile() {
     esac
   done < "${HIK_SCRIPT_TOP_DIR}/$1"
   # if [[ cat ${HIK_SCRIPT_TOP_DIR}/$1" == "" ]];then
-  if [ `cat ${HIK_SCRIPT_TOP_DIR}/.compile/.tmp` -eq 1 ];then
+  if [ `cat ${HIK_SCRIPT_TOP_DIR}/.compile/.tmp` -eq 0 ];then
     echo "echo -e \"\033[33m${prefix_}未实现\033[0m\"" >> ${HIK_SCRIPT_TOP_DIR}/.compile/$1
-      echo 0 > ${HIK_SCRIPT_TOP_DIR}/.compile/.tmp
+    echo 0 > ${HIK_SCRIPT_TOP_DIR}/.compile/.tmp
   fi
   echo "}" >> ${HIK_SCRIPT_TOP_DIR}/.compile/$1
 }

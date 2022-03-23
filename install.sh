@@ -34,9 +34,9 @@ _task sudo mv hikrun /usr/local/bin/hikrun
 _task sudo chmod 755 /usr/local/bin/hikrun
 
 echo ". `pwd`/hik_run_complete.sh \$*" >  hikrun_prompt
-_task sudo mv hikrun /etc/bash_completion.d/hikrun_prompt
+_task sudo mv hikrun_prompt /etc/bash_completion.d/hikrun_prompt
 _task sudo chmod 755 /etc/bash_completion.d/hikrun_prompt
-
+_task source ~/.bashrc
 echo -n "---安装完成---输入任意键结束------"
 read 
 exit 0
