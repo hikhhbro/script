@@ -7,5 +7,10 @@
 -m -r
 <_get_options> end
 !
+#<user_func> 
+tes() {
+  echo "test"
+}
 
+#<main>
 echo "test"

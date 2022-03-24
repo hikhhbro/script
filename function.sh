@@ -18,6 +18,7 @@ my_compile() {
   func_read=""
   prefix_=$1
   prefix_=${prefix_##*/}
+
   echo 0 > ${HIK_SCRIPT_TOP_DIR}/.compile/.tmp
   echo '#!/bin/bash' > ${HIK_SCRIPT_TOP_DIR}/.compile/$1
   while read -r line || [[ -n ${line} ]]
@@ -57,10 +58,20 @@ my_compile() {
           if [[ "${flag_read}" == "begin" ]] ;then
             echo "${prefix_}${func_read}() {" >> ${HIK_SCRIPT_TOP_DIR}/.compile/$1
           fi
-        else
+        elif [[ "${head_[0]}" == "#<user_func>" ]] ;then  
+          func_read=${head_[0]}
+        elif [[ "${head_[0]}" == "#<main>" ]] ;then  
             flag_read="probe"
             func_read="_probe"
             echo "${prefix_}${func_read}() {" >> ${HIK_SCRIPT_TOP_DIR}/.compile/$1
+        else
+          if [[ "${func_read}" == "#<user_func>" ]] ;then 
+            if [[ "$(type -t ${head_[0]})" == "builtin" ||  "$(type -t ${head_[0]})" == "file" ]] ; then
+              line="${db} $line" 
+              echo 1 > ${HIK_SCRIPT_TOP_DIR}/.compile/.tmp
+            fi
+            echo $line >> ${HIK_SCRIPT_TOP_DIR}/.compile/$1
+          fi
         fi
       ;;
       probe)
@@ -81,8 +92,8 @@ my_compile() {
 }
 
 if [ -f "${HIK_SCRIPT_TOP_DIR}/script/${script_arg[0]}" ];then
-    # temp_dir_s="${HIK_SCRIPT_TOP_DIR}/script/${script_arg[0]}"
-    # mkdir -p  ${temp_dir_s%/*}
+    temp_dir_s="${HIK_SCRIPT_TOP_DIR}/script/${script_arg[0]}"
+    mkdir -p  ${temp_dir_s%/*}
     # set -x
     my_compile script/${script_arg[0]}
     # set +x
