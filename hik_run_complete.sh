@@ -140,14 +140,17 @@ _hikrun() {
         tmp_opt=( $(${COMP_WORDS[1]}_get_options) )
         local opt_
         local opt
+        local E_OPTS
         for i in ${tmp_opt[@]}
         do
             if [[ $i == -* ]]; then
                 opt_=${opt_}" "${i}
+                E_OPTS="${E_OPTS}${i:1}"
             else
               opt=${opt}" "${i}
             fi
         done
+        echo ${E_OPTS} > ${HIK_SCRIPT_TOP_DIR}/.compile/.tmp_opt
         # echo ${opt_}
         local opt_e=${opt}
         case "$cur" in

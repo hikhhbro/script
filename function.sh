@@ -44,7 +44,7 @@ my_compile() {
         elif [[ "${func_read}" == "_describe" ]] ;then
           echo "echo \"${line} \"" >> ${HIK_SCRIPT_TOP_DIR}/.compile/$1
         elif [[ "${func_read}" == "_get_options" ]] ;then
-          echo "echo \"${line:3:} \"" >> ${HIK_SCRIPT_TOP_DIR}/.compile/$1
+          echo "echo \"${line:3} \"" >> ${HIK_SCRIPT_TOP_DIR}/.compile/$1
         fi
         ;;
       end)
