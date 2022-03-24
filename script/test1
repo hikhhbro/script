@@ -8,4 +8,9 @@
 <_get_options> end
 !
 #<user_func> 
+ts() {
+  echo "ts"
+}
 #<main>
+echo "tes"
+ts
