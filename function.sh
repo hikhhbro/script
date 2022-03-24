@@ -68,7 +68,6 @@ my_compile() {
           if [[ "${func_read}" == "#<user_func>" ]] ;then 
             if [[ "$(type -t ${head_[0]})" == "builtin" ||  "$(type -t ${head_[0]})" == "file" ]] ; then
               line="${db} $line" 
-              echo 1 > ${HIK_SCRIPT_TOP_DIR}/.compile/.tmp
             fi
             echo $line >> ${HIK_SCRIPT_TOP_DIR}/.compile/$1
           fi
