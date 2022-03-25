@@ -64,11 +64,13 @@ _all_describe() {
           if [ $? == 0 ]; then
             # echo $i
             . ${HIK_SCRIPT_TOP_DIR}/.compile/$i 
-              echo -n "${i##*/}  "
-              ${i##*/}_describe
+              outrd_=$(${i##*/}_describe)
+              printf "%-26s %-5s" ${i##*/} ${outrd_};
+              printf "\n" ;
           fi
             echo  > ${HIK_SCRIPT_TOP_DIR}/.compile/.no_su_flag
         done
+        printf "\n" ;
 }
 _describe() {
   echo "短选项：-*  ${short_opts}"
