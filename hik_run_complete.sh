@@ -65,6 +65,9 @@ __get_file() {
             fi
 
 
+
+          
+          
           else
             temp_cur=${cur%/*}
             if [ -d "$1${temp_cur}" ];then
@@ -72,7 +75,7 @@ __get_file() {
             elif [ -d "$2${temp_cur}" ];then
                 input1="`ls $2${temp_cur}`"
             else
-              echo $1 "dd"
+              # echo $1 "dd"
               return 0
             fi
             for i in ${input1}
@@ -87,10 +90,13 @@ __get_file() {
             if [[ "${#COMPREPLY[@]}" == "1"  ]];then
                     compopt +o nospace
                     COMPREPLY[0]="${temp_cur}/${COMPREPLY[0]}"
+                    
 
             fi
           fi
+          
         fi
+                  
 
 }
 
@@ -101,13 +107,15 @@ _hikrun() {
     pre=${COMP_WORDS[COMP_CWORD-1]}
     cur=${COMP_WORDS[COMP_CWORD]}
 
-    if [[ ${cur} == --* ]] ; then
-        COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )
-        return 0
-    fi
+
     if [[ ${COMP_CWORD} == 1 ]];then
+      if [[ ${cur} == --* ]] ; then
+          COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )
+          return 0
+      else
         __get_file ${HIK_SCRIPT_TOP_DIR}/script/  ${HIK_SCRIPT_TOP_DIR}/company/
         return 0
+      fi
     fi
     case "$pre" in
       -B | -C)
@@ -131,14 +139,11 @@ _hikrun() {
       *)
         local dir_ro=""
         if [[ -f ${HIK_SCRIPT_TOP_DIR}/script/${COMP_WORDS[1]} ]];then
-        #   . ${HIK_SCRIPT_TOP_DIR}/.compile/script/${COMP_WORDS[1]}
             dir_ro="script"
         elif [[ -f ${HIK_SCRIPT_TOP_DIR}/company/${COMP_WORDS[1]} ]];then
             dir_ro="company"
-        #   . ${HIK_SCRIPT_TOP_DIR}/.compile/company/${COMP_WORDS[1]}
         else
           return 0
-          # echo "${HIK_SCRIPT_TOP_DIR}/.compile/company/${COMP_WORDS[1]}"
         fi
         if [ "${HIK_SCRIPT_TOP_DIR}/${dir_ro}/${COMP_WORDS[1]}" -nt  "${HIK_SCRIPT_TOP_DIR}/.compile/${dir_ro}/${COMP_WORDS[1]}" ];then 
                 temp_dir_s="${HIK_SCRIPT_TOP_DIR}/${dir_ro}/${COMP_WORDS[1]}"
@@ -147,32 +152,53 @@ _hikrun() {
                 unset temp_dir_s
         fi
          . ${HIK_SCRIPT_TOP_DIR}/.compile/${dir_ro}/${COMP_WORDS[1]}
+          if [[ "$(type -t "${COMP_WORDS[1]}_get_options")" != "function"  || "$(type -t "${COMP_WORDS[1]}_s_get_options")" != "function"  || "$(type -t "${COMP_WORDS[1]}_l_get_options")" != "function" || "$(type -t "${COMP_WORDS[1]}_o_get_options")" != "function" || "$(type -t "${COMP_WORDS[1]}_probe")" != "function" || "$(type -t "${COMP_WORDS[1]}_describe")" != "function" ]] ; then
+            echo "不支持此类型脚本"
+            return 0
+          fi
         tmp_opt=( $(${COMP_WORDS[1]}_get_options) )
         local opt_
         local opt
         local E_OPTS
+        local L_E_OPTS
+        # echo ${tmp_opt[@]}
         for i in ${tmp_opt[@]}
         do
-            if [[ $i == -* ]]; then
-                opt_=${opt_}" "${i}
-                E_OPTS="${E_OPTS}${i:1}"
+            if [[ $i == --* ]]; then
+                opt_="${i} ${opt_}"
+                L_E_OPTS="${i:2},${L_E_OPTS}"
+            elif [[ $i == -* ]]; then
+                opt_="${i} ${opt_}"
+                E_OPTS="${i:1}${E_OPTS}"
             else
-              opt=${opt}" "${i}
+              opt="${i} ${opt}"
             fi
         done
-        echo ${E_OPTS} > ${HIK_SCRIPT_TOP_DIR}/.compile/.tmp_opt
+        if [[ ${E_OPTS} != "" ]]; then
+          echo ${E_OPTS} > ${HIK_SCRIPT_TOP_DIR}/.compile/.tmp_opt
+        else 
+          echo  > ${HIK_SCRIPT_TOP_DIR}/.compile/.tmp_opt
+        fi
+        if [[ ${L_E_OPTS} != "" ]]; then
+          echo ${L_E_OPTS} > ${HIK_SCRIPT_TOP_DIR}/.compile/.l_tmp_opt
+        else
+          echo  > ${HIK_SCRIPT_TOP_DIR}/.compile/.l_tmp_opt
+        fi
         # echo ${opt_}
         local opt_e=${opt}
         case "$cur" in
-          -*)
-            opt_e="${opt_} ${pub_opt}"
-          ;;
-        esac
+            -*)
+              opt_e="${opt_} ${pub_opt}"
+              shift
+            ;;
+        esac 
         COMPREPLY=( $(compgen -W " ${opt_e}" -- ${cur}) )
         unset tmp_opt
         unset ${COMP_WORDS[1]}"_probe"
         unset ${COMP_WORDS[1]}"_describe"
         unset ${COMP_WORDS[1]}"_get_options"
+        unset ${COMP_WORDS[1]}"_s_get_options"
+        unset ${COMP_WORDS[1]}"_l_get_options"
         unset options
         return 0
         ;;

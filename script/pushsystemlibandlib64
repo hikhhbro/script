@@ -1,0 +1,33 @@
+#!/bin/bash
+: << !
+<_describe> begin
+描述: adb推送库到/system/lib和/system/lib64 
+编译选项为${compile_lunch}
+<_describe> end
+<_get_options> begin
+短选项(-*): 
+长选项(--*): --sas
+其他选项: libsensorservice.so libsensor.so
+<_get_options> end
+!
+#<user_func> 
+compile_lunch="venus"
+#<main>
+DIRPATH="/home/hik/ws/android/out/target/product/${compile_lunch}"
+if [[ "$1" != "" ]];then
+  garter_so=$*
+else
+  garter_so=$(${BASH_SOURCE[0]##*/}_o_get_options)
+fi
+  for target_so in ${garter_so};do
+    adb push ${DIRPATH}/system/lib/${target_so} /system/lib/
+    adb push ${DIRPATH}/system/lib64/${target_so} /system/lib64/
+  done
+
+
+
+
+
+
+
+

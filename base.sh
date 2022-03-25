@@ -99,11 +99,8 @@ my_compile() {
   while read -r line || [[ -n ${line} ]]
   do
     head_=(${line})
-        # echo ${flag_read}
     case "${flag_read}" in
       begin)
-          # echo ${flag_read}
-          # echo ${func_read}
         if [[ "${head_[0]}" == "<_describe>" ]] ;then
           func_read=${head_[0]:1:-1}
           flag_read=${head_[1]}
@@ -115,11 +112,27 @@ my_compile() {
         elif [[ "${head_[0]}" == "<_get_options>" ]] ;then  
           func_read=${head_[0]:1:-1}
           flag_read=${head_[1]}
+          echo "${prefix_}${func_read}() {" >> ${HIK_SCRIPT_TOP_DIR}/.compile/$1
+          echo "echo \"\$(${prefix_}_s${func_read}) \$(${prefix_}_l${func_read}) \$(${prefix_}_o${func_read})\"" >> ${HIK_SCRIPT_TOP_DIR}/.compile/$1
           echo "}" >> ${HIK_SCRIPT_TOP_DIR}/.compile/$1
         elif [[ "${func_read}" == "_describe" ]] ;then
           echo "echo \"${line} \"" >> ${HIK_SCRIPT_TOP_DIR}/.compile/$1
         elif [[ "${func_read}" == "_get_options" ]] ;then
-          echo "echo \"${line:3} \"" >> ${HIK_SCRIPT_TOP_DIR}/.compile/$1
+          if [[ "${line%:*}" == "短选项(-*)" ]];then
+            echo "${prefix_}_s${func_read}() {" >> ${HIK_SCRIPT_TOP_DIR}/.compile/$1
+            echo "echo \"${line##*:}\"" >> ${HIK_SCRIPT_TOP_DIR}/.compile/$1
+            echo "}" >> ${HIK_SCRIPT_TOP_DIR}/.compile/$1
+          elif [[ "${line%:*}" == "长选项(--*)" ]];then
+            echo "${prefix_}_l${func_read}() {" >> ${HIK_SCRIPT_TOP_DIR}/.compile/$1
+            echo "echo \"${line##*:}\"" >> ${HIK_SCRIPT_TOP_DIR}/.compile/$1
+            echo "}" >> ${HIK_SCRIPT_TOP_DIR}/.compile/$1
+          elif [[ "${line%:*}" == "其他选项" ]];then
+            echo "${prefix_}_o${func_read}() {" >> ${HIK_SCRIPT_TOP_DIR}/.compile/$1
+            echo "echo \"${line##*:}\"" >> ${HIK_SCRIPT_TOP_DIR}/.compile/$1
+            echo "}" >> ${HIK_SCRIPT_TOP_DIR}/.compile/$1
+          # options_tmp=${line:3}
+          # echo "echo \"${line:3} \"" >> ${HIK_SCRIPT_TOP_DIR}/.compile/$1
+          fi
         fi
         ;;
       end)
@@ -130,9 +143,6 @@ my_compile() {
         elif [[ "${head_[0]}" == "<_get_options>" ]] ;then  
           func_read=${head_[0]:1:-1}
           flag_read=${head_[1]}
-          if [[ "${flag_read}" == "begin" ]] ;then
-            echo "${prefix_}${func_read}() {" >> ${HIK_SCRIPT_TOP_DIR}/.compile/$1
-          fi
         elif [[ "${head_[0]}" == "#<user_func>" ]] ;then  
           func_read=${head_[0]}
         elif [[ "${head_[0]}" == "#<main>" ]] ;then  

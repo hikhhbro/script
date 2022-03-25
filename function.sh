@@ -7,7 +7,7 @@ if [[ -f ${HIK_SCRIPT_TOP_DIR}/script/${script_arg[0]} ]];then
 elif [[ -f ${HIK_SCRIPT_TOP_DIR}/company/${script_arg[0]} ]];then
     dir_ro="company"
 else
-    echo "文件不存在"
+    echo "文件不存在  ${script_arg[0]}"
     exit 1
 fi
 if [ "${HIK_SCRIPT_TOP_DIR}/${dir_ro}/${script_arg[0]}" -nt  "${HIK_SCRIPT_TOP_DIR}/.compile/${dir_ro}/${script_arg[0]}" ];then 

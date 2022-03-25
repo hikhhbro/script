@@ -1,10 +1,10 @@
 source ${HIK_SCRIPT_TOP_DIR}/base.sh
 probe="probe"
 t_opts=`cat ${HIK_SCRIPT_TOP_DIR}/.compile/.tmp_opt`
+l_t_opts=`cat ${HIK_SCRIPT_TOP_DIR}/.compile/.l_tmp_opt`
 in_opts=""
-# echo $t_opts
 # 输入
-ARGS=$(getopt -o ${t_opts}hVbrdpB:C: --long help,rerun:,build,rootfs,script:,download:,code:,rm: -n 'hikrun' -- "$@")
+ARGS=$(getopt -o ${t_opts}hVbrdpB:C: --long ${l_t_opts}help,rerun:,build,rootfs,script:,download:,code:,rm: -n 'hikrun' -- "$@")
 error_return=$?
 #状态决策
 if [ ${error_return} != 0 ]; then
@@ -13,7 +13,6 @@ if [ ${error_return} != 0 ]; then
 fi
 eval set -- "${ARGS}"
 while true; do
-    echo $1
   case "$1" in
     #创建
     --code)
@@ -131,10 +130,6 @@ while true; do
       shift
     ;;
     # 不支持
-    -*)
-      _optss=(${_optss[*]} $1)
-      shift
-    break;;
     *)
       shift
     break;;
@@ -144,8 +139,6 @@ done
 script_arg=($@)
 self_arg=($@)
 # echo  ${@:2} 从第二个开始
-echo ${script_arg[*]} " " ${_optss[*]}
-
 #函数定义和注册
 source ${HIK_SCRIPT_TOP_DIR}/function.sh
 # 函数执行

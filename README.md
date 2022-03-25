@@ -9,11 +9,12 @@ linux脚本管理
 - [X] 二级目录补全但不使用默认补全
 - [X] 按照模板自动解析脚本
 - [X] 自定义函数解析
-- [ ] 自定义函数插入func调试功能
-
+- [X] 自定义函数插入func调试功能
 
 ## bug
 
 - [X] --script 不能补全二级目录 
-- [ ] build android 无法提示libsensorservice
-- [ ] 子脚本无法使用-*
+- [X] build android 无法提示libsensorservice
+- [X] 子脚本无法使用-*
+- [ ] 当前有目录的情况下，会自动添加了斜杆
+- [X] 识别不支持脚本类型和处理

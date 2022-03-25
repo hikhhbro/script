@@ -4,13 +4,17 @@
 描述: 
 <_describe> end
 <_get_options> begin
-选项: 
+短选项(-*): -m
+长选项(--*): --sas
+其他选项: 
 <_get_options> end
 !
 #<user_func> 
-ts() {
-  echo "ts"
+tes() {
+  echo "tessssst"
 }
+
 #<main>
-echo "tes"
-ts
+echo $*
+
+
