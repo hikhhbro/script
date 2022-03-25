@@ -2,6 +2,16 @@ source ${HIK_SCRIPT_TOP_DIR}/base.sh
 probe="probe"
 t_opts=`cat ${HIK_SCRIPT_TOP_DIR}/.compile/.tmp_opt`
 l_t_opts=`cat ${HIK_SCRIPT_TOP_DIR}/.compile/.l_tmp_opt`
+#不支持的脚本打开
+no_su=`cat ${HIK_SCRIPT_TOP_DIR}/.compile/.no_su_flag`
+if [[ "${no_su}" != "" ]];then
+  echo  > ${HIK_SCRIPT_TOP_DIR}/.compile/.no_su_flag
+  cp ${no_su} "${no_su%/*}/.resycle/${no_su##*/}"
+  cat ${HIK_SCRIPT_TOP_DIR}/.template > ${no_su}
+  echo >> ${no_su}
+  cat "${no_su%/*}/.resycle/${no_su##*/}" >> ${no_su}
+  code ${no_su}
+fi
 in_opts=""
 # 输入
 ARGS=$(getopt -o ${t_opts}hVbrdpB:C: --long ${l_t_opts}help,rerun:,build,rootfs,script:,download:,code:,rm: -n 'hikrun' -- "$@")
@@ -93,17 +103,4 @@ do
   fi
 done
 unset db
-#不支持的脚本打开
-no_su=`cat ${HIK_SCRIPT_TOP_DIR}/.compile/.no_su_flag`
-if [[ "${no_su}" != "" ]];then
-  echo  > ${HIK_SCRIPT_TOP_DIR}/.compile/.no_su_flag
 
-  echo $no_su
-  echo ${no_su%/*}
-  echo ${no_su##*/}
-  cp ${no_su} "${no_su%/*}/.resycle/${no_su##*/}"
-  cat ${HIK_SCRIPT_TOP_DIR}/.template > ${no_su}
-  echo >> ${no_su}
-  cat "${no_su%/*}/.resycle/${no_su##*/}" >> ${no_su}
-  code ${no_su}
-fi

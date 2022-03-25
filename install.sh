@@ -21,6 +21,9 @@ fi
 if [ ! -d script/ ];then
 _task mkdir script
 fi
+if [ ! -d script/.resycle/ ];then
+_task mkdir -p script/.resycle
+fi
 if [ ! -d .resycle/ ];then
 _task mkdir .resycle
 fi
