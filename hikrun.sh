@@ -1,10 +1,16 @@
 source ${HIK_SCRIPT_TOP_DIR}/base.sh
 probe="probe"
+t_opts=`cat ${HIK_SCRIPT_TOP_DIR}/.compile/.tmp_opt`
+in_opts=""
+# echo $t_opts
 # 输入
-_optss=""
-ARGS=$(getopt -o :hVbrdpB:C: --long help,rerun:,build,rootfs,script:,download:,code:,rm: -n 'hikrun' -- "$@")
+ARGS=$(getopt -o ${t_opts}hVbrdpB:C: --long help,rerun:,build,rootfs,script:,download:,code:,rm: -n 'hikrun' -- "$@")
 error_return=$?
-
+#状态决策
+if [ ${error_return} != 0 ]; then
+  echo "please use '  hikrun -h ' to view details "
+  exit 0
+fi
 eval set -- "${ARGS}"
 while true; do
     echo $1
@@ -117,9 +123,12 @@ while true; do
     ;;
     # 可变参数
     --)
-      error_return=0
       shift 
       break
+    ;;
+    -*)
+      in_opts="$1 ${in_opts}"
+      shift
     ;;
     # 不支持
     -*)
@@ -131,11 +140,6 @@ while true; do
     break;;
   esac
 done
-#状态决策
-if [ ${error_return} != 0 ]; then
-  echo "please use '  hikrun -h ' to view details "
-  exit 0
-fi
 #剩余参数
 script_arg=($@)
 self_arg=($@)
@@ -150,7 +154,7 @@ do
   # echo $func ${@:1}
   if [ "$(type -t $func)" = "function" ] ; then
     # echo $func ${@:1}
-    $func ${@:2} ${_optss[*]}
+    $func ${in_opts} ${@:2}
     unset $func
   fi
 done

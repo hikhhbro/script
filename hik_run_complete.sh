@@ -93,6 +93,7 @@ __get_file() {
         fi
 
 }
+
 _hikrun() {
     local pre cur tmp_opt
     . ${HIK_SCRIPT_TOP_DIR}/base.sh
@@ -128,26 +129,38 @@ _hikrun() {
         return 0
         ;;
       *)
-
-        if [[ -f ${HIK_SCRIPT_TOP_DIR}/.compile/script/${COMP_WORDS[1]} ]];then
-          . ${HIK_SCRIPT_TOP_DIR}/.compile/script/${COMP_WORDS[1]}
-        elif [[ -f ${HIK_SCRIPT_TOP_DIR}/.compile/company/${COMP_WORDS[1]} ]];then
-          . ${HIK_SCRIPT_TOP_DIR}/.compile/company/${COMP_WORDS[1]}
+        local dir_ro=""
+        if [[ -f ${HIK_SCRIPT_TOP_DIR}/script/${COMP_WORDS[1]} ]];then
+        #   . ${HIK_SCRIPT_TOP_DIR}/.compile/script/${COMP_WORDS[1]}
+            dir_ro="script"
+        elif [[ -f ${HIK_SCRIPT_TOP_DIR}/company/${COMP_WORDS[1]} ]];then
+            dir_ro="company"
+        #   . ${HIK_SCRIPT_TOP_DIR}/.compile/company/${COMP_WORDS[1]}
         else
           return 0
           # echo "${HIK_SCRIPT_TOP_DIR}/.compile/company/${COMP_WORDS[1]}"
         fi
+        if [ "${HIK_SCRIPT_TOP_DIR}/${dir_ro}/${COMP_WORDS[1]}" -nt  "${HIK_SCRIPT_TOP_DIR}/.compile/${dir_ro}/${COMP_WORDS[1]}" ];then 
+                temp_dir_s="${HIK_SCRIPT_TOP_DIR}/${dir_ro}/${COMP_WORDS[1]}"
+                mkdir -p  ${temp_dir_s%/*}
+                my_compile ${dir_ro}/${COMP_WORDS[1]}
+                unset temp_dir_s
+        fi
+         . ${HIK_SCRIPT_TOP_DIR}/.compile/${dir_ro}/${COMP_WORDS[1]}
         tmp_opt=( $(${COMP_WORDS[1]}_get_options) )
         local opt_
         local opt
+        local E_OPTS
         for i in ${tmp_opt[@]}
         do
             if [[ $i == -* ]]; then
                 opt_=${opt_}" "${i}
+                E_OPTS="${E_OPTS}${i:1}"
             else
               opt=${opt}" "${i}
             fi
         done
+        echo ${E_OPTS} > ${HIK_SCRIPT_TOP_DIR}/.compile/.tmp_opt
         # echo ${opt_}
         local opt_e=${opt}
         case "$cur" in

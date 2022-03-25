@@ -4,7 +4,7 @@
 描述: 
 <_describe> end
 <_get_options> begin
--m -r dfdf
+描述: -m -f
 <_get_options> end
 !
 #<user_func> 
@@ -13,4 +13,6 @@ tes() {
 }
 
 #<main>
-echo "tessssst"
+echo $*
+
+
