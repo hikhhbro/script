@@ -1,7 +1,7 @@
 #!/bin/bash
 : << !
 <_describe> begin
-描述: 手机adb连接和remount
+描述: 安卓mi11烧写镜像
 <_describe> end
 <_get_options> begin
 选项: 
@@ -9,7 +9,4 @@
 !
 #<user_func> 
 #<main>
-adb root
-adb remount
-adb disable-verity
-adb shell
+adb reboot-bootloader

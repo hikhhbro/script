@@ -11,6 +11,9 @@ linux脚本管理
 - [X] 自定义函数解析
 - [ ] 自定义函数插入func调试功能
 
+
 ## bug
 
 - [X] --script 不能补全二级目录 
+- [ ] build android 无法提示libsensorservice
+- [ ] 子脚本无法使用-*

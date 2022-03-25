@@ -7,17 +7,19 @@
 选项: 
 <_get_options> end
 !
+#<user_func> 
+#<main>
 DIRPATH="/home/hik/ws/android/out/target/product/venus"
 # echo $*
 if [[ "$1" == "" ]];then
-  ${db} adb push ${DIRPATH}/system/lib/libsensor.so /system/lib/
-  ${db} adb push ${DIRPATH}/system/lib64/libsensor.so /system/lib64/
+  adb push ${DIRPATH}/system/lib/libsensor.so /system/lib/
+  adb push ${DIRPATH}/system/lib64/libsensor.so /system/lib64/
 
-  ${db} adb push ${DIRPATH}/system/lib/libsensorservice.so /system/lib/
-  ${db} adb push ${DIRPATH}/system/lib64/libsensorservice.so /system/lib64/
+  adb push ${DIRPATH}/system/lib/libsensorservice.so /system/lib/
+  adb push ${DIRPATH}/system/lib64/libsensorservice.so /system/lib64/
 else
   for target_so in $*;do
-    ${db} adb push ${DIRPATH}/system/lib/${target_so} /system/lib/
-    ${db} adb push ${DIRPATH}/system/lib64/${target_so} /system/lib64/
+    adb push ${DIRPATH}/system/lib/${target_so} /system/lib/
+    adb push ${DIRPATH}/system/lib64/${target_so} /system/lib64/
   done
 fi

@@ -1,8 +1,13 @@
 #!/bin/bash
-_describe() { echo "关闭mi11手机屏幕"; }
-if [[ "${describe}" == "describe" ]];then _describe;exit 0;fi
-
+: << !
+<_describe> begin
+描述: 关闭mi11手机屏幕
+<_describe> end
+<_get_options> begin
+选项: 
+<_get_options> end
+!
+#<user_func> 
+#<main>
 adb root
-adb remount
-adb disable-verity
 adb shell echo  '1 > /sys/class/backlight/panel0-backlight/bl_power'

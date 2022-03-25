@@ -2,11 +2,14 @@
 : << !
 <_describe> begin
 描述: 编译安卓, 不带参数编译全部, 带模块名参数,-m使用make, 否则使用quickbuild
+初始化环境: source build/envsetup.sh && lunch venus-userdebug
 <_describe> end
 <_get_options> begin
-选项: -m 
+选项: libsensorservice -m mm
 <_get_options> end
 !
+#<user_func> 
+#<main>
 quickbuild () {
   ninja_bin="$ANDROID_BUILD_TOP/prebuilts/build-tools/linux-x86/bin/ninja"
   ninja_build_file="$ANDROID_BUILD_TOP/out/combined-$TARGET_PRODUCT.ninja"
@@ -32,6 +35,9 @@ if [[ "$1" == "" ]];then
 
 elif  [[ "$1" == "-m" ]];then
     make -j16 $2
+elif  [[ "$1" == "mm" ]];then
+    cd ${ORGDIR}
+    mm
 else 
   quickbuild $1
 fi

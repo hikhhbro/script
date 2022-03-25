@@ -1,11 +1,13 @@
 source ${HIK_SCRIPT_TOP_DIR}/base.sh
 probe="probe"
 # 输入
+_optss=""
 ARGS=$(getopt -o :hVbrdpB:C: --long help,rerun:,build,rootfs,script:,download:,code:,rm: -n 'hikrun' -- "$@")
 error_return=$?
 
 eval set -- "${ARGS}"
 while true; do
+    echo $1
   case "$1" in
     #创建
     --code)
@@ -120,6 +122,10 @@ while true; do
       break
     ;;
     # 不支持
+    -*)
+      _optss=(${_optss[*]} $1)
+      shift
+    break;;
     *)
       shift
     break;;
@@ -134,7 +140,7 @@ fi
 script_arg=($@)
 self_arg=($@)
 # echo  ${@:2} 从第二个开始
-# echo ${script_arg[0]}
+echo ${script_arg[*]} " " ${_optss[*]}
 
 #函数定义和注册
 source ${HIK_SCRIPT_TOP_DIR}/function.sh
@@ -144,7 +150,7 @@ do
   # echo $func ${@:1}
   if [ "$(type -t $func)" = "function" ] ; then
     # echo $func ${@:1}
-    $func ${@:2}
+    $func ${@:2} ${_optss[*]}
     unset $func
   fi
 done
