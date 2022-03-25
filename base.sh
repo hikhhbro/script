@@ -50,21 +50,24 @@ touch_script() {
   _func
   if [[ "$1" == "-c" ]];then
       if [ ! -f "${HIK_SCRIPT_TOP_DIR}/company/$3" ];then
-        sed 's/template/'$3'/g' ${HIK_SCRIPT_TOP_DIR}/.template > ${HIK_SCRIPT_TOP_DIR}/company/$3
+        cp ${HIK_SCRIPT_TOP_DIR}/.template > ${HIK_SCRIPT_TOP_DIR}/company/$3
         chmod 755 ${HIK_SCRIPT_TOP_DIR}/company/$3
       fi
       code ${HIK_SCRIPT_TOP_DIR}/company/$3
       exit 0
-  fi
-  if [ -f "${HIK_SCRIPT_TOP_DIR}/$1" ];then
+  else
+    if [ -f "${HIK_SCRIPT_TOP_DIR}/company/$1" ];then
+      code ${HIK_SCRIPT_TOP_DIR}/company/$1
+    elif [ -f "${HIK_SCRIPT_TOP_DIR}/script/$1" ];then
+      code ${HIK_SCRIPT_TOP_DIR}/script/$1
+    elif [ -f "${HIK_SCRIPT_TOP_DIR}/$1" ];then
       code ${HIK_SCRIPT_TOP_DIR}/$1
-      exit 0
+    else
+      cp ${HIK_SCRIPT_TOP_DIR}/.template > ${HIK_SCRIPT_TOP_DIR}/script/$1
+      chmod 755 ${HIK_SCRIPT_TOP_DIR}/script/$1
+      code ${HIK_SCRIPT_TOP_DIR}/script/$1
+    fi
   fi
-  if [ ! -f "${HIK_SCRIPT_TOP_DIR}/script/$1" ];then
-    sed 's/template/'$1'/g' ${HIK_SCRIPT_TOP_DIR}/.template > ${HIK_SCRIPT_TOP_DIR}/script/$1
-    chmod 755 ${HIK_SCRIPT_TOP_DIR}/script/$1
-  fi
-  code ${HIK_SCRIPT_TOP_DIR}/script/$1
 }
 
 #删除脚本
