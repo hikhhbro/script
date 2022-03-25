@@ -1,12 +1,12 @@
 #!/bin/bash
 : << !
 <_describe> begin
-描述:
+描述: 
 <_describe> end
 <_get_options> begin
-短选项(-*): 
-长选项(--*):
-其他选项:
+短选项(-*):  
+长选项(--*): 
+其他选项: 
 <_get_options> end
 !
 #<user_func> 

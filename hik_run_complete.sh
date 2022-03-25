@@ -151,10 +151,19 @@ _hikrun() {
         else
           return 0
         fi
-        if [ "${HIK_SCRIPT_TOP_DIR}/${dir_ro}/${COMP_WORDS[1]}" -nt  "${HIK_SCRIPT_TOP_DIR}/.compile/${dir_ro}/${COMP_WORDS[1]}" ];then 
-                my_compile ${dir_ro}/${COMP_WORDS[1]}
+        if [ -f "${HIK_SCRIPT_TOP_DIR}/.compile/${dir_ro}/${COMP_WORDS[1]}" ];then
+          if [ "${HIK_SCRIPT_TOP_DIR}/${dir_ro}/${COMP_WORDS[1]}" -nt  "${HIK_SCRIPT_TOP_DIR}/.compile/${dir_ro}/${COMP_WORDS[1]}" ];then 
+                  my_compile ${dir_ro}/${COMP_WORDS[1]}
+                  rebuu=$?
+          fi
+        else
+            my_compile ${dir_ro}/${COMP_WORDS[1]}
+            rebuu=$?
         fi
-         . ${HIK_SCRIPT_TOP_DIR}/.compile/${dir_ro}/${COMP_WORDS[1]}
+        if [ ${rebuu} != 0 ]; then
+            return 0
+        fi
+        . ${HIK_SCRIPT_TOP_DIR}/.compile/${dir_ro}/${COMP_WORDS[1]}
         tmp_opt=( $(${COMP_WORDS[1]}_get_options) )
         local opt_
         local opt

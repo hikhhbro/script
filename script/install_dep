@@ -1,5 +1,16 @@
 #!/bin/bash
-. ${HIK_SCRIPT_TOP_DIR}/base.sh
- _task sudo apt update
- _task sudo apt-get install aptitude
+: << !
+<_describe> begin
+描述: ubuntu电脑环境安装
+<_describe> end
+<_get_options> begin
+短选项(-*):  
+长选项(--*): 
+其他选项: 
+<_get_options> end
+!
+#<user_func> 
+#<main>
+sudo apt update
+sudo apt-get install aptitude
 . ${HIK_SCRIPT_TOP_DIR}/script/yocto_dep

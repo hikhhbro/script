@@ -1,6 +1,17 @@
 #!/bin/bash
-_describe() { echo "关闭chroot mi 11"; }
-if [[ "${describe}" == "describe" ]];then _describe;exit 0;fi
+: << !
+<_describe> begin
+描述: 关闭chroot mi 11
+<_describe> end
+<_get_options> begin
+短选项(-*):  
+长选项(--*): 
+其他选项: 
+<_get_options> end
+!
+#<user_func> 
+#<main>
+
 adb root
 adb remount
 adb disable-verity

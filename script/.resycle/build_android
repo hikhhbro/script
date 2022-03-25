@@ -5,9 +5,7 @@
 初始化环境: source build/envsetup.sh && lunch venus-userdebug
 <_describe> end
 <_get_options> begin
-短选项(-*): -m
-长选项(--*): 
-其他选项: libsensorservice mm
+选项: libsensorservice -m mm
 <_get_options> end
 !
 #<user_func> 

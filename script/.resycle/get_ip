@@ -1,17 +1,3 @@
-#!/bin/bash
-: << !
-<_describe> begin
-描述: 判断外网ip是否改变，改变存放在/home/hik/.var/log/ip.log，
-<_describe> end
-<_get_options> begin
-短选项(-*):  
-长选项(--*): 
-其他选项: 
-<_get_options> end
-!
-#<user_func> 
-#<main>
-
 
 log="/home/hik/.var/log/ip.log"
 hik_lap_ip=`ifconfig -a|grep inet|grep -v 127.0.0.1|grep -v inet6 | grep -v 192.168|awk '{print $2}'|tr -d "addr:"​`

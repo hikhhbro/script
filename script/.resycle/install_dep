@@ -1,7 +1,7 @@
 #!/bin/bash
 : << !
 <_describe> begin
-描述: 工作机3022端口转发到自己笔记本,参数笔记本ip
+描述: ubuntu电脑环境安装
 <_describe> end
 <_get_options> begin
 短选项(-*):  
@@ -9,7 +9,6 @@
 其他选项: 
 <_get_options> end
 !
-#<user_func> 
-#<main>
-
-ssh -f -N  -L 3022:192.168.1.12:3022 hik@$1
+sudo apt update
+sudo apt-get install aptitude
+. ${HIK_SCRIPT_TOP_DIR}/script/yocto_dep
