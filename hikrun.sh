@@ -11,6 +11,7 @@ if [[ "${no_su}" != "" ]];then
   echo >> ${no_su}
   cat "${no_su%/*}/.resycle/${no_su##*/}" >> ${no_su}
   code ${no_su}
+  exit 0
 fi
 in_opts=""
 # 输入

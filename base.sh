@@ -77,7 +77,7 @@ rm_script() {
       mv ${HIK_SCRIPT_TOP_DIR}/company/$3 ${HIK_SCRIPT_TOP_DIR}/company/.resycle/$3
   else
     if [ -f "${HIK_SCRIPT_TOP_DIR}/script/$1" ];then
-        mv "${HIK_SCRIPT_TOP_DIR}/script/$1" ${HIK_SCRIPT_TOP_DIR}/.resycle/$1
+        mv "${HIK_SCRIPT_TOP_DIR}/script/$1" ${HIK_SCRIPT_TOP_DIR}/script/.resycle/$1
     else
         mv ${HIK_SCRIPT_TOP_DIR}/company/$1 ${HIK_SCRIPT_TOP_DIR}/company/.resycle/$1
     fi
