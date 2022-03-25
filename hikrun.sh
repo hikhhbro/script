@@ -32,52 +32,11 @@ while true; do
         ;;
       esac
     ;;
-    #下载重包或者使用cache
-    -p)
-      prebuilt="prebuilt"
-      shift
-    ;;
     #调试选项
     -V)
       db="_debug_task"
       shift
     ;;
-    #base 选项
-    -B)
-      project=(${project_type[0]})
-      case "$2" in
-        *)
-          if [[ ${machine_type[@]/$2/} != ${machine_type[@]} ]];then
-            machine=$2
-          else
-            echo "暂不支持:$2" "===>${machine_type[*]}"
-            exit 1
-          fi
-          shift 2
-        ;;
-      esac
-    ;;
-    #core 选项
-    -C)
-      project=(${project_type[0]})
-      case "$2" in
-        *)
-          if [[ ${machine_type[@]/$2/} != ${machine_type[@]} ]];then
-            machine=$2
-          else
-            echo "暂不支持:$machine" "===>${machine_type[*]}"
-            exit 1
-          fi
-          shift 2
-        ;;
-      esac
-    ;;
-    #打包
-    -r | --rootfs)
-      rootfs="rootfs"
-      shift
-    ;;
-    #重复运行
     --rerun)
       case "$2" in
         *)
@@ -95,24 +54,6 @@ while true; do
           shift 2
         ;;
       esac
-    ;;
-    #构建
-    -b | --build)
-      build="build"
-      shift
-    ;;
-    #下载
-    --download)
-      download="download"
-      case "$2" in
-        *)
-          dev="-b $2"
-          shift 2
-        ;;
-    esac ;;
-    -d)
-      download="download"
-      shift
     ;;
     #帮助
     -h | --help)

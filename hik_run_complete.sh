@@ -14,9 +14,11 @@ __get_file() {
 
           for i in ${input1}
           do
-              input2=${input2}" "$i
-              if [ -d "$1$i" ] || [ -d "$2$i" ];then
-                input2=${input2}"/"
+              if [[ "${i}" != *.* ]] ; then
+                input2=${input2}" "$i
+                if [ -d "$1$i" ] || [ -d "$2$i" ];then
+                  input2=${input2}"/"
+                fi
               fi
           done
           COMPREPLY=( $(compgen -W "${input2}" -- ) )
@@ -46,9 +48,11 @@ __get_file() {
 
             for i in ${input1}
             do
-                input2=${input2}" "$i
-                if [ -d "$1$i" ] || [ -d "$2$i" ];then
-                  input2=${input2}"/"
+                if [[ "${i}" != *.* ]] ; then
+                  input2=${input2}" "$i
+                  if [ -d "$1$i" ] || [ -d "$2$i" ];then
+                    input2=${input2}"/"
+                  fi
                 fi
             done
             compopt -o nospace
@@ -80,9 +84,11 @@ __get_file() {
             fi
             for i in ${input1}
             do
-                input2=${input2}" "$i
-                if [ -d "$1$i" ] || [ -d "$2$i" ];then
-                  input2=${input2}"/"
+                if [[ "${i}" != *.* ]] ; then
+                  input2=${input2}" "$i
+                  if [ -d "$1$i" ] || [ -d "$2$i" ];then
+                    input2=${input2}"/"
+                  fi
                 fi
             done
             compopt -o nospace

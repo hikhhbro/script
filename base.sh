@@ -16,8 +16,7 @@ run_gits=""
 script_arg=()
 self_arg=()
 rerun_j=1
-opts="--help --rerun= --build --rootfs --download= --script --code --rm"
-pre_opts="native adb gits"
+opts="--help --rerun= --script --code --rm"
 db="_task"
 describe=""
 #公共选项提示
