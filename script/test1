@@ -1,7 +1,7 @@
 #!/bin/bash
 : << !
 <_describe> begin
-描述: 
+描述: 测试
 <_describe> end
 <_get_options> begin
 短选项(-*): -m -d

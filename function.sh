@@ -70,7 +70,6 @@ _all_describe() {
           fi
             echo  > ${HIK_SCRIPT_TOP_DIR}/.compile/.no_su_flag
         done
-        printf "\n" ;
 }
 _describe() {
   echo "短选项：-*  ${short_opts}"
