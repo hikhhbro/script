@@ -1,25 +1,19 @@
-if [ -f "${HIK_SCRIPT_TOP_DIR}/company/companyfunc.sh" ];then
-source ${HIK_SCRIPT_TOP_DIR}/company/companyfunc.sh
+if [ ${#script_arg[@]} -gt 0 ];then
+  if [[ -f ${HIK_SCRIPT_TOP_DIR}/script/${script_arg[0]} ]];then
+      dir_ro="script"
+  elif [[ -f ${HIK_SCRIPT_TOP_DIR}/company/${script_arg[0]} ]];then
+      dir_ro="company"
+  else
+      echo "文件不存在  ${script_arg[0]}"
+      exit 1
+  fi
+  if [ "${HIK_SCRIPT_TOP_DIR}/${dir_ro}/${script_arg[0]}" -nt  "${HIK_SCRIPT_TOP_DIR}/.compile/${dir_ro}/${script_arg[0]}" ];then 
+          my_compile ${dir_ro}/${script_arg[0]}
+  fi
+  . ${HIK_SCRIPT_TOP_DIR}/.compile/${dir_ro}/${script_arg[0]}
+  unset dir_ro
 fi
-
-if [[ -f ${HIK_SCRIPT_TOP_DIR}/script/${script_arg[0]} ]];then
-    dir_ro="script"
-elif [[ -f ${HIK_SCRIPT_TOP_DIR}/company/${script_arg[0]} ]];then
-    dir_ro="company"
-else
-    echo "文件不存在  ${script_arg[0]}"
-    exit 1
-fi
-if [ "${HIK_SCRIPT_TOP_DIR}/${dir_ro}/${script_arg[0]}" -nt  "${HIK_SCRIPT_TOP_DIR}/.compile/${dir_ro}/${script_arg[0]}" ];then 
-        my_compile ${dir_ro}/${script_arg[0]}
-fi
-. ${HIK_SCRIPT_TOP_DIR}/.compile/${dir_ro}/${script_arg[0]}
-unset dir_ro
 run_func=(
-  ${machine}_${project}_${download}
-  ${machine}_${project}_${prebuilt}
-  ${machine}_${project}_${build}
-  ${machine}_${project}_${rootfs}
   ${rerun}_${script}
   ${script_arg[0]}_${describe} 
   ${script_arg[0]}_${probe}
@@ -41,3 +35,43 @@ rerun_script() {
   done
 }
 
+function read_dir(){
+  for file in `ls $1` 
+  do
+    if [ -d $1"/"$file ] 
+    then
+    read_dir $1"/"$file
+    else
+      if [[ "$file" != *.* ]] ; then
+        local out=$1
+        out=${out##*/}
+        echo $out"/"$file 
+      fi
+    fi
+  done
+} 
+
+_all_describe() {
+        local file_un outre
+        file_un=$(read_dir ${HIK_SCRIPT_TOP_DIR}/script)
+        file_un="$(read_dir ${HIK_SCRIPT_TOP_DIR}/company) ${file_un}"
+        file_un=($file_un)
+        rm -r ${HIK_SCRIPT_TOP_DIR}/.compile/script/
+        rm -r ${HIK_SCRIPT_TOP_DIR}/.compile/company/
+        for i in ${file_un[@]}
+        do
+          outre=$(my_compile "$i")
+          if [ $? == 0 ]; then
+            # echo $i
+            . ${HIK_SCRIPT_TOP_DIR}/.compile/$i 
+              echo -n "${i##*/}  "
+              ${i##*/}_describe
+          fi
+            echo  > ${HIK_SCRIPT_TOP_DIR}/.compile/.no_su_flag
+        done
+}
+_describe() {
+  echo "短选项：-*  ${short_opts}"
+  echo "长选项：--*  ${long_opts}"
+  echo "其选项：支持运行安装目录下的无后缀模板类型脚本"
+}

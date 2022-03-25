@@ -8,14 +8,17 @@ if [[ "${no_su}" != "" ]];then
   echo  > ${HIK_SCRIPT_TOP_DIR}/.compile/.no_su_flag
   cp ${no_su} "${no_su%/*}/.resycle/${no_su##*/}"
   cat ${HIK_SCRIPT_TOP_DIR}/.template > ${no_su}
-  echo >> ${no_su}
+  
+  echo -e "\n<------修改------->" >> ${no_su}
   cat "${no_su%/*}/.resycle/${no_su##*/}" >> ${no_su}
   code ${no_su}
   exit 0
 fi
 in_opts=""
+short_opts="${t_opts}hVr"
+long_opts="${l_t_opts}help,rerun:,script:,code:,rm:"
 # 输入
-ARGS=$(getopt -o ${t_opts}hVbrdpB:C: --long ${l_t_opts}help,rerun:,build,rootfs,script:,download:,code:,rm: -n 'hikrun' -- "$@")
+ARGS=$(getopt -o ${short_opts} --long ${long_opts} -n 'hikrun' -- "$@")
 error_return=$?
 #状态决策
 if [ ${error_return} != 0 ]; then
@@ -67,8 +70,14 @@ while true; do
       esac
     ;;
     #帮助
-    -h | --help)
+    -h)
       describe="describe"
+      probe=""
+      shift
+    ;;
+    #全部描述
+    --help)
+      describe="all_describe"
       probe=""
       shift
     ;;
@@ -90,7 +99,6 @@ done
 #剩余参数
 script_arg=($@)
 self_arg=($@)
-# echo  ${@:2} 从第二个开始
 #函数定义和注册
 source ${HIK_SCRIPT_TOP_DIR}/function.sh
 # 函数执行

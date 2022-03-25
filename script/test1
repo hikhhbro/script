@@ -4,7 +4,7 @@
 描述: 
 <_describe> end
 <_get_options> begin
-短选项(-*): -m
+短选项(-*): -m -d
 长选项(--*): --sas
 其他选项: 
 <_get_options> end

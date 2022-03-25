@@ -4,11 +4,14 @@
 描述: 手机adb连接和remount
 <_describe> end
 <_get_options> begin
-选项: 
+短选项(-*): 
+长选项(--*):
+其他选项:
 <_get_options> end
 !
 #<user_func> 
 #<main>
+
 adb root
 adb remount
 adb disable-verity

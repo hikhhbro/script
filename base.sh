@@ -89,6 +89,10 @@ usage() {
   echo "-h           help"
 }
 my_compile() {
+  if [ ! -f "${HIK_SCRIPT_TOP_DIR}/$1" ];then
+    echo "文件不存在"
+    exit 0
+  fi
   local tem_line=""
   local line_nub=0
   local flag_read="begin"
@@ -177,4 +181,13 @@ my_compile() {
     fi
     echo "}" >> ${HIK_SCRIPT_TOP_DIR}/.compile/$1
   fi
+  . ${HIK_SCRIPT_TOP_DIR}/.compile/$1
+
+  if [[ "$(type -t "${prefix_}_get_options")" != "function"  || "$(type -t "${prefix_}_s_get_options")" != "function"  || "$(type -t "${prefix_}_l_get_options")" != "function" || "$(type -t "${prefix_}_o_get_options")" != "function" || "$(type -t "${prefix_}_probe")" != "function" || "$(type -t "${prefix_}_describe")" != "function" ]] ; then
+    echo "不支持此类型脚本"
+    echo "${HIK_SCRIPT_TOP_DIR}/$1" > ${HIK_SCRIPT_TOP_DIR}/.compile/.no_su_flag
+    rm -rf ${HIK_SCRIPT_TOP_DIR}/.compile/$1
+    return 1
+  fi
+
 }
