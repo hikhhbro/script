@@ -1,3 +1,4 @@
+#!/bin/bash
 : << !
 <_describe> begin
 描述:

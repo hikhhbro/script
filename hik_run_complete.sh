@@ -152,14 +152,15 @@ _hikrun() {
           return 0
         fi
         if [ "${HIK_SCRIPT_TOP_DIR}/${dir_ro}/${COMP_WORDS[1]}" -nt  "${HIK_SCRIPT_TOP_DIR}/.compile/${dir_ro}/${COMP_WORDS[1]}" ];then 
-                temp_dir_s="${HIK_SCRIPT_TOP_DIR}/${dir_ro}/${COMP_WORDS[1]}"
-                mkdir -p  ${temp_dir_s%/*}
                 my_compile ${dir_ro}/${COMP_WORDS[1]}
-                unset temp_dir_s
         fi
          . ${HIK_SCRIPT_TOP_DIR}/.compile/${dir_ro}/${COMP_WORDS[1]}
           if [[ "$(type -t "${COMP_WORDS[1]}_get_options")" != "function"  || "$(type -t "${COMP_WORDS[1]}_s_get_options")" != "function"  || "$(type -t "${COMP_WORDS[1]}_l_get_options")" != "function" || "$(type -t "${COMP_WORDS[1]}_o_get_options")" != "function" || "$(type -t "${COMP_WORDS[1]}_probe")" != "function" || "$(type -t "${COMP_WORDS[1]}_describe")" != "function" ]] ; then
             echo "不支持此类型脚本"
+            echo "${HIK_SCRIPT_TOP_DIR}/${dir_ro}/${COMP_WORDS[1]}" > ${HIK_SCRIPT_TOP_DIR}/.compile/.no_su_flag
+              # cp ${HIK_SCRIPT_TOP_DIR}/${dir_ro}/${COMP_WORDS[1]} ${HIK_SCRIPT_TOP_DIR}/${dir_ro}/.resycle/${COMP_WORDS[1]}
+              # cat `${HIK_SCRIPT_TOP_DIR}/.template` > ${HIK_SCRIPT_TOP_DIR}/${dir_ro}/${COMP_WORDS[1]}
+              # cat `${HIK_SCRIPT_TOP_DIR}/${dir_ro}/.resycle/${COMP_WORDS[1]}` >> ${HIK_SCRIPT_TOP_DIR}/${dir_ro}/${COMP_WORDS[1]}
             return 0
           fi
         tmp_opt=( $(${COMP_WORDS[1]}_get_options) )

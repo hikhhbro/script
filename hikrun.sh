@@ -93,3 +93,17 @@ do
   fi
 done
 unset db
+#不支持的脚本打开
+no_su=`cat ${HIK_SCRIPT_TOP_DIR}/.compile/.no_su_flag`
+if [[ "${no_su}" != "" ]];then
+  echo  > ${HIK_SCRIPT_TOP_DIR}/.compile/.no_su_flag
+
+  echo $no_su
+  echo ${no_su%/*}
+  echo ${no_su##*/}
+  cp ${no_su} "${no_su%/*}/.resycle/${no_su##*/}"
+  cat ${HIK_SCRIPT_TOP_DIR}/.template > ${no_su}
+  echo >> ${no_su}
+  cat "${no_su%/*}/.resycle/${no_su##*/}" >> ${no_su}
+  code ${no_su}
+fi

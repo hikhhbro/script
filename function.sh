@@ -11,10 +11,7 @@ else
     exit 1
 fi
 if [ "${HIK_SCRIPT_TOP_DIR}/${dir_ro}/${script_arg[0]}" -nt  "${HIK_SCRIPT_TOP_DIR}/.compile/${dir_ro}/${script_arg[0]}" ];then 
-        temp_dir_s="${HIK_SCRIPT_TOP_DIR}/${dir_ro}/${script_arg[0]}"
-        mkdir -p  ${temp_dir_s%/*}
         my_compile ${dir_ro}/${script_arg[0]}
-        unset temp_dir_s
 fi
 . ${HIK_SCRIPT_TOP_DIR}/.compile/${dir_ro}/${script_arg[0]}
 unset dir_ro
