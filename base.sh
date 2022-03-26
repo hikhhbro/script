@@ -74,11 +74,23 @@ touch_script() {
 rm_script() {
     _func
   if [[ "$1" == "-c" ]];then
+        local t_dir="${HIK_SCRIPT_TOP_DIR}/company/.resycle/$1"
+        if [ ! -d ${t_dir%/*} ];then
+            mkdir ${t_dir%/*}
+        fi
       mv ${HIK_SCRIPT_TOP_DIR}/company/$3 ${HIK_SCRIPT_TOP_DIR}/company/.resycle/$3
   else
     if [ -f "${HIK_SCRIPT_TOP_DIR}/script/$1" ];then
+        local t_dir="${HIK_SCRIPT_TOP_DIR}/script/.resycle/$1"
+        if [ ! -d ${t_dir%/*} ];then
+            mkdir ${t_dir%/*}
+        fi
         mv "${HIK_SCRIPT_TOP_DIR}/script/$1" ${HIK_SCRIPT_TOP_DIR}/script/.resycle/$1
     else
+        local t_dir="${HIK_SCRIPT_TOP_DIR}/company/.resycle/$1"
+        if [ ! -d ${t_dir%/*} ];then
+            mkdir ${t_dir%/*}
+        fi
         mv ${HIK_SCRIPT_TOP_DIR}/company/$1 ${HIK_SCRIPT_TOP_DIR}/company/.resycle/$1
     fi
   fi
