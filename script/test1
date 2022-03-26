@@ -4,9 +4,10 @@
 描述: 测试
 <_describe> end
 <_get_options> begin
-短选项(-*): -m -d
-长选项(--*): --sas
+短选项(-*): -m -d -w -g
+长选项(--*): --sas --sagde DSFDS
 其他选项: 
+asasd sasd  sdfss --js :da,sss:sad
 <_get_options> end
 !
 #<user_func> 
@@ -14,7 +15,8 @@ tes() {
   echo "tessssst"
 }
 
-#<main>
-echo $*
+        #<main>
+echo "dasd"
+        echo $*
 
 
