@@ -1,5 +1,11 @@
 source ${HIK_SCRIPT_TOP_DIR}/base.sh
 probe="probe"
+if [ ! -f ${HIK_SCRIPT_TOP_DIR}/.compile/.tmp_opt ] || [ ! -f ${HIK_SCRIPT_TOP_DIR}/.compile/.l_tmp_opt ] || [ ! -f ${HIK_SCRIPT_TOP_DIR}/.compile/.no_su_flag ] ;then
+    echo > ${HIK_SCRIPT_TOP_DIR}/.compile/.tmp_opt
+    echo > ${HIK_SCRIPT_TOP_DIR}/.compile/.l_tmp_opt
+    echo > ${HIK_SCRIPT_TOP_DIR}/.compile/.no_su_flag
+fi
+
 t_opts=`cat ${HIK_SCRIPT_TOP_DIR}/.compile/.tmp_opt`
 l_t_opts=`cat ${HIK_SCRIPT_TOP_DIR}/.compile/.l_tmp_opt`
 #不支持的脚本打开
