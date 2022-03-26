@@ -93,11 +93,17 @@ __get_file() {
             done
             compopt -o nospace
             COMPREPLY=( $(compgen -W "${input2}" -- ) )
-            if [[ "${#COMPREPLY[@]}" == "1"  ]];then
-                    compopt +o nospace
-                    COMPREPLY[0]="${temp_cur}/${COMPREPLY[0]}"
-                    
-
+            if [[ ${cur} == */* ]];then
+                if [[ "${#COMPREPLY[@]}" == "1"  ]];then
+                        compopt +o nospace
+                        COMPREPLY[0]="${temp_cur}/${COMPREPLY[0]}"
+                        
+                else
+                        # compopt +o nospace
+                    for ((i=0;i<${#COMPREPLY[@]};i++)) do
+                        COMPREPLY[i]="${temp_cur}/${COMPREPLY[i]}"
+                    done
+                fi
             fi
           fi
           
@@ -164,7 +170,7 @@ _hikrun() {
             return 0
         fi
         . ${HIK_SCRIPT_TOP_DIR}/.compile/${dir_ro}/${COMP_WORDS[1]}
-        tmp_opt=( $(${COMP_WORDS[1]}_get_options) )
+        tmp_opt=( $(${COMP_WORDS[1]##*/}_get_options) )
         local opt_
         local opt
         local E_OPTS

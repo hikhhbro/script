@@ -50,7 +50,7 @@ touch_script() {
   _func
   if [[ "$1" == "-c" ]];then
       if [ ! -f "${HIK_SCRIPT_TOP_DIR}/company/$3" ];then
-        cp ${HIK_SCRIPT_TOP_DIR}/.template > ${HIK_SCRIPT_TOP_DIR}/company/$3
+        cp ${HIK_SCRIPT_TOP_DIR}/.template  ${HIK_SCRIPT_TOP_DIR}/company/$3
         chmod 755 ${HIK_SCRIPT_TOP_DIR}/company/$3
       fi
       code ${HIK_SCRIPT_TOP_DIR}/company/$3
@@ -63,7 +63,7 @@ touch_script() {
     elif [ -f "${HIK_SCRIPT_TOP_DIR}/$1" ];then
       code ${HIK_SCRIPT_TOP_DIR}/$1
     else
-      cp ${HIK_SCRIPT_TOP_DIR}/.template > ${HIK_SCRIPT_TOP_DIR}/script/$1
+      cp ${HIK_SCRIPT_TOP_DIR}/.template  ${HIK_SCRIPT_TOP_DIR}/script/$1
       chmod 755 ${HIK_SCRIPT_TOP_DIR}/script/$1
       code ${HIK_SCRIPT_TOP_DIR}/script/$1
     fi
