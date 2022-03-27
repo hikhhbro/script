@@ -166,7 +166,7 @@ _hikrun() {
             my_compile ${dir_ro}/${COMP_WORDS[1]}
             rebuu=$?
         fi
-        if [ ${rebuu} != 0 ]; then
+        if [ "${rebuu}" != 0 ]; then
             return 0
         fi
         . ${HIK_SCRIPT_TOP_DIR}/.compile/${dir_ro}/${COMP_WORDS[1]}
@@ -193,7 +193,7 @@ _hikrun() {
         else 
           echo  > ${HIK_SCRIPT_TOP_DIR}/.compile/.tmp_opt
         fi
-        if [[ ${L_E_OPTS} != "" ]]; then
+        if [[ "${L_E_OPTS}" != "" ]]; then
           echo ${L_E_OPTS} > ${HIK_SCRIPT_TOP_DIR}/.compile/.l_tmp_opt
         else
           echo  > ${HIK_SCRIPT_TOP_DIR}/.compile/.l_tmp_opt
