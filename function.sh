@@ -61,11 +61,10 @@ _all_describe() {
         for i in ${file_un[@]}
         do
           outre=$(my_compile "$i")
-          if [ $? == 0 ]; then
-            # echo $i
+          if [ "$?" == "0" ]; then
             . ${HIK_SCRIPT_TOP_DIR}/.compile/$i 
               outrd_=$(${i##*/}_describe)
-              printf "%-26s %-5s" ${i##*/} ${outrd_};
+              printf "%-26s %s" ${i##*/} ${outrd_};
               printf "\n" ;
           fi
             echo  > ${HIK_SCRIPT_TOP_DIR}/.compile/.no_su_flag
