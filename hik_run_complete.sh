@@ -166,7 +166,7 @@ _hikrun() {
             my_compile ${dir_ro}/${COMP_WORDS[1]}
             rebuu=$?
         fi
-        if [ "${rebuu}" != 0 ]; then
+        if [ "${rebuu}" != "0" ]; then
             return 0
         fi
         . ${HIK_SCRIPT_TOP_DIR}/.compile/${dir_ro}/${COMP_WORDS[1]}

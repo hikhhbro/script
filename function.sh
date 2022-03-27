@@ -64,7 +64,8 @@ _all_describe() {
           if [ "$?" == "0" ]; then
             . ${HIK_SCRIPT_TOP_DIR}/.compile/$i 
               outrd_=$(${i##*/}_describe)
-              printf "%-26s %s" ${i##*/} ${outrd_};
+              # echo $outrd_
+              printf "%-24s %s %s" ${i##*/} "|" ${outrd_};
               printf "\n" ;
           fi
             echo  > ${HIK_SCRIPT_TOP_DIR}/.compile/.no_su_flag
