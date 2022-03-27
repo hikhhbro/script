@@ -1,4 +1,17 @@
 #!/bin/bash
+: << !
+<_describe> begin
+描述: 初始化git仓库，使用hikhhbro的git用户名和邮箱
+<_describe> end
+<_get_options> begin
+短选项(-*):  
+长选项(--*): 
+其他选项: 
+<_get_options> end
+!
+#<user_func> 
+#<main>
+
 git init
 git config user.name hikhhbro
 git config user.email w1121508831@gmail.com

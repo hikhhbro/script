@@ -1,7 +1,7 @@
 #!/bin/bash
 : << !
 <_describe> begin
-描述: 编译安卓,不带参数编译全部,带模块名参数,-m使用make,否则使用quickbuild
+描述: 编译安卓,不带参数编译全部,带模块名参数,-m使用make,否则使用quickbuild,mm编译但钱模块
 初始化环境: source build/envsetup.sh && lunch venus-userdebug
 <_describe> end
 <_get_options> begin
