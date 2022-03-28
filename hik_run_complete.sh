@@ -123,12 +123,21 @@ _hikrun() {
     if [[ ${COMP_CWORD} == 1 ]];then
       if [[ ${cur} == --* ]] ; then
           COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )
+          if [[ "${COMPREPLY[0]}" == --*= ]] ; then
+            compopt -o nospace
+          fi
           return 0
       else
         __get_file ${HIK_SCRIPT_TOP_DIR}/script/  ${HIK_SCRIPT_TOP_DIR}/company/
         return 0
       fi
     fi
+  if [[ "${pre}" == "=" ]];then
+    expr $cur + 1 >/dev/null 2>&1
+    [ $? -ne 0 ] && compopt +o nospace || compopt -o nospace
+  fi
+        
+    
     case "$pre" in
       -B | -C)
         tmp_opt="android y4 rpi"
