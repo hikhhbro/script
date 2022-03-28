@@ -115,29 +115,34 @@ do
     unset $func
   fi
 done
-
-if [ "$(type -t ${script_arg[0]}_${probe})" = "function" ] ; then
-    if [ "${rerun_j}" -gt 0 ];then
-      for i in $(seq 1 $rerun_j)
-      do
-          echo  "第${i}次执行开始 === 剩余:$(expr $rerun_j - $i)次"
+if [[ "${script_arg[0]}" != "" ]];then
+  script_arg[0]=${script_arg[0]##*/}
+  echo ${script_arg[0]}
+  if [ "$(type -t ${script_arg[0]}_${probe})" = "function" ] ; then
+      if [ "${rerun_j}" -gt 0 ];then
+        for i in $(seq 1 $rerun_j)
+        do
+            echo  "第${i}次执行开始 === 剩余:$(expr $rerun_j - $i)次"
+            ${script_arg[0]}_${probe} ${in_opts} ${@:2}
+        done
+          unset ${script_arg[0]}_${probe}
+      elif [ "${rerun_j}" -eq -1 ];then
+        echo -n "进入无限循环"
+        while true
+        do
+          let i++
+          echo "第${i}次执行开始"
           ${script_arg[0]}_${probe} ${in_opts} ${@:2}
-      done
-    elif [ "${rerun_j}" -eq -1 ];then
-      echo -n "进入无限循环"
-      while true
-      do
-        let i++
-        echo "第${i}次执行开始"
-        ${script_arg[0]}_${probe} ${in_opts} ${@:2}
-        sleep 10
-      done
-    fi
-    
-    else
-        ${script_arg[0]}_${probe} ${in_opts} ${@:2}
-    fi
-  unset $func
+          sleep 10
+        done
+          unset ${script_arg[0]}_${probe}
+      fi
+      
+      else
+          ${script_arg[0]}_${probe} ${in_opts} ${@:2}
+          unset ${script_arg[0]}_${probe}
+      fi
+      
 fi
   
 unset db
