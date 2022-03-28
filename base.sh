@@ -16,7 +16,7 @@ run_gits=""
 script_arg=()
 self_arg=()
 rerun_j=0
-opts="--help --script --code --rm"
+opts="--help --code --rm"
 db="_task"
 describe=""
 #公共选项提示
