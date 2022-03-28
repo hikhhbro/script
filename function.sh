@@ -51,11 +51,15 @@ function read_dir(){
 
 _all_describe() {
         local file_un outre
-        file_un=$(read_dir ${HIK_SCRIPT_TOP_DIR}/script)
-        file_un="$(read_dir ${HIK_SCRIPT_TOP_DIR}/company) ${file_un}"
+        if [ -d  ${HIK_SCRIPT_TOP_DIR}/script ];then
+            file_un=$(read_dir ${HIK_SCRIPT_TOP_DIR}/script)
+            rm -r ${HIK_SCRIPT_TOP_DIR}/.compile/script/
+        fi
+        if [ -d  ${HIK_SCRIPT_TOP_DIR}/.compile/company/ ];then
+            file_un="$(read_dir ${HIK_SCRIPT_TOP_DIR}/company) ${file_un}"
+            rm -r ${HIK_SCRIPT_TOP_DIR}/.compile/company/
+        fi
         file_un=($file_un)
-        rm -r ${HIK_SCRIPT_TOP_DIR}/.compile/script/
-        rm -r ${HIK_SCRIPT_TOP_DIR}/.compile/company/
         for i in ${file_un[@]}
         do
           outre=$(my_compile "$i")
