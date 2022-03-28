@@ -15,7 +15,7 @@ run_adb=""
 run_gits=""
 script_arg=()
 self_arg=()
-rerun_j=1
+rerun_j=0
 opts="--help --rerun= --script --code --rm"
 db="_task"
 describe=""

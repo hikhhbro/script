@@ -14,26 +14,24 @@ if [ ${#script_arg[@]} -gt 0 ];then
   unset dir_ro
 fi
 run_func=(
-  ${rerun}_${script}
   ${script_arg[0]}_${describe} 
-  ${script_arg[0]}_${probe}
 )
 
-#执行外部脚本
-rerun_script() {
-  if [ ! -f "${script_arg[0]}" ];then
-    if [ ! -f "${HIK_SCRIPT_TOP_DIR}/script/${script_arg[0]}" ];then
-        _func "${script_arg[0]} 不存在"
-        exit 0
-    fi
-    script_arg[0]="${HIK_SCRIPT_TOP_DIR}/script/${script_arg[0]}"
-  fi
-  for i in $(seq 1 $rerun_j)
-  do
-    _func ". ""${script_arg[*]}"  "第${i}次执行开始 === 剩余:$(expr $rerun_j - $i)次"
-    $(echo ". ""${script_arg[*]}")
-  done
-}
+# #执行外部脚本
+# rerun_script() {
+#   if [ ! -f "${script_arg[0]}" ];then
+#     if [ ! -f "${HIK_SCRIPT_TOP_DIR}/script/${script_arg[0]}" ];then
+#         _func "${script_arg[0]} 不存在"
+#         exit 0
+#     fi
+#     script_arg[0]="${HIK_SCRIPT_TOP_DIR}/script/${script_arg[0]}"
+#   fi
+#   for i in $(seq 1 $rerun_j)
+#   do
+#     _func ". ""${script_arg[*]}"  "第${i}次执行开始 === 剩余:$(expr $rerun_j - $i)次"
+#     $(echo ". ""${script_arg[*]}")
+#   done
+# }
 
 function read_dir(){
   for file in `ls $1` 
@@ -74,6 +72,7 @@ _all_describe() {
 _describe() {
   echo "短选项：-*  ${short_opts}"
   echo "长选项：--*  ${long_opts}"
+  echo "--rerun= 循环执行  -1 为无线循环,>0 为循环次数" 
   echo "其选项：支持运行安装目录下的无后缀模板类型脚本"
   echo "z foo  CD到最近的dir匹配foo "
   echo "z foo bar  CD到最近的dir匹配foo和bar "

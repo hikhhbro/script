@@ -110,12 +110,35 @@ source ${HIK_SCRIPT_TOP_DIR}/function.sh
 # 函数执行
 for func in ${run_func[*]}
 do
-  # echo $func ${@:1}
   if [ "$(type -t $func)" = "function" ] ; then
-    # echo $func ${@:1}
     $func ${in_opts} ${@:2}
     unset $func
   fi
 done
+
+if [ "$(type -t ${script_arg[0]}_${probe})" = "function" ] ; then
+    if [ "${rerun_j}" -gt 0 ];then
+      for i in $(seq 1 $rerun_j)
+      do
+          echo  "第${i}次执行开始 === 剩余:$(expr $rerun_j - $i)次"
+          ${script_arg[0]}_${probe} ${in_opts} ${@:2}
+      done
+    elif [ "${rerun_j}" -eq -1 ];then
+      echo -n "进入无限循环"
+      while true
+      do
+        let i++
+        echo "第${i}次执行开始"
+        ${script_arg[0]}_${probe} ${in_opts} ${@:2}
+        sleep 10
+      done
+    fi
+    
+    else
+        ${script_arg[0]}_${probe} ${in_opts} ${@:2}
+    fi
+  unset $func
+fi
+  
 unset db
 
