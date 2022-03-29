@@ -21,7 +21,7 @@ if [[ "${no_su}" != "" ]];then
   exit 0
 fi
 in_opts=""
-short_opts="${t_opts}hVr"
+short_opts="${t_opts}hVro:"
 long_opts="${l_t_opts}help,rerun:,script:,code:,rm:"
 # 输入
 ARGS=$(getopt -o ${short_opts} --long ${long_opts} -n 'hikrun' -- "$@")
@@ -55,6 +55,11 @@ while true; do
     #调试选项
     -V)
       db="_debug_task"
+      shift
+    ;;
+    #log输出到文件
+    -o)
+      out_log_file=$2
       shift
     ;;
     --rerun)
@@ -103,10 +108,17 @@ while true; do
   esac
 done
 #剩余参数
-script_arg=($@)
+# script_arg=($@)
 self_arg=($@)
+for i in $@
+do
+  if [[ "$i" != "--" ]];then
+  echo $i
+      script_arg=(${script_arg[*]} $i)
+  fi 
+done
 #函数定义和注册
-source ${HIK_SCRIPT_TOP_DIR}/function.sh
+. ${HIK_SCRIPT_TOP_DIR}/function.sh
 # 函数执行
 for func in ${run_func[*]}
 do
@@ -118,6 +130,11 @@ done
 if [[ "${script_arg[0]}" != "" ]];then
   script_arg[0]=${script_arg[0]##*/}
   if [ "$(type -t ${script_arg[0]}_${probe})" = "function" ] ; then
+    # if [[ "${out_log_file}" != "" ]];then
+    #   SHELL=/bin/sh
+    #   PS1="$ "
+    #   script -t 2>${out_log_file}.time -a ${out_log_file} 
+    # fi
       if [ "${rerun_j}" -gt 0 ];then
         for i in $(seq 1 $rerun_j)
         do
@@ -139,8 +156,9 @@ if [[ "${script_arg[0]}" != "" ]];then
           ${script_arg[0]}_${probe} ${in_opts} ${@:2}
           unset ${script_arg[0]}_${probe}
       fi
-    fi  
+    fi 
 fi
   
 unset db
-
+exit
+exit
