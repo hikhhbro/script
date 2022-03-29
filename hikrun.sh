@@ -117,7 +117,6 @@ do
 done
 if [[ "${script_arg[0]}" != "" ]];then
   script_arg[0]=${script_arg[0]##*/}
-  echo ${script_arg[0]}
   if [ "$(type -t ${script_arg[0]}_${probe})" = "function" ] ; then
       if [ "${rerun_j}" -gt 0 ];then
         for i in $(seq 1 $rerun_j)
@@ -136,13 +135,11 @@ if [[ "${script_arg[0]}" != "" ]];then
           sleep 10
         done
           unset ${script_arg[0]}_${probe}
-      fi
-      
       else
           ${script_arg[0]}_${probe} ${in_opts} ${@:2}
           unset ${script_arg[0]}_${probe}
       fi
-      
+    fi  
 fi
   
 unset db
