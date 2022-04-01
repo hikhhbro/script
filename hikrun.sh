@@ -113,7 +113,6 @@ self_arg=($@)
 for i in $@
 do
   if [[ "$i" != "--" ]];then
-  echo $i
       script_arg=(${script_arg[*]} $i)
   fi 
 done

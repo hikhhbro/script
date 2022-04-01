@@ -1,0 +1,24 @@
+#!/bin/bash
+: << !
+<_describe> begin
+描述: 编译c++测试案例和运行,默认允许编译运行test.cpp,参数接收cpp文件
+<_describe> end
+<_get_options> begin
+短选项(-*):  
+长选项(--*): 
+其他选项: 
+<_get_options> end
+!
+#<user_func> 
+#<main>
+if [[ "$*" == "" ]];then
+  g++ test.cpp -o test
+  ./test
+else
+  for i in $*
+  do
+      g++ $i -o ${i%.*}
+      ./${i%.*}
+  done
+fi
+
