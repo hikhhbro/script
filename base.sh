@@ -21,7 +21,7 @@ opts="--help --code --rm"
 db="_task"
 describe=""
 #公共选项提示
-pub_opt=" -h -V -o --rerun="
+pub_opt=" -h -V --rerun="
 function _func() {
   echo -en "\033[33mCurrent$FUNCNAME => (${FUNCNAME[1]}): \033[0m"
   for i in "$*"      #在"$*"中遍历参数，此时"$*"被扩展为包含所有位置参数的单个字符串，只遍历一次

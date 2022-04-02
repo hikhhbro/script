@@ -21,8 +21,8 @@ if [[ "${no_su}" != "" ]];then
   exit 0
 fi
 in_opts=""
-short_opts="${t_opts}hVro:"
-long_opts="${l_t_opts}help,rerun:,script:,code:,rm:"
+short_opts="${t_opts}hVr"
+long_opts="${l_t_opts}help,rerun:,code:,rm:"
 # 输入
 ARGS=$(getopt -o ${short_opts} --long ${long_opts} -n 'hikrun' -- "$@")
 error_return=$?
