@@ -1,0 +1,14 @@
+#!/bin/bash
+: << !
+<_describe> begin
+描述: 清除内存的缓存
+<_describe> end
+<_get_options> begin
+短选项(-*):  
+长选项(--*): 
+其他选项: 
+<_get_options> end
+!
+#<user_func> 
+#<main>
+sudo sync && sudo sh -c 'echo 3 > /proc/sys/vm/drop_caches'
