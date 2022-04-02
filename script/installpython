@@ -1,0 +1,22 @@
+#!/bin/bash
+: << !
+<_describe> begin
+描述: 安装python3任意版本,并设置到update-alternatives管理中
+<_describe> end
+<_get_options> begin
+短选项(-*):  
+长选项(--*): 
+其他选项: python3.8 python3.6
+<_get_options> end
+!
+#<user_func> 
+#<main>
+sudo apt-get install software-properties-common
+sudo apt-get install $1
+version=(`update-alternatives  --list python3`)
+echo ${version[0]}  "/usr/bin/$1"
+if [[ "${version[@]}" =~ "/usr/bin/$1" ]];then
+  exit 0
+fi
+let pr=${#version[@]}+1
+sudo update-alternatives --install /usr/bin/python3 python3 /usr/bin/$1  $pr

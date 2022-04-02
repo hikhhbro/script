@@ -1,0 +1,14 @@
+#!/bin/bash
+: << !
+<_describe> begin
+描述: 切换默认python3版本
+<_describe> end
+<_get_options> begin
+短选项(-*):  
+长选项(--*): 
+其他选项: 
+<_get_options> end
+!
+#<user_func> 
+#<main>
+sudo update-alternatives --config python3
