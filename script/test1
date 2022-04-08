@@ -17,7 +17,4 @@ tes() {
 #<main>
 echo "测试"
 tes
-
-
-
-
+. ${HIK_SCRIPT_TOP_DIR}/script/test2

@@ -183,7 +183,17 @@ my_compile() {
           line='${db}'" $line" 
           echo 1 > ${HIK_SCRIPT_TOP_DIR}/.compile/.tmp
         fi
+        local filed=${head_[1]%/*}
+        filed=${filed##*/}
+        local fesf="${HIK_SCRIPT_TOP_DIR}/${filed}/${head_[1]##*/}"  
+        if [ "${head_[0]}" == "." ] && [ -f "${fesf}" ];then
+          echo "${filed}/${head_[1]##*/}" ${fesf}
+          my_compile "${filed}/${fesf##*/}"
+          echo  '. '${HIK_SCRIPT_TOP_DIR}/.compile/${filed}/${fesf##*/}'' >> ${HIK_SCRIPT_TOP_DIR}/.compile/$1
+          echo  ''${fesf##*/}'_probe' >> ${HIK_SCRIPT_TOP_DIR}/.compile/$1
+        else
          echo $line >> ${HIK_SCRIPT_TOP_DIR}/.compile/$1
+        fi
       ;;
     esac
   done < "${HIK_SCRIPT_TOP_DIR}/$1"
