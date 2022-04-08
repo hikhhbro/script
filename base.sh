@@ -187,7 +187,7 @@ my_compile() {
         filed=${filed##*/}
         local fesf="${HIK_SCRIPT_TOP_DIR}/${filed}/${head_[1]##*/}"  
         if [ "${head_[0]}" == "." ] && [ -f "${fesf}" ];then
-          echo "${filed}/${head_[1]##*/}" ${fesf}
+          # echo "${filed}/${head_[1]##*/}" ${fesf}
           my_compile "${filed}/${fesf##*/}"
           echo  '. '${HIK_SCRIPT_TOP_DIR}/.compile/${filed}/${fesf##*/}'' >> ${HIK_SCRIPT_TOP_DIR}/.compile/$1
           echo  ''${fesf##*/}'_probe' >> ${HIK_SCRIPT_TOP_DIR}/.compile/$1
