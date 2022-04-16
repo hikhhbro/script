@@ -1,0 +1,15 @@
+#!/bin/bash
+: << !
+<_describe> begin
+描述: vscode打开readme
+<_describe> end
+<_get_options> begin
+短选项(-*):  
+长选项(--*): 
+其他选项: 
+<_get_options> end
+!
+#<user_func> 
+db=''
+#<main>
+code ${HIK_SCRIPT_TOP_DIR}/README.md
