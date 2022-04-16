@@ -1,0 +1,25 @@
+#!/bin/bash
+: << !
+<_describe> begin
+描述: 编译node,并输出sysroot
+<_describe> end
+<_get_options> begin
+短选项(-*):  
+长选项(--*): 
+其他选项: 
+<_get_options> end
+!
+#<user_func> 
+#<main>
+source android-configure
+make -j16
+if [[ "$?" != "0" ]];then
+exit 
+fi
+SYS_DIR="sysroot"
+if [ ! -d sysroot ];then
+  mkdir -p ${SYS_DIR}
+fi
+python tools/install.py install '' ${SYS_DIR}
+
+

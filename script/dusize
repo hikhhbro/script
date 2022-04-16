@@ -1,0 +1,30 @@
+#!/bin/bash
+: << !
+<_describe> begin
+描述: 查看文件夹大小 参数为文件夹深度,默认查看当前文件夹大小
+<_describe> end
+<_get_options> begin
+短选项(-*):  
+长选项(--*): 
+其他选项: 
+<_get_options> end
+!
+#<user_func> 
+#<main>
+if [[ "$1" != "" ]];then
+  isdigit=`awk 'BEGIN { if (match(ARGV[1],"^[0-9]+$") != 0) print "true"; else print "false" }' $1`
+  if [[ "$isdigit" != "true" ]];then
+    cd $1 
+    if [[ "$2" != "" ]];then
+      du -lh --max-depth=$2
+    else
+      du -lh --max-depth=0
+    fi
+  else
+    du -lh --max-depth=$1
+  fi
+else
+  du -lh --max-depth=1
+fi
+
+
