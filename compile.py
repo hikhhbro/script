@@ -118,5 +118,3 @@ if __name__ == '__main__':
     comp = Compile("script/test1")
     comp.handle()
     comp.write_file()
-    cmd = 'type -t .'
-    val = os.popen(cmd,'r',1)

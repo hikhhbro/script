@@ -11,6 +11,7 @@ linux脚本管理
 - [X] 自定义函数解析
 - [X] 自定义函数插入func调试功能
 - [ ] 帮助提示
+- [ ] 编译识别函数
 
 ## bug
 
@@ -23,3 +24,18 @@ linux脚本管理
 - [X] 隐藏非可执行文件
 - [ ] 优化不全代码
 - [ ] 优化编译代码
+
+
+
+## 设计
+### 编译
+hikrun  {--rm,--code,file}
+    --code {file or -c} {file or -c}
+    --rm {file}
+    --help
+    {file} {-h,--rerun=,args}
+
+参数
+file : {ags} -h  --rerun=
+
+
