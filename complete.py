@@ -15,7 +15,7 @@ class Complete:
         self.root_dir = os.getenv('HIK_SCRIPT_TOP_DIR')
         self.root_dir_len = len(self.root_dir)
         
-    def last_input(self): # hikrun  wiz/w  -> wiz/w
+    def last_input(self): # hikrun  wiz/w  -> wiz/w  
         return self.asgs[-1]
 
     def last_2_input(self):
@@ -135,17 +135,30 @@ class Complete:
                 self.set_prefix(prefix)
             
 
-
-
-
+#todo 设计成字典调用
     def set_complete(self) -> bool :
-        file_dir = ["script",'company'] 
-
-        for i in range(len(file_dir)):
-            file_dir[i] = file_dir[i] + "/" + self.get_path()
-        self.find_files_dirs(file_dir)
-        self.compgen()
+        if self.isend() :
+            if self.last_input() == 'hikrun' :
+                file_dir = ["script",'company'] 
+                self.matching_file()  #self.matching_file() 
+            elif self.last_input() == '--code' or self.last_input() == '-c': 
+                file_dir = ["script",'company'] 
+                self.matching_file()  #self.matching_file() 
+            else :
+                file_dir = ["script",'company'] 
+                self.matching_file()  #self.matching_file() 
+        else :
+            if '-' in self.last_input() :
+                self.matching_opt() #self.matching_file() 
+            else :
+                self.matching_file()  #self.matching_file() 
         return self.getlsspace()
+
+
+        # for i in range(len(file_dir)):
+        #     file_dir[i] = file_dir[i] + "/" + self.get_path()
+        # self.find_files_dirs(file_dir)
+        # self.compgen()
       
 if __name__ == '__main__':
     # com = Complete(sys.argv)
