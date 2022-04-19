@@ -1,6 +1,7 @@
 import os
 import sys
 # import Compile
+
 class Complete:
     def __init__(self,asgs=[]):
         self.end = asgs[-1]
@@ -9,7 +10,8 @@ class Complete:
         self.file = self.to_file()
         self.input = {}
         self.out = {}
-        self.public_com = {'hikrun' : ['--rm','--code']}
+        self.hikrun = ['--rm','--code' ,'f']
+        self.opt = {'hikrun' : self.hikrun}
         self.setspace = {True : 'compopt +o nospace',False :'compopt -o nospace'}
         self.end_dic = {'n': False, 'y': True}
         self.root_dir = os.getenv('HIK_SCRIPT_TOP_DIR')
@@ -33,9 +35,18 @@ class Complete:
                 file = {'prefix' : '' , 'path' : self.last_input()[:i] , 'name' : self.last_input()[i+1:]}
             else :
                 file = {'prefix' : '' , 'path' : '', 'name' : self.last_input()}
-            return  file
-
-
+            return  file  
+    
+    def matching_opt(self) : #匹配后面选项
+      if self.isend() :
+        if self.last_input() == 'hikrun':
+            pass # getfile
+        # elif '-' in self.last_input() and self.last_2_input() :
+            
+            
+        
+    #   else:
+    #       pass
 
     def set_prefix(self,prefix): # [script,wiz,w]
         self.file['prefix'] = prefix
@@ -83,7 +94,7 @@ class Complete:
                 prefix = prefix[:l]
             break
         return prefix
-        
+      
     def get_input(self):
         return self.input
 
@@ -106,15 +117,13 @@ class Complete:
         self.last_input()[:]
         return file[1]
     
-    def file_name(file):
-        return file[0]
-
-    def compgen(self):
+    def compgen(self): #筛分匹配项
         if  len(self.asgs) == 3 and '-' in file :
             # self.out = self.matching(file, self.public_com)
             pass
         else:
             self.out = self.matching_file(self.get_input())
+            
         # if not self.out and self.isend() :
         #     pytime = os.path.getmtime(os.path.join(root, sc)) 
         #     txttime = os.path.getmtime(os.path.join(root, txt)) 
@@ -133,8 +142,14 @@ class Complete:
             prefix = self.find_files(item)
             if prefix != '':
                 self.set_prefix(prefix)
-            
-
+                
+    def matching_input(self) :   #选定需要匹配的选项
+        if self.isend() :
+            self.opt['opt']()
+        else :
+            if self.last_input()[0] == '-':
+                
+          
 #todo 设计成字典调用
     def set_complete(self) -> bool :
         if self.isend() :

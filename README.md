@@ -38,4 +38,3 @@ hikrun  {--rm,--code,file}
 参数
 file : {ags} -h  --rerun=
 
-
