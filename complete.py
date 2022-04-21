@@ -1,17 +1,14 @@
 import os
 import sys
-# import Compile
+import compile
 
 class Complete:
     def __init__(self,asgs=[]):
         self.end = asgs[-1]
         self.asgs = asgs
         self.asgs.pop()
-        self.file = self.to_file()
-        self.input = {}
         self.out = {}
-        self.hikrun = ['--rm','--code' ,'f']
-        self.opt = {'hikrun' : self.hikrun}
+        self.hikrun = ['--rm','--code']
         self.setspace = {True : 'compopt +o nospace',False :'compopt -o nospace'}
         self.end_dic = {'n': False, 'y': True}
         self.root_dir = os.getenv('HIK_SCRIPT_TOP_DIR')
@@ -21,50 +18,10 @@ class Complete:
         return self.asgs[-1]
 
     def last_2_input(self):
-        if len(self.asgs) > 2 :
+        if len(self.asgs) > 1 :
             return self.asgs[-2]
         else :
             return None
-
-    def to_file(self):  # wiz/w -> [wiz,w]
-        if self.last_2_input() == 'hikrun' and self.last_input()[0] == '-' :
-            return self.public_com
-        else:
-            i = self.last_input().rfind('/') 
-            if i >= 0:
-                file = {'prefix' : '' , 'path' : self.last_input()[:i] , 'name' : self.last_input()[i+1:]}
-            else :
-                file = {'prefix' : '' , 'path' : '', 'name' : self.last_input()}
-            return  file  
-    
-    def matching_opt(self) : #匹配后面选项
-      if self.isend() :
-        if self.last_input() == 'hikrun':
-            pass # getfile
-        # elif '-' in self.last_input() and self.last_2_input() :
-            
-            
-        
-    #   else:
-    #       pass
-
-    def set_prefix(self,prefix): # [script,wiz,w]
-        self.file['prefix'] = prefix
-    
-    def set_path(self,path):
-        self.file['path'] = path
-    
-    def set_name(self,name):
-        self.file['name'] = name
-
-    def get_prefix(self): # [script,wiz,w]
-        return self.file['prefix']
-    
-    def get_path(self):
-        return self.file['path']
-    
-    def get_name(self):
-        return self.file['name']
 
     def set_out(self,sw:bool): 
         print(self.setspace[sw])
@@ -80,53 +37,38 @@ class Complete:
         return self.root_dir + '.compile/' + path[self.root_dir_len:]
 
     def find_files(self,name=''):
-        prefix = ''
+        file_dir = {}
         for root ,dirs,files in os.walk(self.root_dir+'/'+name):
             for d in dirs:
                 if d[0] != '.':
-                    self.input['{}/'.format(d)] = root + '/' + d
+                    file_dir['{}/'.format(d)] = root + '/' + d
             for file in files:
                 if self.isexecutable(file) :
-                    self.input[file] = root + '/' + file 
-            prefix = root[self.root_dir_len+1:]        
-            l = prefix.find('/')
-            if l >= 0 :
-                prefix = prefix[:l]
+                    file_dir[file] = root + '/' + file 
             break
-        return prefix
-      
-    def get_input(self):
-        return self.input
+        return file_dir
 
-    def matching_file(self,indir):
+    def get_file_name(self,file):
+        return file[self.last_input().rfind('/') :]
+
+    def matching_file(self,dir_list,file=None):
+        file_dir = self.find_files_dirs(dir_list)
         out = {}
-        for k,v in indir.items():
-            l = len(self.get_name())
-            if l < len(k) and self.get_name() == k[0:l] :
-                out[k] = v
-        if not out and (self.end == 'y' or '/' == self.asgs[-1][-1] ):
-            out = self.get_input()
-        return out
+        if (file_dir) and (file != None) and (file[-1] != '/') :
+            for k,v in file_dir.items():
+                l = len(self.get_file_name(file))
+                if l < len(k) and self.get_file_name(file) == k[0:l] :
+                    out[k] = v
+        else :
+            out = file_dir
+        if len(out) == 1 and file == None and (file[-1] != '/'):
+            self.compile_file(list(out.values())[0])
+        self.out = out
 
-    def matching_opt(self,indir):
-        out = {}
-        return out
-
-    def file_path(file):  #wiz/w    wi  wiz/
-        i = self.last_input().rfind('/')
-        self.last_input()[:]
-        return file[1]
-    
-    def compgen(self): #筛分匹配项
-        if  len(self.asgs) == 3 and '-' in file :
-            # self.out = self.matching(file, self.public_com)
-            pass
-        else:
-            self.out = self.matching_file(self.get_input())
-            
-        # if not self.out and self.isend() :
-        #     pytime = os.path.getmtime(os.path.join(root, sc)) 
-        #     txttime = os.path.getmtime(os.path.join(root, txt)) 
+    def matching_opt(self,opt_list):
+        for i in opt_list :
+            if self.last_input() in i:
+                self.out[i] = None
 
     def getlsspace(self):
         if  len(self.out) == 1 and list(self.out.keys())[0][-1] == '/':
@@ -137,45 +79,39 @@ class Complete:
     def isend(self): # has space -> true  
         return self.end_dic[self.end]
 
-    def find_files_dirs(self,file_dir):
-        for item in file_dir:
-            prefix = self.find_files(item)
-            if prefix != '':
-                self.set_prefix(prefix)
-                
-    def matching_input(self) :   #选定需要匹配的选项
-        if self.isend() :
-            self.opt['opt']()
-        else :
-            if self.last_input()[0] == '-':
-                
-          
+#todo 增加同名文件提示和选择
+    def find_files_dirs(self,file_list):
+        file_d = {}
+        for item in file_list:
+            file_d.update(self.find_files(item))   # file_d = {}
+        return file_d
+
+    def compile_file(self,file):
+        comp = compile(file)
+
+
 #todo 设计成字典调用
     def set_complete(self) -> bool :
         if self.isend() :
-            if self.last_input() == 'hikrun' :
-                file_dir = ["script",'company'] 
-                self.matching_file()  #self.matching_file() 
-            elif self.last_input() == '--code' or self.last_input() == '-c': 
-                file_dir = ["script",'company'] 
-                self.matching_file()  #self.matching_file() 
+            if self.last_input() == 'hikrun' or self.last_input() == '--code' or self.last_input() == '-c' :
+                dir_list = ["script",'company'] 
+                self.matching_file(dir_list)  #self.matching_file()
             else :
-                file_dir = ["script",'company'] 
-                self.matching_file()  #self.matching_file() 
+                pass
+                # file_dir = ["script",'company'] 
+                # self.matching_file()  #self.matching_file() 
         else :
             if '-' in self.last_input() :
-                self.matching_opt() #self.matching_file() 
+                self.matching_opt(self.hikrun) #self.matching_file() 
+            elif self.last_2_input() == 'hikrun' or self.last_2_input() == '--code' or self.last_2_input() == '--rm':
+                dir_list = ["script",'company'] 
+                self.matching_file(dir_list,self.last_input())  #self.matching_file() 
             else :
-                self.matching_file()  #self.matching_file() 
+                self.out = {}
         return self.getlsspace()
 
-
-        # for i in range(len(file_dir)):
-        #     file_dir[i] = file_dir[i] + "/" + self.get_path()
-        # self.find_files_dirs(file_dir)
-        # self.compgen()
       
 if __name__ == '__main__':
-    # com = Complete(sys.argv)
-    com = Complete(['hikrun','wiz/w','n'])
+    com = Complete(sys.argv)
+    # com = Complete(['hikrun','test1','n'])
     com.set_out(com.set_complete())

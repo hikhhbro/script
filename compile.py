@@ -6,12 +6,13 @@ class Compile:
         self.options = "options>"
         self.other = "other"
         self.main = "main"
+        self.root_dir = os.getenv('HIK_SCRIPT_TOP_DIR')
+        self.root_dir_len = len(self.root_dir)
         self.filepath = filepath
-        self.outfilepath = ".compile/"+ filepath
+        self.outfilepath = self.root_dir +  "/.compile/"+ filepath[self.root_dir_len+1:]
         self.filedir,self.filename = os.path.split(filepath)
         self.action = ''
         self.writelines=[]
-        self.rootpath = os.path.abspath(os.path.dirname(__file__)) + "/"
         self.switch = {
             self.describe  :[],
             self.options  :[],
@@ -94,7 +95,7 @@ class Compile:
         else :
             pass
     def handle(self):
-        file = open(self.rootpath + self.filepath) 
+        file = open(self.filepath) 
         for line in file:
             self.get_action(line)
             if self.action in self.switch.keys() :
@@ -115,6 +116,8 @@ class Compile:
 
 
 if __name__ == '__main__':
-    comp = Compile("script/test1")
+    comp = Compile("/home/hik/script/script/test1")
+    # print(comp.filepath)
+    # print(comp.outfilepath)
     comp.handle()
     comp.write_file()
