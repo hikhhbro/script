@@ -2,9 +2,12 @@ import os
 import sys
 import subprocess
 
+root_dir = os.getenv('HIK_SCRIPT_TOP_DIR')
+dir_list = ["script",'company'] 
+
 class Shell():
-    def __init__(self):
-        self.cmd = ''
+    def __init__(self,cmd=''):
+        self.cmd = cmd
     def input(self,cmd_str):
         if self.cmd == '' :
             self.cmd = cmd_str
@@ -16,9 +19,87 @@ class Shell():
         s = subprocess.Popen(str(self.cmd), stderr=subprocess.PIPE, stdout=subprocess.PIPE, shell=True)
         stderrinfo, stdoutinfo = s.communicate()
         return stderrinfo.decode('utf-8')
-    
-root_dir = os.getenv('HIK_SCRIPT_TOP_DIR')
-dir_list = ["script",'company'] 
+
+class Code():
+    def __init__(self,args_list = []):
+        self.__dic = {
+            '-c' : self.__company_file,
+            '-a' : self.__adb_file, 
+            '-adb-sync' : self.__adb_sync_file,
+            None : self.__script_file
+        }
+        self.__args_list = args_list
+    def __company_file(self,args_list):
+        args_list.pop(0)
+        file =  root_dir + '/'+ 'company/' + ''.join(args_list[-1])
+        self.__code_file(file)
+
+    def __script_file(self,args_list):
+        file =  root_dir + '/'+ 'script/' + ''.join(args_list[-1])
+        self.__code_file(file)
+
+    def __code_file(self,file) :
+        if os.path.isfile(file) :
+            Shell('code '+ file).exe()
+        else:
+            s = Shell()
+            s.input('cp ' +  root_dir + '/' + '.template ' + file )
+            s.input("code " + file)
+            s.exe()
+
+    def __adb_dest_file(self,file):
+        return file.replace('/','#')
+
+    def __adb_src_file(file):
+        return file.replace('#','/')
+
+    def __adb_file(self,args_list):
+        srcfile = ''.join(args_list[-1])
+        dire = root_dir + '/adb_file/' + self.__adb_dest_file(srcfile)
+        s = Shell()
+        s.input('adb pull '+ srcfile + ' ' + dire)
+        s.input('code ' + dire)
+        s.exe()
+
+    def __adb_sync_file(self,args_list):
+        s = Shell()
+        for root, dirs, files in os.walk(root_dir + '/adb_file/'):
+            s.input('adb push '+ root + '/' + files[0] + ' ' + self.__adb_src_file(files[0]))
+            s.input('rm  '+ root + '/' + files[0])
+            s.exe()
+            break
+
+    def run(self):
+        if self.__args_list[0] in self.__dic :
+            self.__dic[self.__args_list[0]](self.__args_list[1:])
+        else :
+            self.__dic[None](self.__args_list)
+
+class Rm():
+    def __init__(self,args_list = []):
+        self.__args_list = args_list
+    def run(self):
+        if self.__args_list[0] == '-c' :
+            self.__args_list.pop(0)
+            dir_tmp = 'company/'
+        else :
+            dir_tmp = 'script/'
+        file =  root_dir + '/'+ dir_tmp + ''.join(self.__args_list[-1])
+        resycle =  root_dir + '/' + dir_tmp +'.resycle/' + ''.join(self.__args_list[-1])
+        Shell('mv '+ file + ' ' + resycle).exe()
+
+
+run = { 
+ '--code' : lambda args_list :  Code(args_list).run(),
+ '--rm' : lambda args_list : Rm(args_list).run()
+      }
+
+def get_probe(file):
+    l = file.rfind('/')
+    if l != -1:
+        return file[l+1:] + '_probe'
+    return file + '_probe'
+
 def get_file_path(file) :
     for item in dir_list:
         if os.path.isfile(root_dir + '/'+ item + '/'+ file):
@@ -29,96 +110,6 @@ def get_compile_path(file) :
     for item in dir_list:
         if os.path.isfile(root_dir + '/'+ '.compile/' + item + '/'+ file + '/' + file):
             return root_dir + '/'+ '.compile/' + item + '/'+ file + '/' + file
-
-def get_probe(file):
-    l = file.rfind('/')
-    if l != -1:
-        return file[l+1:] + '_probe'
-    return file + '_probe'
-
-def execute(cmd):
-    s = subprocess.Popen(str(cmd), stderr=subprocess.PIPE, stdout=subprocess.PIPE, shell=True)
-    stderrinfo, stdoutinfo = s.communicate()
-    return s.returncode
-
-def execute_file(file,arg_list):
-    arg_str = ' '.join(arg_list)
-    path = get_file_path(file)
-    if path == None :
-        return False
-    return execute('. ' + path + '&&' + file + '_probe' + arg_str)
-
-
-def company_file(args_list):
-    args_list.pop(0)
-    file =  root_dir + '/'+ 'company/' + ''.join(args_list[-1])
-    if os.path.isfile(file) :
-        execute('code '+ file)
-    else:
-        cmd = 'cp ' +  root_dir + '/' + '.template ' + file 
-        cmd += "&& code " + file
-        execute(cmd)
-def script_file(args_list):
-    file =  root_dir + '/'+ 'script/' + ''.join(args_list[-1])
-    if os.path.isfile(file) :
-        execute('code '+ file)
-    else:
-        cmd = 'cp ' +  root_dir + '/' + '.template ' + file 
-        cmd += "&& code " + file
-        execute(cmd)
-
-def adb_dest_file(file):
-    return file.replace('/','#')
-def adb_src_file(file):
-    return file.replace('#','/')
-
-def adb_file(args_list):
-    srcfile = ''.join(args_list[-1])
-    dire = root_dir + '/adb_file/' + adb_dest_file(srcfile)
-    s = Shell()
-    s.input('adb pull '+ srcfile + ' ' + dire)
-    s.input('code ' + dire)
-    s.exe()
-def adb_sync_file(args_list):
-    s = Shell()
-    for root, dirs, files in os.walk(root_dir + '/adb_file/'):
-        s.input('adb push '+ root + '/' + files[0] + ' ' + adb_src_file(files[0]))
-        s.input('rm  '+ root + '/' + files[0])
-        s.exe()
-        break
-
-file_run = {
-    '-c' : company_file,
-    '-a' : adb_file, 
-    '-adb-sync' :adb_sync_file,
-    None : script_file
-}
-
-
-def code(args_list):
-    if args_list[0] in file_run :
-        file_run[args_list[0]](args_list[1:])
-    else :
-        file_run[None](args_list)
-        
-def rm(args_list):
-    if args_list[0] == '-c' :
-        args_list.pop(0)
-        file =  root_dir + '/'+ 'company/' + ''.join(args_list[-1])
-        resycle =  root_dir + '/'+ 'company/.resycle/' + ''.join(args_list[-1])
-        execute('mv '+ file + ' ' + resycle)
-    else :
-        file =  root_dir + '/'+ 'script/' + ''.join(args_list[-1])
-        resycle =  root_dir + '/'+ 'script/.resycle/' + ''.join(args_list[-1])
-        execute('mv '+ file + ' ' + resycle)
-
-
-run = { 
- '--code' : code,
- '--rm' : rm
-      }
-
-  
 
 def main():
     if sys.argv[1] in list(run.keys()) :

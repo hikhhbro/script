@@ -2,3 +2,4 @@ company/*
 .compile/*
 .compile/script/test
 *.pyc
+script/.resycle
