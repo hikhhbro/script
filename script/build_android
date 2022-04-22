@@ -39,7 +39,7 @@ elif  [[ "$1" == "-m" ]];then
     make -j16 $2
 elif  [[ "$1" == "mm" ]];then
     cd ${ORGDIR}
-    mm
+    mm -j16 2>&1 | tee build.log
 else 
   quickbuild $1
 fi

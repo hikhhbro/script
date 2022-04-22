@@ -1,0 +1,27 @@
+#!/bin/bash
+: << !
+<_describe> begin
+描述: 编写手机文件,需要手动推送
+<_describe> end
+<_get_options> begin
+短选项(-*):  
+长选项(--*): 
+其他选项: /mina/bin/run.sh
+<_get_options> end
+!
+#<user_func> 
+db=''
+#<main>
+
+if [[ "$1" == "" ]];then
+  echo "no file"
+  exit 0
+fi
+adb pull $1 
+if [[ "$?" != "0" ]];then
+  echo "no file"
+  exit 0
+fi
+temp=$1
+temp=${temp##*/}
+code ${temp}

@@ -1,0 +1,17 @@
+#!/bin/bash
+: << !
+<_describe> begin
+描述: 推送settings产物到手机  要到工程目录下
+<_describe> end
+<_get_options> begin
+短选项(-*):  
+长选项(--*): 
+其他选项: 
+<_get_options> end
+!
+#<user_func> 
+#<main>
+adb push out/bin/settings_server /mina/bin/
+adb push out/bin/settings_observer  /mina/bin/
+adb push out/lib/libsettings_service.so /mina/lib/
+adb shell chmod -R 777 /mina/bin
