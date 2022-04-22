@@ -15,7 +15,7 @@ class Shell():
     def exe(self):
         s = subprocess.Popen(str(self.cmd), stderr=subprocess.PIPE, stdout=subprocess.PIPE, shell=True)
         stderrinfo, stdoutinfo = s.communicate()
-        return s.returncode
+        return stderrinfo.decode('utf-8')
     
 root_dir = os.getenv('HIK_SCRIPT_TOP_DIR')
 dir_list = ["script",'company'] 
@@ -27,10 +27,14 @@ def get_file_path(file) :
 
 def get_compile_path(file) :
     for item in dir_list:
-        if os.path.isfile(root_dir + '/'+ '.compile/' + item + '/'+ file):
-            return root_dir + '/'+ '.compile/' + item + '/'+ file
-    return None
-    
+        if os.path.isfile(root_dir + '/'+ '.compile/' + item + '/'+ file + '/' + file):
+            return root_dir + '/'+ '.compile/' + item + '/'+ file + '/' + file
+
+def get_probe(file):
+    l = file.rfind('/')
+    if l != -1:
+        return file[l+1:] + '_probe'
+    return file + '_probe'
 
 def execute(cmd):
     s = subprocess.Popen(str(cmd), stderr=subprocess.PIPE, stdout=subprocess.PIPE, shell=True)
@@ -117,10 +121,14 @@ run = {
   
 
 def main():
-    for i in range(len(sys.argv)):
-        if sys.argv[i] in list(run.keys()) :
-            run[sys.argv[i]](sys.argv[i+1:])
-            break
+    if sys.argv[1] in list(run.keys()) :
+        run[sys.argv[1]](sys.argv[2:])
+    else :
+        s = Shell()
+        file = get_compile_path(sys.argv[1])
+        s.input('. ' + file)
+        s.input(get_probe(sys.argv[1]) + ' ' +  ''.join(sys.argv[2:]))
+        print(s.exe())
     
 if __name__ == '__main__':
     main()
