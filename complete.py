@@ -130,6 +130,14 @@ class Complete:
                     self.matching_opt(self.compile_file(path))
         return self.getlsspace()
 
+# 设计字典类
+class Code():
+    def __init__(self):
+        self.__opt = ['-b','-a',None]
+    def run(self):
+        pass
+
+
       
 if __name__ == '__main__':
     com = Complete(sys.argv)
