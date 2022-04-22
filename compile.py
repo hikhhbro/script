@@ -1,5 +1,6 @@
 import os
 import re
+import json
 class Compile:
     def __init__(self,filepath):
         self.describe = "describe>"
@@ -9,8 +10,11 @@ class Compile:
         self.root_dir = os.getenv('HIK_SCRIPT_TOP_DIR')
         self.root_dir_len = len(self.root_dir)
         self.filepath = filepath
-        self.outfilepath = self.root_dir +  "/.compile/"+ filepath[self.root_dir_len+1:]
         self.filedir,self.filename = os.path.split(filepath)
+        self.outfilepath = self.root_dir +  "/.compile/"+ filepath[self.root_dir_len+1:] +'/'+ self.filename
+        self.args_path = self.root_dir +  "/.compile/"+ filepath[self.root_dir_len+1:] +'/args.json'
+        if not os.path.isdir(self.root_dir +  "/.compile/"+ filepath[self.root_dir_len+1:]):
+            os.makedirs(self.root_dir +  "/.compile/"+ filepath[self.root_dir_len+1:])
         self.action = ''
         self.writelines=[]
         self.switch = {
@@ -70,6 +74,41 @@ class Compile:
                self.filename + '_get_options () {\n db="" \n echo "$(' + self.filename + '_s_get_options) $(' + self.filename  + '_l_get_options) $(' + self.filename + '_get_options)" \n}\n']
 
         return out
+    def get_options_args(self):
+        tmp = []
+        short_opt = ''
+        long_opt = ''
+        opt = ''
+        self.get_head(self.options)
+        for line in  self.switch.get(self.options):
+            s_list = list(line)
+            i = 0 
+            while (i < len(s_list)):
+                if s_list[i] == '-':
+                    if s_list[i+1].isalpha() and s_list[i+2].isalpha() == False:
+                            short_opt = '-' + s_list[i+1] + ' ' + short_opt
+                            i = i+1
+                    else :
+                        if s_list[i+1] == '-' and s_list[i+2].isalpha() and s_list[i+3].isalpha():
+                            long_opt = long_opt + ' --' +  s_list[i+2]
+                            i = i+3
+                            try:
+                                while  s_list[i].isalpha():
+                                    long_opt = long_opt +  s_list[i]
+                                    i = i+1
+                            except:  
+                                break
+                else:
+                    tmp.append(s_list[i])
+                i = i+1
+            stmp = ''.join(tmp)
+            stmp = re.sub('[^a-zA-Z]', ' ', stmp)
+            if stmp.strip():
+                opt = stmp.strip() + opt
+            tmp.clear()
+            out = list(set(short_opt.split(' ') + long_opt.split(' ') + opt.split(' ')))
+            out.remove("")
+        return out
     def get_main(self):
         out = [] 
         del self.switch.get(self.main)[0]
@@ -112,12 +151,16 @@ class Compile:
         fl.writelines(self.get_options())
         fl.writelines(self.get_main())
         fl.close()
-
+    def write_args(self):
+      with open(self.args_path,'w',encoding='utf-8') as file :
+        l = json.dumps(self.get_options_args(),ensure_ascii = False)
+        file.write(l)
 
 
 if __name__ == '__main__':
-    comp = Compile("/home/hik/script/script/test1")
+    comp = Compile("/home/hik/private/script/script/get_ip")
     # print(comp.filepath)
     # print(comp.outfilepath)
     comp.handle()
+    comp.write_args()
     comp.write_file()

@@ -13,7 +13,7 @@ class Complete:
         self.end_dic = {'n': False, 'y': True}
         self.root_dir = os.getenv('HIK_SCRIPT_TOP_DIR')
         self.root_dir_len = len(self.root_dir)
-        
+        self.dir_list = ["script",'company'] 
     def last_input(self): # hikrun  wiz/w  -> wiz/w  
         return self.asgs[-1]
 
@@ -49,7 +49,9 @@ class Complete:
         return file_dir
 
     def get_file_name(self,file):
-        return file[self.last_input().rfind('/') :]
+        if self.last_input().rfind('/') != -1:
+            return file[self.last_input().rfind('/') :]
+        return file
 
     def matching_file(self,dir_list,file=None):
         file_dir = self.find_files_dirs(dir_list)
@@ -57,7 +59,7 @@ class Complete:
         if (file_dir) and (file != None) and (file[-1] != '/') :
             for k,v in file_dir.items():
                 l = len(self.get_file_name(file))
-                if l < len(k) and self.get_file_name(file) == k[0:l] :
+                if l <= len(k) and self.get_file_name(file) == k[:l] :
                     out[k] = v
         else :
             out = file_dir
@@ -66,9 +68,14 @@ class Complete:
         self.out = out
 
     def matching_opt(self,opt_list):
-        for i in opt_list :
-            if self.last_input() in i:
-                self.out[i] = None
+        if self.isend():
+            for item in opt_list:
+                if '-' != item[0]:
+                    self.out[item] = None
+        else:
+            for i in opt_list :
+                if len(self.last_input()) <= len(i) and self.last_input() == i[:len(self.last_input())]:
+                    self.out[i] = None
 
     def getlsspace(self):
         if  len(self.out) == 1 and list(self.out.keys())[0][-1] == '/':
@@ -87,8 +94,17 @@ class Complete:
         return file_d
 
     def compile_file(self,file):
-        comp = compile(file)
+        comp = compile.Compile(file)
+        comp.handle()
+        comp.write_args()
+        comp.write_file()
+        return comp.get_options_args()
 
+    def get_file_path(self,name):
+        for item in self.dir_list:
+            if os.path.isfile(self.root_dir + '/'+ item + '/'+ name):
+                return self.root_dir + '/'+ item + '/'+ name
+        return False
 
 #todo 设计成字典调用
     def set_complete(self) -> bool :
@@ -97,7 +113,9 @@ class Complete:
                 dir_list = ["script",'company'] 
                 self.matching_file(dir_list)  #self.matching_file()
             else :
-                pass
+                path = self.get_file_path(self.last_input())
+                if path :
+                    self.matching_opt(self.compile_file(path))
                 # file_dir = ["script",'company'] 
                 # self.matching_file()  #self.matching_file() 
         else :
@@ -107,11 +125,13 @@ class Complete:
                 dir_list = ["script",'company'] 
                 self.matching_file(dir_list,self.last_input())  #self.matching_file() 
             else :
-                self.out = {}
+                path = self.get_file_path(self.last_2_input())
+                if path :
+                    self.matching_opt(self.compile_file(path))
         return self.getlsspace()
 
       
 if __name__ == '__main__':
     com = Complete(sys.argv)
-    # com = Complete(['hikrun','test1','n'])
+    # com = Complete(['hikrun','test1','y'])
     com.set_out(com.set_complete())
