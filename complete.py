@@ -1,7 +1,7 @@
 import os
 import sys
 import compile
-
+from shell import Shell
 class Complete:
     def __init__(self,asgs=[]):
         self.end = asgs[-1]
@@ -137,7 +137,19 @@ class Code():
     def run(self):
         pass
 
-
+class Adb():
+    def __init__(self,arg = '/'):
+        self.arg = arg
+        self.sign = ['@']
+        l = arg.rfind('/')
+        if l == -1 :
+            l = 0
+        self.files = Shell('ls -F ' + arg[l:]).exe()
+    def  pase(self):
+        for i in range(len(self.files)):
+            if self.files[i][-1] in self.sign:
+                 self.files[i] = self.files[i][:-1]
+        
       
 if __name__ == '__main__':
     com = Complete(sys.argv)

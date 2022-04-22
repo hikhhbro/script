@@ -1,24 +1,11 @@
 import os
 import sys
-import subprocess
+from shell import Shell
 
 root_dir = os.getenv('HIK_SCRIPT_TOP_DIR')
 dir_list = ["script",'company'] 
 
-class Shell():
-    def __init__(self,cmd=''):
-        self.cmd = cmd
-    def input(self,cmd_str):
-        if self.cmd == '' :
-            self.cmd = cmd_str
-        else :
-            self.cmd += ' && ' + cmd_str
-    def get_cmd(self):
-        return self.cmd
-    def exe(self):
-        s = subprocess.Popen(str(self.cmd), stderr=subprocess.PIPE, stdout=subprocess.PIPE, shell=True)
-        stderrinfo, stdoutinfo = s.communicate()
-        return stderrinfo.decode('utf-8')
+
 
 class Code():
     def __init__(self,args_list = []):
