@@ -15,5 +15,4 @@ class Shell():
         s = subprocess.Popen(self.cmd, stderr=subprocess.PIPE,
                              stdout=subprocess.PIPE, shell=True)
         stderrinfo, stdoutinfo = s.communicate()
-        stderrinfo = None
         return stderrinfo.decode('utf-8')
