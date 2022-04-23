@@ -17,7 +17,6 @@ class Code():
         }
         self.__args_list = args_list
     def __company_file(self,args_list):
-        args_list.pop(0)
         file =  root_dir + '/'+ 'company/' + ''.join(args_list[-1])
         self.__code_file(file)
 
@@ -32,7 +31,7 @@ class Code():
             s = Shell()
             s.input('cp ' +  root_dir + '/' + '.template ' + file )
             s.input("code " + file)
-            s.exe()
+            print(s.exe())
 
     def __adb_dest_file(self,file):
         return file.replace('/','#')
