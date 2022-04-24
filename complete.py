@@ -4,6 +4,7 @@ import compile
 from shell import Shell
 
 
+
 class Complete:
     def __init__(self, asgs=[]):
         self.end = asgs[-1]
@@ -137,6 +138,76 @@ class Complete:
 
 # 设计字典类
 
+class Base():
+    def __init__(self,opt = None,arg = None,isend = True):
+        self.__opt =  opt  or []
+    
+    def defualt_opt(self):
+        return []
+    def get_opt(self,opt):
+        for item in self.__opt:
+            if len(opt) <= len(item) and opt == item[0:len(opt)]:
+                return self.__opt
+            else:
+                self.defualt_opt()
+        
+
+        
+    #     if isend == True :
+    #         self.__run_opt = None
+    #         self.__arg_list  = arg or []
+    #     else :
+    #         self.__run_opt = arg[0]
+    #         if arg == None  or len(arg) < 2:
+    #             self.__arg_list = []
+    #         else :
+    #             self.__arg_list = arg[1:]
+
+    # def in_opt(self,opt):
+    #     return opt if opt in self.__opt else None
+
+    # def cur_dir(self):
+    #     pass
+    # def my_script_dir(self):
+    #     pass
+    # def run(self):
+    #     self.__opt[self.in_opt(__run_opt)](self.__arg_list)
+            
+
+class Hikrun(Base):
+    def __init__(self,arg = None,isend = True,defualt_run = cur_dir):
+        super().__init__(['--code','--rm','--help'])
+    def defualt_opt(self):
+        return []
+
+    
+class File():
+    def __init__(self,rootdir = None,opt =None):
+        self.__rootdir = rootdir or [os.getenv('HIK_SCRIPT_TOP_DIR') + '/' + "script/", os.getenv('HIK_SCRIPT_TOP_DIR') + '/' + "company/"]
+        self.__opt = opt 
+        self.__dic = {}
+
+    # def get_file_path(self, name):
+    #     for item in self.dir_list:
+    #         if os.path.isfile(self.root_dir + '/' + item + '/' + name):
+    #             return self.root_dir + '/' + item + '/' + name
+    #     return False
+
+    def find_files(self, name=''):
+        for root, dirs, files in os.walk(self.__rootdir + name):
+            for d in dirs:
+                if d[0] != '.':
+                    __dic['{}/'.format(d)] = root + '/' + d
+            for file in files:
+                if self.isexecutable(file):
+                    __dic[file] = root + '/' + file
+            break
+    
+# todo 增加同名文件提示和选择
+    def find_files_dirs(self):
+        for item in self.__rootdir:
+            __dic.update(self.find_files(item))   # __dic = {}
+        return __dic
 
 class Code():
     def __init__(self):
@@ -159,6 +230,7 @@ class Adb():
         for i in range(len(self.files)):
             if self.files[i][-1] in self.sign:
                 self.files[i] = self.files[i][:-1]
+
 
 
 if __name__ == '__main__':
