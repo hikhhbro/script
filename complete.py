@@ -137,36 +137,49 @@ class Complete:
 
 
 class Base():
-    def __init__(self, opt=None, arg=None):
-        self.__opt = opt or []
+    def __init__(self, opt=None):
+        self.opt = opt or []
+        self.opt.append('--help')
         self.setspace = {True: 'compopt +o nospace',
                          False: 'compopt -o nospace'}
-
-    def get_opt(self, opt):
-        for item in self.__opt:
-            if len(opt) <= len(item) and opt == item[0:len(opt)]:
-                return self.__opt
-            else:
-                self.defualt_opt()
-
-    def set_out(self, sw, out_list):
-        print(self.setspace[sw])
-        print(' '.join(out_list))
+        self.out_list = []
         
-    def get_cur_arg():
-        asgs_list = sys.argv
-        if "complete.py" in asgs_list[0] :
-            asgs_list.pop()
-        end_dic = {'n': False, 'y': True}
-        end = end_dic[asgs_list[-1]]
-        asgs_list.pop()
-        if end :
+        self.isend = True if sys.argv[-1] == 'y' else False
+        self.asgs_list = sys.argv[1:-1] if "complete.py" in sys.argv[0] else sys.argv[:-1]
+    def get_last_input(self):
+        if self.isend :
+            return None
+        return self.asgs_list[-1]
+    def get_opt(self, arg):
+        if self.isend :
+            return self.opt
+        for item in self.opt:
+            if len(arg) <= len(item) and arg == item[0:len(arg)]:
+                self.out_list.append(item)
+        return self.out_list
+
+    def set_out(self, out_list):
+        print(self.setspace[self.getlsspace()])
+        print(' '.join(out_list))
+    def getlsspace(self):
+        if len(self.out_list) == 0 or (len(self.out_list) == 1 and self.out_list[-1] == '/' or self.out_list[-1] == '='):
+            return False
+        else:
+            return True
+    def get_cur_arg(self):
+        if self.isend :
             return asgs_list[-1]
         else :
             if len(asgs_list) > 1:
                 return asgs_list[-2]
             else:
                 return None
+        
+    def get_cur(self):
+        if  len(sys.argv) == 3 or (len(sys.argv) == 4 and sys.argv[-1] == 'n') :
+            return  sys.argv[1]
+        elif  len(sys.argv) > 4 :
+            return sys.argv[2]
     #     if isend == True :
     #         self.__run_opt = None
     #         self.__arg_list  = arg or []
@@ -181,7 +194,7 @@ class Base():
     #     return opt if opt in self.__opt else None
 
     def run(self):
-        self.set_out(True, self.__opt)
+        self.set_out( self.get_opt(self.get_last_input()))
 
 class Script():
     def __init__(self,script_dir = ['company','script']):
@@ -260,52 +273,39 @@ class Help():
 
     
 sw_dic = {
-    None : Script(),
+    # None : Script(),
     '--code' : Code(),
     '--code-company' : Code(['company']),
     '--code-adb' : Adb(),
     '--rm' : Rm(),
-    '--rm-company' : Rm(['company']),
-    '--help' :Help()
+    '--rm-company' : Rm(['company'])
 }
+
 
 class Hikrun(Base):
     def __init__(self):
-        super().__init__(self,list(sw_dic.keys()))
-        self.__opt = ['s']
-    def get_opt():
-        self.get_cur_arg() 
-    def run(self):
-        pass
+        super().__init__(list(sw_dic.keys()))
+        # self.opt.append('-s')
+    # def get_opt():
+        # self.get_cur_arg() 
+    # def run(self):
+    #     pass
         
 
-def get_cur_arg():
-    asgs_list = sys.argv
-    if "complete.py" in asgs_list[0] :
-        asgs_list = asgs_list[1:]
-    end_dic = {'n': False, 'y': True}
-    end = end_dic[asgs_list[-1]]
-    asgs_list.pop()
-    if end :
-        return asgs_list[-1]
-    else :
-        if len(asgs_list) > 1:
-            return asgs_list[-2]
-        else:
-            return None
-        
-def get_cur():
-    if  len(sys.argv) == 3 or (len(sys.argv) == 4 and sys.argv[-1] == 'n') :
-        return  sys.argv[1]
-    elif  len(sys.argv) > 4 :
-        return sys.argv[2]
     
-def hikrun():
-    if get_cur_arg() == 'hikrun' :
-        return Hikrun()
-    return sw_dic[get_cur()]
+# def hikrun():
+#     if get_cur_arg() == 'hikrun' :
+#         return Hikrun()
+#     return sw_dic[get_cur()]
+
+def parse_arg():
+    isend = True if sys.argv[-1] == 'y' else False
+    asgs_list = sys.argv[1:-1] if "complete.py" in sys.argv[0] else sys.argv[:-1]
+    while not asgs_list:
+        
 if __name__ == '__main__':
-    hikrun().run()
+    Hikrun().run()
+    # hikrun().run()
     
     # com = Complete(sys.argv)
     # com = Complete(['hikrun','test1','y'])
