@@ -30,11 +30,7 @@ class Complete:
     #     print(self.setspace[sw])
     #     print(' '.join(list(self.out.keys())))
 
-    # def isexecutable(self, file):
-    #     if '.sh' in file or '.' not in file:
-    #         return True
-    #     else:
-    #         return False
+
 
     # def to_compile_path(path):
     #     return self.root_dir + '.compile/' + path[self.root_dir_len:]
@@ -134,7 +130,46 @@ class Complete:
 #                     self.matching_opt(self.compile_file(path))
 #         return self.getlsspace()
 
+class CurFile():
+    def __init__(self,script_dir = os.getcwd()):
+        self.__file_opt = []
+        self.__script_dir = script_dir + '/'
+        self.__dic_opt = {
+            'all': self.__all,
+            'exe_file':self.__isexecutable,
+            'dir':self.__dir
+        }
+    def __find_files(self,postfix='',is_=['all']):
+        for root, dirs, files in os.walk(self.__script_dir + postfix):
+            for item in is_:
+                self.__file_opt = self.__file_opt +  self.__dic_opt[item](dirs,files)
+            break
+    def __get_dir(self,postfix):
+        l = postfix.rfind('/')
+        if l < 0:
+            return ''
+        else:
+            return postfix[0:l+1]
+    def get_file_opt(self,postfix='',is_=['all']):
+        if postfix == None:
+            postfix = ''
+        else:
+            postfix = self.__get_dir(postfix)
+        self.__find_files(postfix,is_)
+        return self.__file_opt
 
+    def __all(self,dirs,files):
+        return file + dirs
+
+    def __isexecutable(self,dirs,files):
+        tmp = []
+        for file in files:
+            if '.sh' in file or '.' not in file:
+                tmp.append(file)
+        return tmp
+
+    def __dir(self,dirs,files):
+        return dirs
 
 class Base():
     def __init__(self, opt=None):
@@ -143,20 +178,40 @@ class Base():
         self.setspace = {True: 'compopt +o nospace',
                          False: 'compopt -o nospace'}
         self.out_list = []
-        
+        self.default_opt = True
         self.isend = True if sys.argv[-1] == 'y' else False
         self.asgs_list = sys.argv[1:-1] if "complete.py" in sys.argv[0] else sys.argv[:-1]
-    def get_last_input(self):
-        if self.isend :
-            return None
-        return self.asgs_list[-1]
+        self.get_arg_prefix = ''
+    def get_last_input(self,arg_full=False):
+        if arg_full :
+            if self.isend :
+                return None
+            return self.asgs_list[-1]
+        else :
+            if self.isend or self.asgs_list[-1] == '/':
+                return None
+            l = self.asgs_list[-1].rfind('/')
+            if l < 0:
+                return self.asgs_list[-1]
+            else:
+                self.get_arg_prefix = self.asgs_list[-1][0:l+1]
+                return self.asgs_list[-1][l+1:]
+
+    def get_default_opt(self):
+        return CurFile().get_file_opt(self.get_last_input(True))
     def get_opt(self, arg):
-        if self.isend :
-            return self.opt
-        for item in self.opt:
-            if len(arg) <= len(item) and arg == item[0:len(arg)]:
-                self.out_list.append(item)
-        return self.out_list
+        if not arg or arg[-1] =='/':
+            return self.get_default_opt()
+        else :
+            for item in self.opt:
+                if len(arg) <= len(item) and arg == item[0:len(arg)]:
+                    self.default_opt = False
+                    self.out_list.append(item)
+            if self.default_opt :
+                for item in self.get_default_opt():
+                    if len(arg) <= len(item) and arg == item[0:len(arg)]:
+                        self.out_list.append(self.get_arg_prefix + item)
+            return self.out_list
 
     def set_out(self, out_list):
         print(self.setspace[self.getlsspace()])
@@ -196,28 +251,25 @@ class Base():
     def run(self):
         self.set_out( self.get_opt(self.get_last_input()))
 
-class Script():
+
+
+class Script(Base):
     def __init__(self,script_dir = ['company','script']):
         super().__init__()
         self.__dir_list = script_dir
         self.__rootdir = os.getenv('HIK_SCRIPT_TOP_DIR')
         self.__root_dir_len = len(self.__rootdir)
-        self.__dic = {}
     def find_files(self, name=''):
-        for root, dirs, files in os.walk(self.__rootdir + name):
-            for d in dirs:
-                if d[0] != '.':
-                    self.__dic['{}/'.format(d)] = root + '/' + d
-            for file in files:
-                if self.isexecutable(file):
-                    self.__dic[file] = root + '/' + file
-            break
+        return CurFile(name).get_file_opt(is_=['exe_file','dir'])
 
 # todo 增加同名文件提示和选择
     def find_files_dirs(self):
-        for item in self.__rootdir:
-            __dic.update(self.find_files(item))   # __dic = {}
-        return __dic
+        self.opt = []
+        for item in self.__dir_list:
+            self.opt =  self.opt + self.find_files(self.__rootdir + '/' + item)   # __dic = {}
+        return self.opt
+
+
 
     
 
@@ -273,7 +325,6 @@ class Help():
 
     
 sw_dic = {
-    # None : Script(),
     '--code' : Code(),
     '--code-company' : Code(['company']),
     '--code-adb' : Adb(),
@@ -285,6 +336,8 @@ sw_dic = {
 class Hikrun(Base):
     def __init__(self):
         super().__init__(list(sw_dic.keys()))
+    def get_default_opt(self):
+        return Script().find_files_dirs()
         # self.opt.append('-s')
     # def get_opt():
         # self.get_cur_arg() 
@@ -298,11 +351,15 @@ class Hikrun(Base):
 #         return Hikrun()
 #     return sw_dic[get_cur()]
 
-def parse_arg():
-    isend = True if sys.argv[-1] == 'y' else False
-    asgs_list = sys.argv[1:-1] if "complete.py" in sys.argv[0] else sys.argv[:-1]
-    while not asgs_list:
-        
+# def parse_arg():
+#     isend = True if sys.argv[-1] == 'y' else False
+#     asgs_list = sys.argv[1:-1] if "complete.py" in sys.argv[0] else sys.argv[:-1]
+#     if isend :
+#         if asgs_list[0] == 'hikrun':
+
+
+
+
 if __name__ == '__main__':
     Hikrun().run()
     # hikrun().run()
