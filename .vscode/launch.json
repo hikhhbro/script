@@ -8,7 +8,7 @@
             "program": "${file}",
             "console": "integratedTerminal",
             "justMyCode": true,
-            "args": ["hikrun","gits/","n" ]
+            "args": ["hikrun","--git","add" ]
         }
     ]
 }

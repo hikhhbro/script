@@ -92,10 +92,38 @@ class Rm():
             '.resycle/' + ''.join(self.__args_list[-1])
         Shell('mv ' + f + ' ' + resycle).exe()
 
+class Git():
+    def __init__(self, args_list=None):
+        self.__args_list = args_list or []
+        self.add_dic = { }
+    def __find_git(self):
+        return  True if Shell('git rev-parse --is-inside-work-tree').exe() == 'true\n' else False
+    def __get_path(self):
+        return Shell('pwd').exe()[:-1]
+
+    def __get_remote(self):
+        return Shell('git remote -v').exe().split('\n')[0]
+    def __get_branch(self):
+        return Shell("git branch | sed -n '/\* /s///p'").exe()[:-1]
+
+
+    def add(self):
+        if self.__find_git():
+            self.add_dic =  {self.__get_path():[self.__get_remote(),self.__get_branch()]}
+    def print_add(self):
+        for key, value in self.add_dic.items():
+            # print(key,value[0],value[1])
+            print("本地: %s |远程:%s | 分支: %s" % (key,value[0],value[1]))
+    
+    def run(self):
+        if self.__args_list[-1] == 'add' :
+            self.add()
+            self.print_add()
 
 run = {
     '--code': lambda args_list:  Code(args_list).run(),
-    '--rm': lambda args_list: Rm(args_list).run()
+    '--rm': lambda args_list: Rm(args_list).run(),
+    '--git':lambda args_list: Git(args_list).run(),
 }
 
 
@@ -122,14 +150,16 @@ def get_compile_path(f):
 
 
 def main():
+    # if 'hikrun.py' in  sys.argv[0] :
+    #     del sys.argv[0]
     if sys.argv[1] in list(run.keys()):
         run[sys.argv[1]](sys.argv[2:])
-    else:
-        s = Shell()
-        f = get_compile_path(sys.argv[1])
-        s.input('. ' + f)
-        s.input(get_probe(sys.argv[1]) + ' ' + ''.join(sys.argv[2:]))
-        print(s.exe())
+    # else:
+    #     s = Shell()
+    #     f = get_compile_path(sys.argv[1])
+    #     s.input('. ' + f)
+    #     s.input(get_probe(sys.argv[1]) + ' ' + ''.join(sys.argv[2:]))
+    #     print(s.exe())
 
 
 if __name__ == '__main__':

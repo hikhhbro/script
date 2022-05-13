@@ -11,8 +11,12 @@ class Shell():
         else:
             self.cmd += ' && ' + cmd_str
 
-    def exe(self):
+    def exe(self,out='out'):
         s = subprocess.Popen(self.cmd, stderr=subprocess.PIPE,
                              stdout=subprocess.PIPE, shell=True)
         stderrinfo, stdoutinfo = s.communicate()
-        return stderrinfo.decode('utf-8')
+        if out == 'out':
+            return stderrinfo.decode('utf-8')
+        elif out == 'err':
+            return stdoutinfo.decode('utf-8')
+

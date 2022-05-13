@@ -349,7 +349,8 @@ sw_dic = {
     '--code-company' : Code(['company']),
     '--code-adb' : Adb(),
     '--rm' : Rm(),
-    '--rm-company' : Rm(['company'])
+    '--rm-company' : Rm(['company']),
+    '--git' :  Code(),
 }
 
 
