@@ -231,5 +231,5 @@ _hikrun () {
 }
 __hikrun_program="hikrun"
 have ${__hikrun_program} && \
- complete -o filenames -F _hikrun  ${__hikrun_program}
+ complete -o default -F _hikrun  ${__hikrun_program}
  unset __hikrun_program

@@ -158,18 +158,22 @@ class CurFile():
         self.__find_files(postfix,is_)
         return self.__file_opt
 
+
     def __all(self,dirs,files):
-        return file + dirs
+        return files + self.__dir(dirs,files)
 
     def __isexecutable(self,dirs,files):
         tmp = []
         for file in files:
-            if '.sh' in file or '.' not in file:
+            if  '.' not in file:
                 tmp.append(file)
         return tmp
 
     def __dir(self,dirs,files):
-        return dirs
+        r = []
+        for d in dirs:
+            r.append(d + '/')
+        return r
 
 class Base():
     def __init__(self, opt=None):
@@ -217,7 +221,7 @@ class Base():
         print(self.setspace[self.getlsspace()])
         print(' '.join(out_list))
     def getlsspace(self):
-        if len(self.out_list) == 0 or (len(self.out_list) == 1 and self.out_list[-1] == '/' or self.out_list[-1] == '='):
+        if len(self.out_list) == 0 or (len(self.out_list) == 1 and self.out_list[-1][-1] == '/' or self.out_list[-1][-1] == '='):
             return False
         else:
             return True
@@ -259,14 +263,19 @@ class Script(Base):
         self.__dir_list = script_dir
         self.__rootdir = os.getenv('HIK_SCRIPT_TOP_DIR')
         self.__root_dir_len = len(self.__rootdir)
-    def find_files(self, name=''):
-        return CurFile(name).get_file_opt(is_=['exe_file','dir'])
+    def find_files(self, name='',prefix='/'):
+        return CurFile(name).get_file_opt(prefix,is_=['exe_file','dir'])
 
+    def get_script_path(self):
+        if not self.isend and '/' in  self.asgs_list[-1] :
+            return self.asgs_list[-1]
+        else :
+            return '/'
 # todo 增加同名文件提示和选择
     def find_files_dirs(self):
         self.opt = []
         for item in self.__dir_list:
-            self.opt =  self.opt + self.find_files(self.__rootdir + '/' + item)   # __dic = {}
+            self.opt =  self.opt + self.find_files(self.__rootdir + '/' + item + '/',self.get_script_path())  
         return self.opt
 
 
@@ -301,19 +310,20 @@ class Rm(Script):
         pass
 
 
-class Adb():
+class Adb(Base):
     def __init__(self, arg='/'):
-        self.arg = arg
-        self.sign = ['@']
-        l = arg.rfind('/')
-        if l == -1:
-            l = 0
-        self.files = Shell('ls -F ' + arg[l:]).exe()
+        super().__init__()
+    #     self.arg = arg
+    #     self.sign = ['@']
+    #     l = arg.rfind('/')
+    #     if l == -1:
+    #         l = 0
+    #     self.files = Shell('ls -F ' + arg[l:]).exe()
 
-    def pase(self):
-        for i in range(len(self.files)):
-            if self.files[i][-1] in self.sign:
-                self.files[i] = self.files[i][:-1]
+    # def pase(self):
+    #     for i in range(len(self.files)):
+    #         if self.files[i][-1] in self.sign:
+    #             self.files[i] = self.files[i][:-1]
 
 class Help():
     def __init__(self):
