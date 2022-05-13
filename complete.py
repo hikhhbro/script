@@ -137,7 +137,8 @@ class CurFile():
         self.__dic_opt = {
             'all': self.__all,
             'exe_file':self.__isexecutable,
-            'dir':self.__dir
+            'alldir':self.__alldir,
+            'dir':self.__dir,
         }
     def __find_files(self,postfix='',is_=['all']):
         for root, dirs, files in os.walk(self.__script_dir + postfix):
@@ -170,6 +171,12 @@ class CurFile():
         return tmp
 
     def __dir(self,dirs,files):
+        r = []
+        for d in dirs:
+            if d[0] != '.' :
+                r.append(d + '/')
+        return r
+    def __alldir(self,dirs,files):
         r = []
         for d in dirs:
             r.append(d + '/')
@@ -205,7 +212,10 @@ class Base():
         return CurFile().get_file_opt(self.get_last_input(True))
     def get_opt(self, arg):
         if not arg or arg[-1] =='/':
-            return self.get_default_opt()
+            r = self.get_default_opt()
+            if len(r) ==1 :
+                r[0] = self.get_arg_prefix + r[0] 
+            return r
         else :
             for item in self.opt:
                 if len(arg) <= len(item) and arg == item[0:len(arg)]:
