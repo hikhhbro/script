@@ -227,6 +227,7 @@ class Base():
                         self.out_list.append(self.get_arg_prefix + item)
             return self.out_list
 
+
     def set_out(self, out_list):
         print(self.setspace[self.getlsspace()])
         print(' '.join(out_list))
