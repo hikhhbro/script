@@ -1,0 +1,11 @@
+[Unit]
+Description = Mount nas disk
+
+[Mount]
+Where=/home/hik/share
+What=//hikhhbro.cn/home/Drive/share
+Type=cifs
+Options=rw,auto,defaults,username=hikhhbro,password=594Wydnas.1,vers=2.0,gid=1000,uid=1000
+
+[Install]
+WantedBy=graphical.target
