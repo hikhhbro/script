@@ -1,0 +1,20 @@
+#!/bin/bash
+: << !
+<_describe> begin
+描述: 
+<_describe> end
+<_get_options> begin
+短选项(-*):  
+长选项(--*): 
+其他选项: 
+<_get_options> end
+!
+#<user_func> 
+#<main>
+if [[ "$1" == "close" ]];then
+/opt/cisco/anyconnect/bin/vpn disconnect
+else 
+/opt/cisco/anyconnect/bin/vpn connect v.mioffice.cn
+hik_lap_ip=`ifconfig -a|grep inet|grep -v 127.0.0.1|grep -v inet6 | grep 10 |awk '{print $2}'|tr -d "addr:"​`
+echo "公司ip: ${hik_lap_ip}" 
+fi
