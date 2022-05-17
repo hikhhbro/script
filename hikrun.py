@@ -1,6 +1,6 @@
 import os
 import sys
-
+import json
 from shell import Shell
 
 root_dir = os.getenv('HIK_SCRIPT_TOP_DIR')
@@ -120,10 +120,55 @@ class Git():
             self.add()
             self.print_add()
 
+class Todo():
+    def __init__(self, args_list=None):
+        self.__args_list = args_list or []
+        self.todo_dic = { }
+        self.option_dic = {
+            'add' : self.add,
+            'rm' : self.rm,
+            'show' : self.show,
+        }
+
+    def __write_json(self,text):
+        with open("%s/todo/todo_list.json" % (root_dir)) as rf:
+            json_data = json.load(rf)
+        json_data.append(text)    
+        with open("%s/todo/todo_list.json" % (root_dir), "w+") as wf:
+            js = json.dumps(json_data)
+            wf.write(js)
+    def __read_json(self):    
+        with open("%s/todo/todo_list.json" % (root_dir)) as rf:
+            json_data = json.load(rf)
+        return json_data
+
+    def add(self,text):
+        if text:
+            self.__write_json(' '.join(text))
+    def show(self,serial=-1):
+        txt_list = self.__read_json()
+        for i in range(len(txt_list)):
+            print("%s: %s" %(i,txt_list[i]))
+    def rm(self,serial=-1):
+        txt_list = self.__read_json()
+        pre = 0
+        for i in serial:
+            i = int(i)
+            if i >= 0 and i < len(txt_list) :
+                del txt_list[i-pre]
+                pre = pre + 1 
+        with open("%s/todo/todo_list.json" % (root_dir), "w+") as wf:
+            js = json.dumps(txt_list)
+            wf.write(js)
+
+    def run(self):
+        self.option_dic[self.__args_list[0]](self.__args_list[1:]) 
+
 run = {
     '--code': lambda args_list:  Code(args_list).run(),
     '--rm': lambda args_list: Rm(args_list).run(),
     '--git':lambda args_list: Git(args_list).run(),
+    'todo':lambda args_list: Todo(args_list).run(),
 }
 
 
@@ -150,8 +195,8 @@ def get_compile_path(f):
 
 
 def main():
-    # if 'hikrun.py' in  sys.argv[0] :
-    #     del sys.argv[0]
+    if 'hikrun.py' in  sys.argv[0] :
+        del sys.argv[0]
     if sys.argv[1] in list(run.keys()):
         run[sys.argv[1]](sys.argv[2:])
     # else:
