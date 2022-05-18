@@ -354,12 +354,13 @@ sw_dic = {
     '--git' :  Code(),
 }
 
+ws= ['todo','add','show','rm']
 
 class Hikrun(Base):
     def __init__(self):
         super().__init__(list(sw_dic.keys()))
     def get_default_opt(self):
-        return Script().find_files_dirs()
+        return Script().find_files_dirs() + ws
         # self.opt.append('-s')
     # def get_opt():
         # self.get_cur_arg() 

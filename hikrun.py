@@ -1,6 +1,7 @@
 import os
 import sys
 import json
+import time
 from shell import Shell
 
 root_dir = os.getenv('HIK_SCRIPT_TOP_DIR')
@@ -133,9 +134,12 @@ class Todo():
     def __write_json(self,text):
         with open("%s/todo/todo_list.json" % (root_dir)) as rf:
             json_data = json.load(rf)
-        json_data.append(text)    
+        if not json_data.__contains__(time.strftime("%Y/%m/%d")):
+            json_data[time.strftime("%Y/%m/%d")] = [text]
+        else :
+            json_data[time.strftime("%Y/%m/%d")].append(text)
         with open("%s/todo/todo_list.json" % (root_dir), "w+") as wf:
-            js = json.dumps(json_data)
+            js = json.dumps(json_data,indent=1)
             wf.write(js)
     def __read_json(self):    
         with open("%s/todo/todo_list.json" % (root_dir)) as rf:
@@ -144,26 +148,47 @@ class Todo():
 
     def __add_gitlab(self,commit):
         Shell('cd %s/todo/ && git add todo/todo_list.json && git commit -m %s' %(root_dir,commit) ).exe()
+    def __text(self,text:list) -> str:
+        return ' '.join(text)
     def add(self,text):
         if text:
-            self.__write_json(' '.join(text))
+            self.__write_json(self.__text(text))
             self.__add_gitlab("add todo")
-    def show(self,serial=-1):
-        txt_list = self.__read_json()
-        for i in range(len(txt_list)):
-            print("%s: %s" %(i,txt_list[i]))
-    def rm(self,serial=-1):
-        txt_list = self.__read_json()
-        pre = 0
-        for i in serial:
-            i = int(i)
-            if i >= 0 and i < len(txt_list) :
-                del txt_list[i-pre]
-                pre = pre + 1 
+    def show(self,serial:list):
+        txt_dic = self.__read_json()
+        prefix_i = 0
+        if not txt_dic.__contains__(' '.join(serial)):
+            for k,v in txt_dic.items():
+                print("\033[1;34m   %s\033[0m" % k)
+                for i in range(len(v)):
+                    print("%s: %s" %(prefix_i,v[i]))
+                    prefix_i = prefix_i + 1
+        else :
+            print("\033[1;34m   %s\033[0m" % ' '.join(serial))
+            for i in range(len(txt_dic[' '.join(serial)])):
+                print("%s: %s" %(i,txt_dic[' '.join(serial)][i]))
+    def rm(self,serial:list):
+        txt_dic = self.__read_json()
+        s = sorted(serial)
+        prefix_i = 0
+        for k,v in txt_dic.items():
+            for i in range(len(v)):
+                if str(prefix_i) in s:
+                    del txt_dic[k][i]
+                    if not txt_dic[k]:
+                        del txt_dic[k]
+                    s.remove(str(prefix_i))
+                    if not s:
+                        break
+                prefix_i = prefix_i + 1
+            else:
+                continue
+            break
         with open("%s/todo/todo_list.json" % (root_dir), "w+") as wf:
-            js = json.dumps(txt_list)
+            js = json.dumps(txt_dic,indent=1)
             wf.write(js)
             self.__add_gitlab("rm todo")
+
 
     def run(self):
         self.option_dic[self.__args_list[0]](self.__args_list[1:]) 
