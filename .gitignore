@@ -1,6 +1,6 @@
 company/*
 .compile/*
-todo/*
+todo
 .compile/script/test
 *.pyc
 script/.resycle
