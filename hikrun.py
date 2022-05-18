@@ -145,6 +145,7 @@ class Todo():
     def add(self,text):
         if text:
             self.__write_json(' '.join(text))
+            Shell('cd %s && git add todo/todo_list.json && git commit -m add_todo' %(root_dir) ).exe()
     def show(self,serial=-1):
         txt_list = self.__read_json()
         for i in range(len(txt_list)):
@@ -160,6 +161,7 @@ class Todo():
         with open("%s/todo/todo_list.json" % (root_dir), "w+") as wf:
             js = json.dumps(txt_list)
             wf.write(js)
+            Shell('cd %s && git add todo/todo_list.json && git add todo/todo_list.json && git commit -m rm_todo' %(root_dir) ).exe()
 
     def run(self):
         self.option_dic[self.__args_list[0]](self.__args_list[1:]) 
