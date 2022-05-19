@@ -2,6 +2,7 @@ import os
 import sys
 import json
 import time
+import copy
 from shell import Shell
 
 root_dir = os.getenv('HIK_SCRIPT_TOP_DIR')
@@ -148,8 +149,10 @@ class Todo():
 
     def __add_gitlab(self,commit):
         Shell('cd %s/todo/ && git add todo/todo_list.json && git commit -m %s' %(root_dir,commit) ).exe()
-    def __text(self,text:list) -> str:
+        
+    def __text(self,text:list):
         return ' '.join(text)
+    
     def add(self,text):
         if text:
             self.__write_json(self.__text(text))
@@ -167,20 +170,44 @@ class Todo():
             print("\033[1;34m   %s\033[0m" % ' '.join(serial))
             for i in range(len(txt_dic[' '.join(serial)])):
                 print("%s: %s" %(i,txt_dic[' '.join(serial)][i]))
+    def __get_rm_serial(self,serial:list):
+        r = {
+            "time" : [],
+            "serial":[]
+        }
+        for item in serial:
+            if '/' in item:
+                r["time"].append(item)
+            else:
+                if ':' in item:
+                    sp = item.find(':')
+                    start = int(item[0:sp])
+                    end = int(item[sp+1:])
+                    r["serial"] = r["serial"] + list(range(start,end+1))
+                else :
+                    r["serial"].append(int(item))
+        r["serial"] = list(set(r["serial"]))
+        r["serial"].sort()
+        return r
+                
     def rm(self,serial:list):
         txt_dic = self.__read_json()
-        s = sorted(serial)
+        s = self.__get_rm_serial(serial)
         prefix_i = 0
-        for k,v in txt_dic.items():
+        txt_dic_t = copy.deepcopy(txt_dic)
+        for k,v in txt_dic_t.items():
+            i_r=0
             for i in range(len(v)):
-                if str(prefix_i) in s:
-                    del txt_dic[k][i]
-                    if not txt_dic[k]:
-                        del txt_dic[k]
-                    s.remove(str(prefix_i))
-                    if not s:
-                        break
-                prefix_i = prefix_i + 1
+                if s["serial"]:
+                    if prefix_i in s["serial"]:
+                        del txt_dic[k][i-i_r]
+                        i_r = i_r + 1
+                        if not txt_dic[k]:
+                            txt_dic.pop(k)
+                        s["serial"].remove(prefix_i)
+                        if not s["serial"]:
+                            break
+                    prefix_i = prefix_i + 1
             else:
                 continue
             break
