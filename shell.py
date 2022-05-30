@@ -1,4 +1,5 @@
 import subprocess
+import os
 
 
 class Shell():
@@ -20,3 +21,5 @@ class Shell():
         elif out == 'err':
             return stdoutinfo.decode('utf-8')
 
+    def exec_system(self):
+        os.system(self.cmd)

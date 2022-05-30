@@ -244,10 +244,9 @@ def get_file_path(f):
 
 def get_compile_path(f):
     for item in dir_list:
-        if os.path.isfile(root_dir + '/' +
-                          '.compile/' + item + '/' + f + '/' + f):
+        if os.path.isfile(root_dir + '/' + '.compile/' + item  + '/' + f):
             return root_dir + '/' + '.compile/' + \
-                item + '/' + f + '/' + f
+                item  + '/' + f
 
 
 def main():
@@ -255,12 +254,13 @@ def main():
         del sys.argv[0]
     if sys.argv[1] in list(run.keys()):
         run[sys.argv[1]](sys.argv[2:])
-    # else:
-    #     s = Shell()
-    #     f = get_compile_path(sys.argv[1])
-    #     s.input('. ' + f)
-    #     s.input(get_probe(sys.argv[1]) + ' ' + ''.join(sys.argv[2:]))
-    #     print(s.exe())
+    else:
+        s = Shell()
+        f = get_compile_path(sys.argv[1])
+        s.input('source ${HIK_SCRIPT_TOP_DIR}/base.sh')
+        s.input('. ' + f)
+        s.input(get_probe(sys.argv[1]) + ' ' + ''.join(sys.argv[2:]))
+        s.exec_system()
 
 
 if __name__ == '__main__':

@@ -5,8 +5,8 @@ import sys
 
 if __name__ == '__main__':
     url = 'https://git.n.xiaomi.com/' 
-    private_token = 'rwDxVLx8byp5YHUSNqLK'
-    top_dir_id = 27411
+    private_token = your_token
+    top_dir_id = 27411 #gitlab 组号
     gl = gitlab.Gitlab(url, private_token)
     group = gl.groups.get(top_dir_id)
     projects = group.projects.list(all=True)
