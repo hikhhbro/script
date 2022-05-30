@@ -16,6 +16,7 @@ class Shell():
         s = subprocess.Popen(self.cmd, stderr=subprocess.PIPE,
                              stdout=subprocess.PIPE, shell=True)
         stderrinfo, stdoutinfo = s.communicate()
+        self.cmd = ''
         if out == 'out':
             return stderrinfo.decode('utf-8')
         elif out == 'err':
@@ -23,3 +24,4 @@ class Shell():
 
     def exec_system(self):
         os.system(self.cmd)
+        self.cmd = ''
