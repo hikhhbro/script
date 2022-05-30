@@ -4,8 +4,8 @@ import json
 import time
 import copy
 from shell import Shell
-from Adb import adb
-
+from adb import Adb
+import subprocess
 root_dir = os.getenv('HIK_SCRIPT_TOP_DIR')
 dir_list = ["script", 'company']
 
@@ -220,6 +220,30 @@ class Todo():
     def run(self):
         self.option_dic[self.__args_list[0]](self.__args_list[1:]) 
 
+class Cd():
+    def __init__(self, args_list=None):
+        self.__args_list = args_list or []
+        self.add_dic = { }
+
+    def __quote_against_shell_expansion(self,s):
+        import pipes
+        return pipes.quote(s)
+
+    def __put_text_back_into_terminal_input_buffer(self,text):
+        import fcntl, termios
+        for c in text:
+            fcntl.ioctl(1, termios.TIOCSTI, c)
+
+    def __change_parent_process_directory(self,dest):
+        self.__put_text_back_into_terminal_input_buffer("cd "+ self.__quote_against_shell_expansion(dest)+"\n")
+
+    def exec(self):
+        if self.__args_list[-1][0] == '/':
+            dir_prefix = ''
+        else :
+            dir_prefix = os.getcwd() + '/'
+        self.__change_parent_process_directory(dir_prefix + self.__args_list[-1] )
+
 
 run = {
     '--code': lambda args_list:  Code(args_list).run(),
@@ -227,6 +251,7 @@ run = {
     '--git':lambda args_list: Git(args_list).run(),
     'todo':lambda args_list: Todo(args_list).run(),
     'adb':lambda args_list: Adb(args_list).exec(),
+    'cd':lambda args_list: Cd(args_list).exec(),
 }
 
 

@@ -1,3 +1,4 @@
+import os
 from shell import Shell
 root_dir = os.getenv('HIK_SCRIPT_TOP_DIR')
 class Adb():
