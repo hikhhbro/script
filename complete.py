@@ -323,18 +323,26 @@ class Rm(Script):
 
 class Adb(Base):
     def __init__(self, arg='/'):
-        super().__init__()
-    #     self.arg = arg
-    #     self.sign = ['@']
-    #     l = arg.rfind('/')
-    #     if l == -1:
-    #         l = 0
-    #     self.files = Shell('ls -F ' + arg[l:]).exe()
-
-    # def pase(self):
-    #     for i in range(len(self.files)):
-    #         if self.files[i][-1] in self.sign:
-    #             self.files[i] = self.files[i][:-1]
+        super().__init__(opt=['/'])
+        self.arg = arg
+        self.sign = ['@']
+    def get_default_opt(self):
+        l = self.arg.rfind('/')
+        if l == -1 :
+            self.arg = '/'
+        self.files = Shell('adb shell ls -F ' + self.arg[0:l]).exe()
+        return self.pase()
+        
+    def pase(self):
+        out = []
+        file_list = self.files.split('\n')
+        file_list = list(filter(None, file_list))
+        for i in range(len(file_list)):
+            if file_list[i][-1] in self.sign:
+                out.append(file_list[i][:-1])
+            else :
+                out.append(file_list[i])
+        return out
 
 class Help():
     def __init__(self):
@@ -348,7 +356,7 @@ class Help():
 sw_dic = {
     '--code' : Code(),
     '--code-company' : Code(['company']),
-    '--code-adb' : Adb(),
+    '--code-adb' : Adb,
     '--rm' : Rm(),
     '--rm-company' : Rm(['company']),
     '--git' :  Code(),
@@ -369,10 +377,18 @@ class Hikrun(Base):
         
 
     
-# def hikrun():
-#     if get_cur_arg() == 'hikrun' :
-#         return Hikrun()
-#     return sw_dic[get_cur()]
+def hikrun():
+    if  sys.argv[-1] == 'y' :
+        if sys.argv[-2] == 'hikrun':
+            return Hikrun()
+        else :
+            return sw_dic[sys.argv[-2]]()
+    else :
+        if sys.argv[-3] == 'hikrun':
+            return Hikrun()
+        else :
+            return sw_dic[sys.argv[-3]](sys.argv[-2])
+        
 
 # def parse_arg():
 #     isend = True if sys.argv[-1] == 'y' else False
@@ -384,9 +400,11 @@ class Hikrun(Base):
 
 
 if __name__ == '__main__':
-    Hikrun().run()
-    # hikrun().run()
-    
+    # Hikrun().run()
+    try:
+        hikrun().run()
+    except :
+        pass 
     # com = Complete(sys.argv)
     # com = Complete(['hikrun','test1','y'])
     # com.set_out(com.set_complete())
