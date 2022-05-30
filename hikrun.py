@@ -71,19 +71,6 @@ class Code():
         s.input('adb push ' + dire + ' ' + srcfile )
         s.exec_system()
 
-    def __adb_sync_file(self):
-        while True:
-            if keyboard.is_pressed('ctrl+s') :
-                break
-            print("wait sync")
-            sleep(3)
-        # s = Shell()
-        # for root, dirs, files in os.walk(root_dir + '/adb_file/'):
-        #     s.input('adb push ' + root + '/' +
-        #             files[0] + ' ' + self.__adb_src_file(files[0]))
-        #     s.input('rm  ' + root + '/' + files[0])
-        #     s.exe()
-        #     break
 
     def run(self):
         if self.__args_list[0] in self.__dic:
@@ -233,11 +220,70 @@ class Todo():
     def run(self):
         self.option_dic[self.__args_list[0]](self.__args_list[1:]) 
 
+class Adb():
+    def __init__(self, args_list=None):
+        self.__args_list = args_list or []
+        self.todo_dic = { }
+        self.pts = Shell('tty').exe().replace('\n','')
+        self.rootdir = root_dir + '/adb_file/'
+        self.sign = ['@','*']
+        self.shell = 'adb shell '
+        if os.path.exists(self.rootdir + self.pts):
+            with open(self.rootdir + self.pts, "r", encoding='UTF-8')as f:
+                self.cur_dir = f.readline()
+            f.close()
+        else:
+            with open(self.rootdir + self.pts, "w",encoding='UTF-8') as f:
+                f.write('/')
+                self.cur_dir = '/'
+                Shell('adb root && adb remount && adb disable-verity').exe()
+            f.close()
+        self.option_dic = {
+            'ls' : self.__ls,
+            'cd' : self.__cd,
+            'cp' : self.__cp,
+            'mv' : self.__mv,
+            'code' : self.__code,
+            'pwd' : self.__pwd,
+        }
+    def __pase_out(self,out_file:str):
+        out = []
+        file_list = out_file.split('\n')
+        file_list = list(filter(None, file_list))
+        for i in range(len(file_list)):
+            if file_list[i][-1] in self.sign:
+                out.append(file_list[i][:-1])
+            else :
+                out.append(file_list[i])
+        print('\t'.join(out))
+    
+    def __adb_cmd(self,cmd:str):
+        return Shell(self.shell + cmd)
+    def __pwd(self,arg:list):
+        print(self.cur_dir)
+    def __ls(self,arg:list):
+        self.__pase_out(self.__adb_cmd('ls -F %s' %(self.cur_dir)).exe())
+    def __cd(self,arg:list):
+        self.cur_dir = self.__adb_cmd('cd "%s && pwd"' %arg[-1]).exe().replace('\n','')
+        with open(self.rootdir + self.pts, "w",encoding='UTF-8') as f:
+            f.write(self.cur_dir)
+        f.close()
+    def __cp(self,arg:list):
+        pass
+    def __mv(self,arg:list):
+        pass
+    def __code(self,arg:list):
+        pass
+
+    def run(self):
+        self.option_dic[self.__args_list[0]](self.__args_list[1:]) 
+
 run = {
     '--code': lambda args_list:  Code(args_list).run(),
     '--rm': lambda args_list: Rm(args_list).run(),
     '--git':lambda args_list: Git(args_list).run(),
     'todo':lambda args_list: Todo(args_list).run(),
+    'adb':lambda args_list: Adb(args_list).run(),
 }
 
 
