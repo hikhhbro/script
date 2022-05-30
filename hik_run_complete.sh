@@ -228,7 +228,6 @@ _hikrun () {
     unset res[2]
     ${lsnospace}
     COMPREPLY=( ${res[*]} )  
-    echo "dd   $COMP_WORDBREAKS       dd"
 }
 __hikrun_program="hikrun"
 have ${__hikrun_program} && \
