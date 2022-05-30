@@ -5,6 +5,7 @@ import time
 import copy
 from shell import Shell
 
+
 root_dir = os.getenv('HIK_SCRIPT_TOP_DIR')
 dir_list = ["script", 'company']
 
@@ -13,10 +14,11 @@ class Code():
     def __init__(self, args=None):
         self.__dic = {
             '-c': self.__company_file,
-            '-a': self.__adb_file,
+            '-adb': self.__adb_file,
             '-adb-sync': self.__adb_sync_file,
             None: self.__open_file
         }
+        
         self.__args_list = args or []
 
     def __code_file(self, f):
@@ -52,25 +54,36 @@ class Code():
     def __adb_dest_file(self, f):
         return f.replace('/', '#')
 
-    def __adb_src_file(f):
+    def __adb_src_file(self,f):
         return f.replace('#', '/')
 
     def __adb_file(self, args_list):
         srcfile = ''.join(args_list[-1])
         dire = root_dir + '/adb_file/' + self.__adb_dest_file(srcfile)
         s = Shell()
+        s.input('adb root')
+        s.input('adb remount')
+        s.input('adb disable-verity')
         s.input('adb pull ' + srcfile + ' ' + dire)
         s.input('code ' + dire)
-        s.exe()
+        s.exec_system()
+        a = input("是否保存至手机: 回车")
+        s.input('adb push ' + dire + ' ' + srcfile )
+        s.exec_system()
 
-    def __adb_sync_file(self, args_list):
-        s = Shell()
-        for root, dirs, files in os.walk(root_dir + '/adb_file/'):
-            s.input('adb push ' + root + '/' +
-                    files[0] + ' ' + self.__adb_src_file(files[0]))
-            s.input('rm  ' + root + '/' + files[0])
-            s.exe()
-            break
+    def __adb_sync_file(self):
+        while True:
+            if keyboard.is_pressed('ctrl+s') :
+                break
+            print("wait sync")
+            sleep(3)
+        # s = Shell()
+        # for root, dirs, files in os.walk(root_dir + '/adb_file/'):
+        #     s.input('adb push ' + root + '/' +
+        #             files[0] + ' ' + self.__adb_src_file(files[0]))
+        #     s.input('rm  ' + root + '/' + files[0])
+        #     s.exe()
+        #     break
 
     def run(self):
         if self.__args_list[0] in self.__dic:
@@ -249,11 +262,17 @@ def get_compile_path(f):
                 item  + '/' + f
 
 
+
 def main():
     if 'hikrun.py' in  sys.argv[0] :
         del sys.argv[0]
+    if sys.argv[-1]  in ['n','y']:
+        del sys.argv[-1]
     if sys.argv[1] in list(run.keys()):
         run[sys.argv[1]](sys.argv[2:])
+    elif sys.argv[1][0:sys.argv[1].rfind('-')] in list(run.keys()):
+        tmp_cmd = [sys.argv[1][sys.argv[1].rfind('-'):]] + sys.argv[2:]
+        run[sys.argv[1][0:sys.argv[1].rfind('-')]](tmp_cmd)
     else:
         s = Shell()
         f = get_compile_path(sys.argv[1])
