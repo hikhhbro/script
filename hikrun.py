@@ -269,11 +269,43 @@ class Adb():
             f.write(self.cur_dir)
         f.close()
     def __cp(self,arg:list):
-        pass
+        if arg[-1][0] == '/':
+            dest_prefix = ''
+        elif arg[-1][0] != '/' :
+              dest_prefix  = self.cur_dir + '/'
+        if arg[-2][0] == '/':
+            src_prefix = ''
+        elif arg[-2][0] != '/' :
+              src_prefix  = self.cur_dir + '/'
+        self.__adb_cmd('cp %s %s' %(src_prefix + arg[-2],dest_prefix + arg[-1])).exe()
+
     def __mv(self,arg:list):
+        if arg[-1][0] == '/':
+            dest_prefix = ''
+        elif arg[-1][0] != '/' :
+              dest_prefix  = self.cur_dir + '/'
+        if arg[-2][0] == '/':
+            src_prefix = ''
+        elif arg[-2][0] != '/' :
+              src_prefix  = self.cur_dir + '/'
+        self.__adb_cmd('mv %s %s' %(src_prefix + arg[-2],dest_prefix + arg[-1])).exe()
         pass
-    def __code(self,arg:list):
-        pass
+    def __adb_dest_file(self, f):
+        return f.replace('/', '#')
+
+    def __adb_src_file(self,f):
+        return f.replace('#', '/')
+
+    def __code(self, arg:list):
+        srcfile = ''.join(arg[-1])
+        dire = root_dir + '/adb_file/' + self.__adb_dest_file(srcfile)
+        s = Shell()
+        s.input('adb pull ' + srcfile + ' ' + dire)
+        s.input('code ' + dire)
+        s.exec_system()
+        a = input("是否保存至手机: 回车")
+        s.input('adb push ' + dire + ' ' + srcfile )
+        s.exec_system()
 
     def run(self):
         self.option_dic[self.__args_list[0]](self.__args_list[1:]) 
