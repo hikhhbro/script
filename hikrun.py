@@ -65,9 +65,8 @@ class Code():
         s.input('adb remount')
         s.input('adb disable-verity')
         s.input('adb pull ' + srcfile + ' ' + dire)
-        s.input('code ' + dire)
+        s.input('code -w ' + dire)
         s.exec_system()
-        a = input("是否保存至手机: 回车")
         s.input('adb push ' + dire + ' ' + srcfile )
         s.exec_system()
 

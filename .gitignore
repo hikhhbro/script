@@ -4,3 +4,4 @@ todo
 .compile/script/test
 *.pyc
 script/.resycle
+adb_file/*
