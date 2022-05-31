@@ -3,16 +3,8 @@
 linux脚本管理
 
 ## 功能
-
-- [X] 新电脑安装脚本
-- [X] 只补全没后缀的文件和目录
-- [X] 二级目录补全但不使用默认补全
-- [X] 按照模板自动解析脚本
-- [X] 自定义函数解析
-- [X] 自定义函数插入func调试功能
-- [ ] 帮助提示
-- [ ] 编译识别函数
-
+- [ ] 补全
+- [ ] 功能拆分
 ### todo
 
 - [ ] 添加修改功能  用提示方式重新赋值到终端
@@ -21,29 +13,32 @@ linux脚本管理
     - [X]支持 1:4 区间 
     - [X]不连续 1 4 5 
     - [ ]时间  
-
+- [ ] 补全
+### adb
+- [X] ls 
+- [X] pwd
+- [X] cd
+- [X] mv
+- [X] code
+- [ ] 补全
+### cd
+- [X] 绝对和相对路径
+- [ ] 记录路径 
 ## bug
-
-- [X] --script 不能补全二级目录 
-- [X] build android 无法提示libsensorservice
-- [X] 子脚本无法使用-*
-- [ ] 当前有目录的情况下，会自动添加了斜杆
-- [X] 识别不支持脚本类型和处理
-- [ ] 公共长选项只能在第一位置  提取公共的部分，可以放置任意位置
-- [X] 隐藏非可执行文件
-- [ ] 优化不全代码
-- [ ] 优化编译代码
-
-
 
 ## 设计
 ### 编译
-hikrun  {--rm,--code,file}
-    --code {file or -c} {file or -c}
-    --rm {file}
-    --help
-    {file} {-h,--rerun=,args}
 
-参数
-file : {ags} -h  --rerun=
-
+### 补全
+#### 优先级: 
+模板 > 代码
+#### 模板
+1. 添加接口  --completion-add ,  --completion-add={opt} , --completion-add={opt:help}
+  * --completion-add 添加当前选项  如 hikrun todo  show --completion-add   则为todo 添加show
+  * --completion-add={opt}  例 hikrun todo --completion-add={show,rm}  为todo 添加show 和rm
+  * --completion-add={opt:help}  例 hikrun todo --completion-add={show:显示,rm:删除}  为todo 添加show 和rm, show 帮助信息为 显示 , hikrun todo show -h   -> 显示
+2. 模板文件  completion.yaml 
+  * 格式
+#### 源码
+1. 私有接口 __hikrun_xxx_subcommand(opt:list) 实现源码中补全
+2. 公有接口 __hikrun(opt:list) 优先查找模板并返回,若没有则调用源码接口
