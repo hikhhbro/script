@@ -8,7 +8,7 @@
             "program": "${file}",
             "console": "integratedTerminal",
             "justMyCode": true,
-            "args": ["hikrun","--code-adb","/sys","n"]
+            "args": ["hikrun","adb","y"]
         }
     ]
 }

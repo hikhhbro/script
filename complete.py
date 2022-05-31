@@ -2,29 +2,30 @@ import os
 import sys
 import compile
 from shell import Shell
+from hikrun_adb import hikrun_adb
 
 
-class Complete:
-    def __init__(self, asgs=[]):
-        self.end = asgs[-1]
-        self.asgs = asgs
-        self.asgs.pop()
-        self.out = {}
-        # self.hikrun = ['--rm', '--code']
-        # self.setspace = {True: 'compopt +o nospace',
-        #                  False: 'compopt -o nospace'}
-        self.end_dic = {'n': False, 'y': True}
+# class Complete:
+#     def __init__(self, asgs=[]):
+#         self.end = asgs[-1]
+#         self.asgs = asgs
+#         self.asgs.pop()
+#         self.out = {}
+#         # self.hikrun = ['--rm', '--code']
+#         # self.setspace = {True: 'compopt +o nospace',
+#         #                  False: 'compopt -o nospace'}
+#         self.end_dic = {'n': False, 'y': True}
 
-        # self.dir_list = ["script", 'company']
+#         # self.dir_list = ["script", 'company']
 
-    def last_input(self):  # hikrun  wiz/w  -> wiz/w
-        return self.asgs[-1]
+#     def last_input(self):  # hikrun  wiz/w  -> wiz/w
+#         return self.asgs[-1]
 
-    def last_2_input(self):
-        if len(self.asgs) > 1:
-            return self.asgs[-2]
-        else:
-            return None
+#     def last_2_input(self):
+#         if len(self.asgs) > 1:
+#             return self.asgs[-2]
+#         else:
+#             return None
 
     # def set_out(self, sw: bool):
     #     print(self.setspace[sw])
@@ -130,82 +131,82 @@ class Complete:
 #                     self.matching_opt(self.compile_file(path))
 #         return self.getlsspace()
 
-class CurFile():
-    def __init__(self,script_dir = os.getcwd()):
-        self.__file_opt = []
-        self.__script_dir = script_dir + '/'
-        self.__dic_opt = {
-            'all': self.__all,
-            'exe_file':self.__isexecutable,
-            'alldir':self.__alldir,
-            'dir':self.__dir,
-        }
-    def __find_files(self,postfix='',is_=['all']):
-        for root, dirs, files in os.walk(self.__script_dir + postfix):
-            for item in is_:
-                self.__file_opt = self.__file_opt +  self.__dic_opt[item](dirs,files)
-            break
-    def __get_dir(self,postfix):
-        l = postfix.rfind('/')
-        if l < 0:
-            return ''
-        else:
-            return postfix[0:l+1]
-    def get_file_opt(self,postfix='',is_=['all']):
-        if postfix == None:
-            postfix = ''
-        else:
-            postfix = self.__get_dir(postfix)
-        self.__find_files(postfix,is_)
-        return self.__file_opt
+# class CurFile():
+#     def __init__(self,script_dir = os.getcwd()):
+#         self.__file_opt = []
+#         self.__script_dir = script_dir + '/'
+#         self.__dic_opt = {
+#             'all': self.__all,
+#             'exe_file':self.__isexecutable,
+#             'alldir':self.__alldir,
+#             'dir':self.__dir,
+#         }
+#     def __find_files(self,postfix='',is_=['all']):
+#         for root, dirs, files in os.walk(self.__script_dir + postfix):
+#             for item in is_:
+#                 self.__file_opt = self.__file_opt +  self.__dic_opt[item](dirs,files)
+#             break
+#     def __get_dir(self,postfix):
+#         l = postfix.rfind('/')
+#         if l < 0:
+#             return ''
+#         else:
+#             return postfix[0:l+1]
+#     def get_file_opt(self,postfix='',is_=['all']):
+#         if postfix == None:
+#             postfix = ''
+#         else:
+#             postfix = self.__get_dir(postfix)
+#         self.__find_files(postfix,is_)
+#         return self.__file_opt
 
 
-    def __all(self,dirs,files):
-        return files + self.__dir(dirs,files)
+#     def __all(self,dirs,files):
+#         return files + self.__dir(dirs,files)
 
-    def __isexecutable(self,dirs,files):
-        tmp = []
-        for file in files:
-            if  '.' not in file:
-                tmp.append(file)
-        return tmp
+#     def __isexecutable(self,dirs,files):
+#         tmp = []
+#         for file in files:
+#             if  '.' not in file:
+#                 tmp.append(file)
+#         return tmp
 
-    def __dir(self,dirs,files):
-        r = []
-        for d in dirs:
-            if d[0] != '.' :
-                r.append(d + '/')
-        return r
-    def __alldir(self,dirs,files):
-        r = []
-        for d in dirs:
-            r.append(d + '/')
-        return r
-
-
+#     def __dir(self,dirs,files):
+#         r = []
+#         for d in dirs:
+#             if d[0] != '.' :
+#                 r.append(d + '/')
+#         return r
+#     def __alldir(self,dirs,files):
+#         r = []
+#         for d in dirs:
+#             r.append(d + '/')
+#         return r
 
 
 
-class Script(Base):
-    def __init__(self,script_dir = ['company','script']):
-        super().__init__()
-        self.__dir_list = script_dir
-        self.__rootdir = os.getenv('HIK_SCRIPT_TOP_DIR')
-        self.__root_dir_len = len(self.__rootdir)
-    def find_files(self, name='',prefix='/'):
-        return CurFile(name).get_file_opt(prefix,is_=['exe_file','dir'])
 
-    def get_script_path(self):
-        if not self.isend and '/' in  self.asgs_list[-1] :
-            return self.asgs_list[-1]
-        else :
-            return '/'
-# todo 增加同名文件提示和选择
-    def find_files_dirs(self):
-        self.opt = []
-        for item in self.__dir_list:
-            self.opt =  self.opt + self.find_files(self.__rootdir + '/' + item + '/',self.get_script_path())  
-        return self.opt
+
+# class Script(Base):
+#     def __init__(self,script_dir = ['company','script']):
+#         super().__init__()
+#         self.__dir_list = script_dir
+#         self.__rootdir = os.getenv('HIK_SCRIPT_TOP_DIR')
+#         self.__root_dir_len = len(self.__rootdir)
+#     def find_files(self, name='',prefix='/'):
+#         return CurFile(name).get_file_opt(prefix,is_=['exe_file','dir'])
+
+#     def get_script_path(self):
+#         if not self.isend and '/' in  self.asgs_list[-1] :
+#             return self.asgs_list[-1]
+#         else :
+#             return '/'
+# # todo 增加同名文件提示和选择
+#     def find_files_dirs(self):
+#         self.opt = []
+#         for item in self.__dir_list:
+#             self.opt =  self.opt + self.find_files(self.__rootdir + '/' + item + '/',self.get_script_path())  
+#         return self.opt
 
 
 
@@ -223,104 +224,131 @@ class Script(Base):
 
 
 
-class Code(Script):
-    def __init__(self,script_dir = ['company','script']):
-        super().__init__(script_dir)
+# class Code(Script):
+#     def __init__(self,script_dir = ['company','script']):
+#         super().__init__(script_dir)
 
-    def run(self):
-        pass
-
-
-class Rm(Script):
-    def __init__(self,script_dir = ['company','script']):
-        super().__init__(script_dir)
-
-    def run(self):
-        pass
+#     def run(self):
+#         pass
 
 
-class Adb(Base):
-    def __init__(self, arg='/'):
-        super().__init__(opt=['/'])
-        self.arg = arg
-        self.sign = ['@']
-    def get_default_opt(self):
-        l = self.arg.rfind('/')
-        if l == -1 :
-            self.arg = '/'
-        self.files = Shell('adb shell ls -F ' + self.arg[0:l]).exe()
-        return self.pase()
+# class Rm(Script):
+#     def __init__(self,script_dir = ['company','script']):
+#         super().__init__(script_dir)
+
+#     def run(self):
+#         pass
+
+
+# class Adb(Base):
+#     def __init__(self, arg='/'):
+#         super().__init__(opt=['/'])
+#         self.arg = arg
+#         self.sign = ['@']
+#     def get_default_opt(self):
+#         l = self.arg.rfind('/')
+#         if l == -1 :
+#             self.arg = '/'
+#         self.files = Shell('adb shell ls -F ' + self.arg[0:l]).exe()
+#         return self.pase()
         
-    def pase(self):
-        out = []
-        file_list = self.files.split('\n')
-        file_list = list(filter(None, file_list))
-        for i in range(len(file_list)):
-            if file_list[i][-1] in self.sign:
-                out.append(file_list[i][:-1])
-            else :
-                out.append(file_list[i])
-        return out
+#     def pase(self):
+#         out = []
+#         file_list = self.files.split('\n')
+#         file_list = list(filter(None, file_list))
+#         for i in range(len(file_list)):
+#             if file_list[i][-1] in self.sign:
+#                 out.append(file_list[i][:-1])
+#             else :
+#                 out.append(file_list[i])
+#         return out
 
-class Help():
-    def __init__(self):
-        pass
-    def run(self):
-        pass
+# class Help():
+#     def __init__(self):
+#         pass
+#     def run(self):
+#         pass
 
 
 
     
-sw_dic = {
-    '--code' : Code(),
-    '--code-company' : Code(['company']),
-    '--code-adb' : Adb,
-    '--rm' : Rm(),
-    '--rm-company' : Rm(['company']),
-    '--git' :  Code(),
-}
+# sw_dic = {
+#     '--code' : Code(),
+#     '--code-company' : Code(['company']),
+#     '--code-adb' : Adb,
+#     '--rm' : Rm(),
+#     '--rm-company' : Rm(['company']),
+#     '--git' :  Code(),
+# }
 
-ws= ['todo','add','show','rm']
+# ws= ['todo','add','show','rm']
 
-class Hikrun(Base):
-    def __init__(self):
-        super().__init__(list(sw_dic.keys()))
-    def get_default_opt(self):
-        return Script().find_files_dirs() + ws
-        # self.opt.append('-s')
-    # def get_opt():
-        # self.get_cur_arg() 
-    # def run(self):
-    #     pass
+# class Hikrun(Base):
+#     def __init__(self):
+#         super().__init__(list(sw_dic.keys()))
+#     def get_default_opt(self):
+#         return Script().find_files_dirs() + ws
+#         # self.opt.append('-s')
+#     # def get_opt():
+#         # self.get_cur_arg() 
+#     # def run(self):
+#     #     pass
         
 
     
-def hikrun():
-    if  sys.argv[-1] == 'y' :
-        if sys.argv[-2] == 'hikrun':
-            return Hikrun()
-        else :
-            return sw_dic[sys.argv[-2]]()
+# def hikrun():
+#     if  sys.argv[-1] == 'y' :
+#         if sys.argv[-2] == 'hikrun':
+#             return Hikrun()
+#         else :
+#             return sw_dic[sys.argv[-2]]()
+#     else :
+#         if sys.argv[-3] == 'hikrun':
+#             return Hikrun()
+#         else :
+#             return sw_dic[sys.argv[-3]](sys.argv[-2])
+
+
+isend = True if sys.argv[-1] == 'y' else False
+asgs_list = sys.argv[1:-1] if "complete.py" in sys.argv[0] else sys.argv[:-1]     
+def get_class_name():
+    global isend 
+    global asgs_list 
+    out=asgs_list[0]
+    del asgs_list[0]
+    if isend :
+        if len(asgs_list) > 0:
+            out = out + "_" + asgs_list[0]
+            del asgs_list[0]
     else :
-        if sys.argv[-3] == 'hikrun':
-            return Hikrun()
+        if len(asgs_list) > 1:
+            out = out + "_" + asgs_list[0]
+            del asgs_list[0]
+    return out
+
+def get_opname():
+    global isend 
+    global asgs_list 
+    if isend :
+        if len(asgs_list) > 0:
+            if asgs_list[0][0] != '-':
+                return  asgs_list[0]
         else :
-            return sw_dic[sys.argv[-3]](sys.argv[-2])
-        
-
-# def parse_arg():
-#     isend = True if sys.argv[-1] == 'y' else False
-#     asgs_list = sys.argv[1:-1] if "complete.py" in sys.argv[0] else sys.argv[:-1]
-#     if isend :
-#         if asgs_list[0] == 'hikrun':
-
-
+            return ''    
+    else :
+        if len(asgs_list) > 1:
+            if asgs_list[0][0] != '-':
+                return  asgs_list[0]
+        else :
+            return ''    
 
 
 if __name__ == '__main__':
     # Hikrun().run()
     try:
-        hikrun().run()
+        # getattr(get_class_name(), get_opname() + '_opt')() 
+        func = getattr(hikrun_adb(), '_opt')
+        func()
     except :
         pass 
     # com = Complete(sys.argv)

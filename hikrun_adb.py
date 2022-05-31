@@ -1,9 +1,9 @@
 import os
 from shell import Shell
 root_dir = os.getenv('HIK_SCRIPT_TOP_DIR')
-class Adb():
+class hikrun_adb():
     def __init__(self, args_list=None):
-        super().__init__(opt=['/'])
+        # super().__init__(opt=['/'])
         self.__args_list = args_list or ['/']
         self.todo_dic = { }
         self.pts = Shell('tty').exe().replace('\n','')
@@ -61,6 +61,12 @@ class Adb():
     
     def __adb_cmd(self,cmd:str):
         return Shell(self.shell + cmd)
+    def __adb_dest_file(self, f):
+        return f.replace('/', '#')
+
+    def __adb_src_file(self,f):
+        return f.replace('#', '/')
+      
     def __pwd(self,arg:list):
         print(self.cur_dir)
     def __ls(self,arg:list):
@@ -92,11 +98,6 @@ class Adb():
               src_prefix  = self.cur_dir + '/'
         self.__adb_cmd('mv %s %s' %(src_prefix + arg[-2],dest_prefix + arg[-1])).exe()
         pass
-    def __adb_dest_file(self, f):
-        return f.replace('/', '#')
-
-    def __adb_src_file(self,f):
-        return f.replace('#', '/')
 
     def __code(self, arg:list):
         srcfile = ''.join(arg[-1])
@@ -109,5 +110,9 @@ class Adb():
         s.input('adb push ' + dire + ' ' + srcfile )
         s.exec_system()
 
+
+    def _opt(self):
+        print("adb")
+        
     def exec(self):
         self.option_dic[self.__args_list[0]](self.__args_list[1:]) 
