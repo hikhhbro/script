@@ -37,8 +37,16 @@ linux脚本管理
   * --completion-add 添加当前选项  如 hikrun todo  show --completion-add   则为todo 添加show
   * --completion-add={opt}  例 hikrun todo --completion-add={show,rm}  为todo 添加show 和rm
   * --completion-add={opt:help}  例 hikrun todo --completion-add={show:显示,rm:删除}  为todo 添加show 和rm, show 帮助信息为 显示 , hikrun todo show -h   -> 显示
-2. 模板文件  completion.yaml 
-  * 格式
+2. 模板文件 .complete.json
+  * 格式 使用前缀树来存储,用嵌套字典实现
+  ```
+{
+  "deny": [
+    {},
+    "held"
+  ]
+}
+  ```
 #### 源码
 1. 私有接口 __hikrun_xxx_subcommand(opt:list) 实现源码中补全
 2. 公有接口 __hikrun(opt:list) 优先查找模板并返回,若没有则调用源码接口
