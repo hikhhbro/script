@@ -29,23 +29,23 @@ class hikrun_adb():
             'pwd' : self.__pwd,
         }
 
-    def get_default_opt(self):
-        l = self.__args_list[-1].rfind('/')
-        if l == -1 :
-            self.__args_list[-1] = '/'
-        self.files = Shell('adb shell ls -F ' + self.__args_list[-1][0:l]).exe()
-        return self.pase()
+    # def get_default_opt(self):
+    #     l = self.__args_list[-1].rfind('/')
+    #     if l == -1 :
+    #         self.__args_list[-1] = '/'
+    #     self.files = Shell('adb shell ls -F ' + self.__args_list[-1][0:l]).exe()
+    #     return self.pase()
         
-    def pase(self):
-        out = []
-        file_list = self.files.split('\n')
-        file_list = list(filter(None, file_list))
-        for i in range(len(file_list)):
-            if file_list[i][-1] in self.sign:
-                out.append(file_list[i][:-1])
-            else :
-                out.append(file_list[i])
-        return out
+    # def pase(self):
+    #     out = []
+    #     file_list = self.files.split('\n')
+    #     file_list = list(filter(None, file_list))
+    #     for i in range(len(file_list)):
+    #         if file_list[i][-1] in self.sign:
+    #             out.append(file_list[i][:-1])
+    #         else :
+    #             out.append(file_list[i])
+    #     return out
 
     
     def __pase_out(self,out_file:str):
@@ -112,7 +112,7 @@ class hikrun_adb():
 
 
     def _opt(self):
-        print("adb")
+        return ['ls','mv']
         
     def exec(self):
         self.option_dic[self.__args_list[0]](self.__args_list[1:]) 

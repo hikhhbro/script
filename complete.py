@@ -1,10 +1,9 @@
 import os
 import sys
 import compile
-from shell import Shell
-from hikrun_adb import hikrun_adb
-
-
+from base import Base
+import importlib
+from hikrun_json import hikrun_json
 # class Complete:
 #     def __init__(self, asgs=[]):
 #         self.end = asgs[-1]
@@ -311,7 +310,7 @@ from hikrun_adb import hikrun_adb
 
 isend = True if sys.argv[-1] == 'y' else False
 asgs_list = sys.argv[1:-1] if "complete.py" in sys.argv[0] else sys.argv[:-1]     
-def get_class_name():
+def get_class():
     global isend 
     global asgs_list 
     out=asgs_list[0]
@@ -324,7 +323,8 @@ def get_class_name():
         if len(asgs_list) > 1:
             out = out + "_" + asgs_list[0]
             del asgs_list[0]
-    return out
+    model = importlib.import_module(out)
+    return getattr(model,out)
 
 def get_opname():
     global isend 
@@ -342,15 +342,67 @@ def get_opname():
         else :
             return ''    
 
+class Db():
+    def __init__(self,key:str = None,date:dict = None,tip:str = None):
+        self.key = key
+        self.tip = tip
+        self.date = date or {}
+        
+class TreeNode():
+    self.child = Db()
+    self.is_end = False
+class Trie:
+    def __init__(self):
+        self.root = TreeNode()
+ 
+    def insert(self, word) -> None:
+        node = self.root
+        for char in word:
+            node = node.setdefault(char, {})  # 循环遍历结束后，node 指向的是 {}
+        node['#'] = '#'  # 添加结束标志
+ 
+    def search(self, word: str) -> bool:
+        node = self.root
+        for char in word:
+            if char not in node:
+                return False
+            node = node[char]  # 到下面一个结点，相当于指针移动
+        return '#' in node
+ 
+    def startsWith(self, prefix: str) -> bool:
+        node = self.root
+        for char in prefix:
+            if char not in node:
+                return False
+            node = node[char]
+        return True
+
+class Complete(hikrun_json):
+    def __init__(self):
+        super().__init__('.complete.json')
+        self.opt = self.read_json()
+        self.help = ''
+        self.key = ''
+        self.
+    
+    def get_opt(self,arg:list,opt_s:dict):
+        if arg[0][0] == '-' or arg == None :
+            return
+        if opt_s.__contains__(arg[0]):
+            
+            get_opt()
+            
+    
+        
 
 if __name__ == '__main__':
     # Hikrun().run()
-    try:
-        # getattr(get_class_name(), get_opname() + '_opt')() 
-        func = getattr(hikrun_adb(), '_opt')
-        func()
-    except :
-        pass 
+    # try:
+    module = get_class()
+    func =  getattr(module(), get_opname() + '_opt')
+    Base(func()).run()
+    # except :
+    #     pass 
     # com = Complete(sys.argv)
     # com = Complete(['hikrun','test1','y'])
     # com.set_out(com.set_complete())

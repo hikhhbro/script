@@ -5,7 +5,8 @@ from shell import Shell
 
 class Base():
     def __init__(self, opt=None):
-        self.opt = opt or []
+        self.__opt =  opt or []
+        self.opt = []
         self.opt.append('--help')
         self.setspace = {True: 'compopt +o nospace',
                          False: 'compopt -o nospace'}
@@ -30,6 +31,8 @@ class Base():
                 return self.asgs_list[-1][l+1:]
 
     def get_default_opt(self):
+        if self.__opt :
+            return self.__opt
         return CurFile().get_file_opt(self.get_last_input(True))
     def get_opt(self, arg):
         if not arg or arg[-1] =='/':

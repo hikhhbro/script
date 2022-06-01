@@ -1,11 +1,10 @@
 import os
 import sys
-import json
 import time
 import copy
 from shell import Shell
-from adb import Adb
 import subprocess
+from hikrun_json import hikrun_json
 root_dir = os.getenv('HIK_SCRIPT_TOP_DIR')
 dir_list = ["script", 'company']
 
@@ -276,6 +275,13 @@ def get_compile_path(f):
                 item  + '/' + f
 
 
+class hikrun(hikrun_json):
+    def __init__(self, args_list=None):
+        super().__init__('.complete.json')
+        self.__args_list = args_list or []
+        
+    def _opt(self):
+        return list(self.read_json().keys())
 
 def main():
     if 'hikrun.py' in  sys.argv[0] :
