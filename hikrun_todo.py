@@ -1,7 +1,9 @@
 import json
 import time
+import os
 class hikrun_todo():
     def __init__(self, args_list=None):
+        self.root_dir = os.getenv('HIK_SCRIPT_TOP_DIR')
         self.__args_list = args_list or []
         self.todo_dic = { }
         self.option_dic = {
@@ -11,22 +13,22 @@ class hikrun_todo():
         }
 
     def __write_json(self,text):
-        with open("%s/todo/todo_list.json" % (root_dir)) as rf:
+        with open("%s/todo/todo_list.json" % (self.root_dir)) as rf:
             json_data = json.load(rf)
         if not json_data.__contains__(time.strftime("%Y/%m/%d")):
             json_data[time.strftime("%Y/%m/%d")] = [text]
         else :
             json_data[time.strftime("%Y/%m/%d")].append(text)
-        with open("%s/todo/todo_list.json" % (root_dir), "w+") as wf:
+        with open("%s/todo/todo_list.json" % (self.root_dir), "w+") as wf:
             js = json.dumps(json_data,indent=1)
             wf.write(js)
     def __read_json(self):    
-        with open("%s/todo/todo_list.json" % (root_dir)) as rf:
+        with open("%s/todo/todo_list.json" % (self.root_dir)) as rf:
             json_data = json.load(rf)
         return json_data
 
     def __add_gitlab(self,commit):
-        Shell('cd %s/todo/ && git add todo/todo_list.json && git commit -m %s' %(root_dir,commit) ).exe()
+        Shell('cd %s/todo/ && git add todo/todo_list.json && git commit -m %s' %(self.root_dir,commit) ).exe()
         
     def __text(self,text:list):
         return ' '.join(text)
@@ -89,7 +91,7 @@ class hikrun_todo():
             else:
                 continue
             break
-        with open("%s/todo/todo_list.json" % (root_dir), "w+") as wf:
+        with open("%s/todo/todo_list.json" % (self.root_dir), "w+") as wf:
             js = json.dumps(txt_dic,indent=1)
             wf.write(js)
             self.__add_gitlab("rm todo")
