@@ -6,6 +6,7 @@ from shell import Shell
 import subprocess
 from hikrun_json import hikrun_json
 from hikrun_todo import hikrun_todo
+from hikrun_script import hikrun_script
 root_dir = os.getenv('HIK_SCRIPT_TOP_DIR')
 dir_list = ["script", 'company']
 
@@ -134,6 +135,7 @@ run = {
     'todo':lambda args_list: hikrun_todo(args_list).run(),
     'adb':lambda args_list: Adb(args_list).exec(),
     'cd':lambda args_list: Cd(args_list).exec(),
+    'script':lambda args_list: hikrun_script(args_list).run(),
 }
 
 
@@ -164,7 +166,7 @@ class hikrun(hikrun_json):
         self.__args_list = args_list or []
         
     def _opt(self):
-        return list(self.read_json().keys()) + ['todo','adb','cd']
+        return list(self.read_json().keys()) + ['todo','adb','cd','script']
 
 def main():
     if 'hikrun.py' in  sys.argv[0] :
