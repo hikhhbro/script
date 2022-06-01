@@ -4,6 +4,7 @@ import compile
 from base import Base
 import importlib
 from hikrun_json import hikrun_json
+from trie import Trie
 # class Complete:
 #     def __init__(self, asgs=[]):
 #         self.end = asgs[-1]
@@ -309,7 +310,12 @@ from hikrun_json import hikrun_json
 
 
 isend = True if sys.argv[-1] == 'y' else False
-asgs_list = sys.argv[1:-1] if "complete.py" in sys.argv[0] else sys.argv[:-1]     
+asgs_list = sys.argv[1:-1] if "complete.py" in sys.argv[0] else sys.argv[:-1]    
+if isend :
+    cur = '' 
+else :
+    cur = asgs_list[-1] 
+    del asgs_list[-1]  
 def get_class():
     global isend 
     global asgs_list 
@@ -342,35 +348,9 @@ def get_opname():
         else :
             return ''    
 
-# class TreeNode():
-#     def __init__(self,key:str = None,date:dict = None,tip:str = None):
-#         self.key = key
-#         self.tip = tip
-#         self.date = date or {}
-#         self.is_end = False
-        
-#     def get_node(self,key:str = None,date:dict = None,tip:str = None):
-#         return {key:[date,tip]}
-#     def set_node(self,dic:dict):
-#         self.key = list(dic.keys())[0]
-#         self.tip = dic[key][1]
-#         self.date = dic[key][0]
     
         
-class Trie:
-    def __init__(self,root:dict):
-        self.root = root or {}
-        self.end = -1
-    def get_node(self,key:str = None,date:dict = None,tip:str = None):
-        return [date or {},tip]
-    
-    def insert(self, arg_list:list):
-        node = self.root
-        for arg in arg_list:
-            child =  node if node.__contains__(arg) else {}
-            if not child :
-                node[arg] = self.get_node()
-            node = node[arg][0]
+
  
     # def search(self, word):
     #     """
@@ -411,35 +391,33 @@ class Trie:
 # param_2 = obj.search(word)
 # param_3 = obj.startsWith(prefix)
 
-class Complete(hikrun_json):
-    def __init__(self):
-        super().__init__('.complete.json')
-        self.opt = self.read_json()
+class Complete():
+    def __init__(self,args_list = None):
+        self.file = '.complete.json'
+        self.trie = Trie(hikrun_json(self.file).read_json())
+        self.args = args_list[1:] or []
     
-    def get_opt(self,arg:list,opt_s:dict):
-        if arg[0][0] == '-' or arg == None :
-            return
-        if opt_s.__contains__(arg[0]):
-            
-            get_opt()
-            
+    def get(self):
+        return self.trie.search(self.args)
+
+    def set_database(self):
+        if self.trie.insert(self.args) :
+            hikrun_json(self.file).write_json(self.trie.root)
+        return False
     
-def get_database():
-    global asgs_list 
-    trie = Trie(hikrun_json('.complete.json').read_json())
-    trie.insert(asgs_list[1:])
-    hikrun_json('.complete.json').write_json(trie.root)
-    return False
 
 if __name__ == '__main__':
     # Hikrun().run()
-    # try:
-    if get_database() :
-        module = get_class()
-        func =  getattr(module(), get_opname() + '_opt')
-        Base(func()).run()
-    # except :
-    #     pass 
+    try:
+        opt = []
+        if len(asgs_list) > 1:
+            opt = Complete(asgs_list).get()
+        if not opt :
+            module = get_class()
+            opt = getattr(module(), get_opname() + '_opt')()
+        Base(opt).run()
+    except :
+        pass 
     # com = Complete(sys.argv)
     # com = Complete(['hikrun','test1','y'])
     # com.set_out(com.set_complete())

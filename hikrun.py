@@ -281,7 +281,7 @@ class hikrun(hikrun_json):
         self.__args_list = args_list or []
         
     def _opt(self):
-        return list(self.read_json().keys())
+        return list(self.read_json().keys()) + ['todo','adb','cd']
 
 def main():
     if 'hikrun.py' in  sys.argv[0] :
