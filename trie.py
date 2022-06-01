@@ -13,6 +13,14 @@ class Trie:
             child =  node if node.__contains__(arg) else {}
             if not child :
                 node[arg] = self.get_node()
-                self.change = True
+                self.is_change = True
             node = node[arg][0]
         return self.is_change
+
+    def search(self, arg_list:list):
+        node = self.root
+        for arg in arg_list:
+            if not arg in node.keys():
+                return False
+            node = node[arg][0]
+        return list(node.keys())
