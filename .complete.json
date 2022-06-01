@@ -1,0 +1,7 @@
+{
+  "deny": [
+    {},
+    "held"
+  ],
+  "install_dep": []
+}
