@@ -326,7 +326,7 @@ def get_class():
             out = out + "_" + asgs_list[0]
             del asgs_list[0]
     else :
-        if len(asgs_list) > 1:
+        if len(asgs_list) > 0:
             out = out + "_" + asgs_list[0]
             del asgs_list[0]
     model = importlib.import_module(out)
@@ -342,7 +342,7 @@ def get_opname():
         else :
             return ''    
     else :
-        if len(asgs_list) > 1:
+        if len(asgs_list) > 0:
             if asgs_list[0][0] != '-':
                 return  asgs_list[0]
         else :
@@ -384,12 +384,7 @@ def get_opname():
         
     #     return True
  
- 
-# Your Trie object will be instantiated and called as such:
-# obj = Trie()
-# obj.insert(word)
-# param_2 = obj.search(word)
-# param_3 = obj.startsWith(prefix)
+
 
 class Complete():
     def __init__(self,args_list = None):
@@ -400,7 +395,7 @@ class Complete():
     def get(self):
         return self.trie.search(self.args)
 
-    def set_database(self):
+    def set(self):
         if self.trie.insert(self.args) :
             hikrun_json(self.file).write_json(self.trie.root)
         return False
