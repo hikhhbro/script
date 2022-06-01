@@ -342,48 +342,79 @@ def get_opname():
         else :
             return ''    
 
-class Db():
-    def __init__(self,key:str = None,date:dict = None,tip:str = None):
-        self.key = key
-        self.tip = tip
-        self.date = date or {}
+# class TreeNode():
+#     def __init__(self,key:str = None,date:dict = None,tip:str = None):
+#         self.key = key
+#         self.tip = tip
+#         self.date = date or {}
+#         self.is_end = False
         
-class TreeNode():
-    self.child = Db()
-    self.is_end = False
+#     def get_node(self,key:str = None,date:dict = None,tip:str = None):
+#         return {key:[date,tip]}
+#     def set_node(self,dic:dict):
+#         self.key = list(dic.keys())[0]
+#         self.tip = dic[key][1]
+#         self.date = dic[key][0]
+    
+        
 class Trie:
-    def __init__(self):
-        self.root = TreeNode()
- 
-    def insert(self, word) -> None:
+    def __init__(self,root:dict):
+        self.root = root or {}
+        self.end = -1
+    def get_node(self,key:str = None,date:dict = None,tip:str = None):
+        return [date or {},tip]
+    
+    def insert(self, arg_list:list):
         node = self.root
-        for char in word:
-            node = node.setdefault(char, {})  # 循环遍历结束后，node 指向的是 {}
-        node['#'] = '#'  # 添加结束标志
+        for arg in arg_list:
+            child =  node if node.__contains__(arg) else {}
+            if not child :
+                node[arg] = self.get_node()
+            node = node[arg][0]
  
-    def search(self, word: str) -> bool:
-        node = self.root
-        for char in word:
-            if char not in node:
-                return False
-            node = node[char]  # 到下面一个结点，相当于指针移动
-        return '#' in node
+    # def search(self, word):
+    #     """
+    #     Returns if the word is in the trie.
+    #     :type word: str
+    #     :rtype: bool
+    #     """
+    #     curNode = self.root
+    #     for c in word:
+    #         if not c in curNode:
+    #             return False
+    #         curNode = curNode[c]
+            
+    #     # Doesn't end here
+    #     if not self.end in curNode:
+    #         return False
+        
+    #     return True
  
-    def startsWith(self, prefix: str) -> bool:
-        node = self.root
-        for char in prefix:
-            if char not in node:
-                return False
-            node = node[char]
-        return True
+    # def startsWith(self, prefix):
+    #     """
+    #     Returns if there is any word in the trie that starts with the given prefix.
+    #     :type prefix: str
+    #     :rtype: bool
+    #     """
+    #     curNode = self.root
+    #     for c in prefix:
+    #         if not c in curNode:
+    #             return False
+    #         curNode = curNode[c]
+        
+    #     return True
+ 
+ 
+# Your Trie object will be instantiated and called as such:
+# obj = Trie()
+# obj.insert(word)
+# param_2 = obj.search(word)
+# param_3 = obj.startsWith(prefix)
 
 class Complete(hikrun_json):
     def __init__(self):
         super().__init__('.complete.json')
         self.opt = self.read_json()
-        self.help = ''
-        self.key = ''
-        self.
     
     def get_opt(self,arg:list,opt_s:dict):
         if arg[0][0] == '-' or arg == None :
@@ -393,14 +424,20 @@ class Complete(hikrun_json):
             get_opt()
             
     
-        
+def get_database():
+    global asgs_list 
+    trie = Trie(hikrun_json('.complete.json').read_json())
+    trie.insert(asgs_list[1:])
+    hikrun_json('.complete.json').write_json(trie.root)
+    return False
 
 if __name__ == '__main__':
     # Hikrun().run()
     # try:
-    module = get_class()
-    func =  getattr(module(), get_opname() + '_opt')
-    Base(func()).run()
+    if get_database() :
+        module = get_class()
+        func =  getattr(module(), get_opname() + '_opt')
+        Base(func()).run()
     # except :
     #     pass 
     # com = Complete(sys.argv)

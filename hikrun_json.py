@@ -8,7 +8,7 @@ class hikrun_json:
         return text
     
     def write_json(self,text):
-        json_data = str_to_json(text)
+        json_data = self.str_to_json(text)
         with open(self.file ,"w+") as wf:
             js = json.dumps(json_data,indent=1)
             wf.write(js)
