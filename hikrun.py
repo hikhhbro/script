@@ -7,6 +7,7 @@ import subprocess
 from hikrun_json import hikrun_json
 from hikrun_todo import hikrun_todo
 from hikrun_script import hikrun_script
+from hikrun_adb import hikrun_adb
 root_dir = os.getenv('HIK_SCRIPT_TOP_DIR')
 dir_list = ["script", 'company']
 
@@ -133,7 +134,7 @@ run = {
     '--rm': lambda args_list: Rm(args_list).run(),
     '--git':lambda args_list: Git(args_list).run(),
     'todo':lambda args_list: hikrun_todo(args_list).run(),
-    'adb':lambda args_list: Adb(args_list).exec(),
+    'adb':lambda args_list: hikrun_adb(args_list).exec(),
     'cd':lambda args_list: Cd(args_list).exec(),
     'script':lambda args_list: hikrun_script(args_list).run(),
 }

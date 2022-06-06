@@ -8,7 +8,7 @@
             "program": "${file}",
             "console": "integratedTerminal",
             "justMyCode": true,
-            "args": ["hikrun","script","readme"]
+            "args": ["hikrun","adb","mv","ld.config.txt","/","n"]
         }
     ]
 }

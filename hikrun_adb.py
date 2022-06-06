@@ -4,7 +4,7 @@ root_dir = os.getenv('HIK_SCRIPT_TOP_DIR')
 class hikrun_adb():
     def __init__(self, args_list=None):
         # super().__init__(opt=['/'])
-        self.__args_list = args_list or ['/']
+        self.__args_list = args_list or ['']
         self.todo_dic = { }
         self.pts = Shell('tty').exe().replace('\n','')
         self.rootdir = root_dir + '/adb_file/'
@@ -29,23 +29,6 @@ class hikrun_adb():
             'pwd' : self.__pwd,
         }
 
-    # def get_default_opt(self):
-    #     l = self.__args_list[-1].rfind('/')
-    #     if l == -1 :
-    #         self.__args_list[-1] = '/'
-    #     self.files = Shell('adb shell ls -F ' + self.__args_list[-1][0:l]).exe()
-    #     return self.pase()
-        
-    # def pase(self):
-    #     out = []
-    #     file_list = self.files.split('\n')
-    #     file_list = list(filter(None, file_list))
-    #     for i in range(len(file_list)):
-    #         if file_list[i][-1] in self.sign:
-    #             out.append(file_list[i][:-1])
-    #         else :
-    #             out.append(file_list[i])
-    #     return out
 
     
     def __pase_out(self,out_file:str):
@@ -100,7 +83,7 @@ class hikrun_adb():
         pass
 
     def __code(self, arg:list):
-        srcfile = ''.join(arg[-1])
+        srcfile = self.cur_dir + '/' + ''.join(arg[-1])
         dire = root_dir + '/adb_file/' + self.__adb_dest_file(srcfile)
         s = Shell()
         s.input('adb pull ' + srcfile + ' ' + dire)
@@ -110,9 +93,44 @@ class hikrun_adb():
         s.input('adb push ' + dire + ' ' + srcfile )
         s.exec_system()
 
-
-    def _opt(self):
-        return ['ls','mv']
+#补全
+#adb 文件补全
+    def __pase_file(self,out_file:str):
+        out = []
+        file_list = out_file.split('\n')
+        file_list = list(filter(None, file_list))
+        for i in range(len(file_list)):
+            if file_list[i][-1] in self.sign:
+                out.append(file_list[i][:-1])
+            else :
+                out.append(file_list[i])
+        return out
+    def __file(self):
+        arg = ''
+        if  self.__args_list : 
+            arg = ''.join(self.__args_list)
+        if not arg or arg[0] != '/':
+            arg = self.cur_dir + '/' + arg
+        l = arg.rfind('/')
+        if l == -1 :
+            arg = '/'
+        files = Shell('adb shell ls -F ' + arg[0:l]).exe()
+        return self.__pase_file(files)
         
+#adb 子命令补全选项
+    def _opt(self):
+        return list(self.option_dic.keys())
+#adb ls 补全选项
+    def ls_opt(self):
+        return self.__file()
+#adb cd 补全选项
+    def cd_opt(self):
+        return self.__file()
+#adb mv 补全选项
+    def mv_opt(self):
+        return self.__file()
+#adb code 补全选项
+    def code_opt(self):
+        return self.__file()
     def exec(self):
         self.option_dic[self.__args_list[0]](self.__args_list[1:]) 

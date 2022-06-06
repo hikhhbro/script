@@ -312,9 +312,9 @@ from trie import Trie
 isend = True if sys.argv[-1] == 'y' else False
 asgs_list = sys.argv[1:-1] if "complete.py" in sys.argv[0] else sys.argv[:-1]    
 if isend :
-    cur = '' 
+    cur = [''] 
 else :
-    cur = asgs_list[-1] 
+    cur = [asgs_list[-1]] 
     del asgs_list[-1]  
 def get_class():
     global isend 
@@ -403,16 +403,16 @@ class Complete():
 
 if __name__ == '__main__':
     # Hikrun().run()
-    try:
-        opt = []
-        if len(asgs_list) > 1:
-            opt = Complete(asgs_list).get()
-        if not opt :
-            module = get_class()
-            opt = getattr(module(), get_opname() + '_opt')()
-        Base(opt).run()
-    except :
-        pass 
+    # try:
+    opt = []
+    if len(asgs_list) > 1:
+        opt = Complete(asgs_list).get()
+    if not opt :
+        module = get_class()
+        opt = getattr(module(cur), get_opname() + '_opt')()
+    Base(opt).run()
+    # except :
+    #     pass 
     # com = Complete(sys.argv)
     # com = Complete(['hikrun','test1','y'])
     # com.set_out(com.set_complete())
