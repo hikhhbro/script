@@ -83,16 +83,20 @@ class hikrun_adb():
         pass
 
     def __code(self, arg:list):
-        srcfile = self.cur_dir + '/' + ''.join(arg[-1])
+        if arg[-1][0] != '/':
+            srcfile = self.cur_dir + '/' + ''.join(arg[-1])
+        else:
+            srcfile = arg[-1]
         dire = root_dir + '/adb_file/' + self.__adb_dest_file(srcfile)
         s = Shell()
+        s.input('adb root')
+        s.input('adb remount')
+        s.input('adb disable-verity')
         s.input('adb pull ' + srcfile + ' ' + dire)
-        s.input('code ' + dire)
+        s.input('code -w ' + dire)
         s.exec_system()
-        a = input("是否保存至手机: 回车")
         s.input('adb push ' + dire + ' ' + srcfile )
         s.exec_system()
-
 #补全
 #adb 文件补全
     def __pase_file(self,out_file:str):
