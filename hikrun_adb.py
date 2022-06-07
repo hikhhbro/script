@@ -27,6 +27,7 @@ class hikrun_adb():
             'mv' : self.__mv,
             'code' : self.__code,
             'pwd' : self.__pwd,
+            '' : self.__adb_shell
         }
 
 
@@ -53,7 +54,10 @@ class hikrun_adb():
     def __pwd(self,arg:list):
         print(self.cur_dir)
     def __ls(self,arg:list):
-        self.__pase_out(self.__adb_cmd('ls -F %s' %(self.cur_dir)).exe())
+        sub=''
+        if arg[0][0] == '-':
+            sub=arg[0]
+        self.__pase_out(self.__adb_cmd('ls -F %s %s' %(sub,self.cur_dir + arg[-1])).exe())
     def __cd(self,arg:list):
         self.cur_dir = self.__adb_cmd('cd "%s && pwd"' %arg[-1]).exe().replace('\n','')
         with open(self.rootdir + self.pts, "w",encoding='UTF-8') as f:
@@ -96,6 +100,13 @@ class hikrun_adb():
         s.input('code -w ' + dire)
         s.exec_system()
         s.input('adb push ' + dire + ' ' + srcfile )
+        s.exec_system()
+    def __adb_shell(self, arg:list):
+        s = Shell()
+        s.input('adb root')
+        s.input('adb remount')
+        s.input('adb disable-verity')
+        s.input('adb shell')
         s.exec_system()
 #补全
 #adb 文件补全
