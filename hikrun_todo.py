@@ -1,6 +1,8 @@
 import json
 import time
 import os
+from shell import Shell
+import copy
 class hikrun_todo():
     def __init__(self, args_list=None):
         self.root_dir = os.getenv('HIK_SCRIPT_TOP_DIR')
