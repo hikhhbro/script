@@ -22,11 +22,14 @@ echo "卸载完成"
 fi
 echo "正在安装"
 
-_task sed -i '/SCRIPT_TOP_DIR/d'  ~/.bashrc
-echo "export SCRIPT_TOP_DIR=`pwd`" >> ~/.bashrc
-_task source ~/.bashrc
-_task sed -i '/SCRIPT_TOOL_NAME/d'  ~/.bashrc
-echo "export SCRIPT_TOOL_NAME=${SCRIPT_TOOL_NAME}" >> ~/.bashrc
+bashrc_dir=${SCRIPT_TOP_DIR}/src/completion/.bashrc
+cat > ${bashrc_dir} <<EOF
+export SCRIPT_TOP_DIR=`pwd`
+export SCRIPT_TOOL_NAME=${SCRIPT_TOOL_NAME}
+EOF
+
+_task sed -i '/'${bashrc_dir}'/d'  ~/.bashrc
+echo "source '${bashrc_dir}'=`pwd`" >> ~/.bashrc
 _task source ~/.bashrc
 
 cat > ${SCRIPT_TOP_DIR}/${SCRIPT_TOOL_NAME} <<EOF
