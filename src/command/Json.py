@@ -1,6 +1,6 @@
 import json
 import os
-class hikrun_json:
+class Json:
     def __init__(self, file_path=''):
         self.file = os.getenv('HIK_SCRIPT_TOP_DIR') + '/' + file_path
     
