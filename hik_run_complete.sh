@@ -228,7 +228,6 @@ _hikrun () {
     unset res[2]
     ${lsnospace}
     COMPREPLY=( ${res[*]} )  
-    # echo ${res[*]}       
 }
 __hikrun_program="hikrun"
 have ${__hikrun_program} && \

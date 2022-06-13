@@ -1,11 +1,14 @@
 import os
 import sys
-import json
 import time
 import copy
 from shell import Shell
-
-
+import subprocess
+from hikrun_json import hikrun_json
+from hikrun_todo import hikrun_todo
+from hikrun_script import hikrun_script
+from hikrun_adb import hikrun_adb
+from hikrun_cd import hikrun_cd
 root_dir = os.getenv('HIK_SCRIPT_TOP_DIR')
 dir_list = ["script", 'company']
 
@@ -70,19 +73,6 @@ class Code():
         s.input('adb push ' + dire + ' ' + srcfile )
         s.exec_system()
 
-    def __adb_sync_file(self):
-        while True:
-            if keyboard.is_pressed('ctrl+s') :
-                break
-            print("wait sync")
-            sleep(3)
-        # s = Shell()
-        # for root, dirs, files in os.walk(root_dir + '/adb_file/'):
-        #     s.input('adb push ' + root + '/' +
-        #             files[0] + ' ' + self.__adb_src_file(files[0]))
-        #     s.input('rm  ' + root + '/' + files[0])
-        #     s.exe()
-        #     break
 
     def run(self):
         if self.__args_list[0] in self.__dic:
@@ -134,109 +124,19 @@ class Git():
             self.add()
             self.print_add()
 
-class Todo():
-    def __init__(self, args_list=None):
-        self.__args_list = args_list or []
-        self.todo_dic = { }
-        self.option_dic = {
-            'add' : self.add,
-            'rm' : self.rm,
-            'show' : self.show,
-        }
-
-    def __write_json(self,text):
-        with open("%s/todo/todo_list.json" % (root_dir)) as rf:
-            json_data = json.load(rf)
-        if not json_data.__contains__(time.strftime("%Y/%m/%d")):
-            json_data[time.strftime("%Y/%m/%d")] = [text]
-        else :
-            json_data[time.strftime("%Y/%m/%d")].append(text)
-        with open("%s/todo/todo_list.json" % (root_dir), "w+") as wf:
-            js = json.dumps(json_data,indent=1)
-            wf.write(js)
-    def __read_json(self):    
-        with open("%s/todo/todo_list.json" % (root_dir)) as rf:
-            json_data = json.load(rf)
-        return json_data
-
-    def __add_gitlab(self,commit):
-        Shell('cd %s/todo/ && git add todo/todo_list.json && git commit -m %s' %(root_dir,commit) ).exe()
-        
-    def __text(self,text:list):
-        return ' '.join(text)
-    
-    def add(self,text):
-        if text:
-            self.__write_json(self.__text(text))
-            self.__add_gitlab("add todo")
-    def show(self,serial:list):
-        txt_dic = self.__read_json()
-        prefix_i = 0
-        if not txt_dic.__contains__(' '.join(serial)):
-            for k,v in txt_dic.items():
-                print("\033[1;34m   %s\033[0m" % k)
-                for i in range(len(v)):
-                    print("%s: %s" %(prefix_i,v[i]))
-                    prefix_i = prefix_i + 1
-        else :
-            print("\033[1;34m   %s\033[0m" % ' '.join(serial))
-            for i in range(len(txt_dic[' '.join(serial)])):
-                print("%s: %s" %(i,txt_dic[' '.join(serial)][i]))
-    def __get_rm_serial(self,serial:list):
-        r = {
-            "time" : [],
-            "serial":[]
-        }
-        for item in serial:
-            if '/' in item:
-                r["time"].append(item)
-            else:
-                if ':' in item:
-                    sp = item.find(':')
-                    start = int(item[0:sp])
-                    end = int(item[sp+1:])
-                    r["serial"] = r["serial"] + list(range(start,end+1))
-                else :
-                    r["serial"].append(int(item))
-        r["serial"] = list(set(r["serial"]))
-        r["serial"].sort()
-        return r
-                
-    def rm(self,serial:list):
-        txt_dic = self.__read_json()
-        s = self.__get_rm_serial(serial)
-        prefix_i = 0
-        txt_dic_t = copy.deepcopy(txt_dic)
-        for k,v in txt_dic_t.items():
-            i_r=0
-            for i in range(len(v)):
-                if s["serial"]:
-                    if prefix_i in s["serial"]:
-                        del txt_dic[k][i-i_r]
-                        i_r = i_r + 1
-                        if not txt_dic[k]:
-                            txt_dic.pop(k)
-                        s["serial"].remove(prefix_i)
-                        if not s["serial"]:
-                            break
-                    prefix_i = prefix_i + 1
-            else:
-                continue
-            break
-        with open("%s/todo/todo_list.json" % (root_dir), "w+") as wf:
-            js = json.dumps(txt_dic,indent=1)
-            wf.write(js)
-            self.__add_gitlab("rm todo")
 
 
-    def run(self):
-        self.option_dic[self.__args_list[0]](self.__args_list[1:]) 
+
+
 
 run = {
     '--code': lambda args_list:  Code(args_list).run(),
     '--rm': lambda args_list: Rm(args_list).run(),
     '--git':lambda args_list: Git(args_list).run(),
-    'todo':lambda args_list: Todo(args_list).run(),
+    'todo':lambda args_list: hikrun_todo(args_list).run(),
+    'adb':lambda args_list: hikrun_adb(args_list).exec(),
+    'cd':lambda args_list: hikrun_cd(args_list).exec(),
+    'script':lambda args_list: hikrun_script(args_list).run(),
 }
 
 
@@ -261,6 +161,13 @@ def get_compile_path(f):
                 item  + '/' + f
 
 
+class hikrun(hikrun_json):
+    def __init__(self, args_list=None):
+        super().__init__('.complete.json')
+        self.__args_list = args_list or []
+        
+    def _opt(self):
+        return list(self.read_json().keys()) + ['todo','adb','cd','script']
 
 def main():
     if 'hikrun.py' in  sys.argv[0] :
