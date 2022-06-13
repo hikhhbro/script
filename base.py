@@ -2,7 +2,7 @@ import os
 import sys
 import compile
 from shell import Shell
-
+from hik_file import CurFile
 class Base():
     def __init__(self, opt=None):
         self.__opt =  opt or []

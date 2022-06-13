@@ -24,5 +24,5 @@ class hikrun_cd():
         self.__change_parent_process_directory(dir_prefix + self.__args_list[-1] )
         
     def _opt(self):
-        curfile = CurFile()
-        return curfile.get_file_opt(self.__args_list[-1])
+        curfile = CurFile(self.__args_list[-1])
+        return curfile.get_file_opt()

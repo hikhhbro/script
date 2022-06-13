@@ -1,8 +1,14 @@
 import os
 class CurFile():
-    def __init__(self,script_dir = os.getcwd()):
+    def __init__(self,init_dir = None):
         self.__file_opt = []
-        self.__script_dir = script_dir + '/'
+        if init_dir:
+            if init_dir[0] == '/':
+                self.__cur_dir = init_dir
+            else :
+                self.__cur_dir = os.getcwd() + '/'
+        else :
+            self.__cur_dir = os.getcwd()
         self.__dic_opt = {
             'all': self.__all,
             'exe_file':self.__isexecutable,
@@ -10,7 +16,7 @@ class CurFile():
             'dir':self.__dir,
         }
     def __find_files(self,postfix='',is_=['all']):
-        for root, dirs, files in os.walk(self.__script_dir + postfix):
+        for root, dirs, files in os.walk(self.__cur_dir + postfix):
             for item in is_:
                 self.__file_opt = self.__file_opt +  self.__dic_opt[item](dirs,files)
             break

@@ -20,10 +20,10 @@ linux脚本管理
 - [X] cd
 - [X] mv
 - [X] code
-- [X] ls  不全
-- [X] cd 不全
-- [X] mv 不全
-- [X] code 不全
+- [X] ls  补全
+- [X] cd 补全
+- [X] mv 补全
+- [X] code 补全
 ### cd
 - [X] 绝对和相对路径
 - [ ] 记录路径 
