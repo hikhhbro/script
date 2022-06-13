@@ -1,0 +1,13 @@
+#!/bin/bash
+: << !
+<_describe> begin
+描述: 关闭mi11手机屏幕
+<_describe> end
+<_get_options> begin
+选项: 
+<_get_options> end
+!
+#<user_func> 
+#<main>
+adb root
+adb shell echo  '1 > /sys/class/backlight/panel0-backlight/bl_power'
