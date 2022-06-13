@@ -1,4 +1,5 @@
-class Cd():
+from hik_file import CurFile
+class hikrun_cd():
     def __init__(self, args_list=None):
         self.__args_list = args_list or []
         self.add_dic = { }
@@ -21,3 +22,7 @@ class Cd():
         else :
             dir_prefix = os.getcwd() + '/'
         self.__change_parent_process_directory(dir_prefix + self.__args_list[-1] )
+        
+    def _opt(self):
+        curfile = CurFile()
+        return curfile.get_file_opt(self.__args_list[-1])
