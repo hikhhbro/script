@@ -1,13 +1,12 @@
 import os
 from shell import Shell
-root_dir = os.getenv('HIK_SCRIPT_TOP_DIR')
 class hikrun_adb():
     def __init__(self, args_list=None):
         # super().__init__(opt=['/'])
         self.__args_list = args_list or ['']
         self.todo_dic = { }
         self.pts = Shell('tty').exe().replace('\n','')
-        self.rootdir = root_dir + '/data/adb_file/'
+        self.rootdir = os.getenv('HIK_SCRIPT_TOP_DIR') + '/data/adb_file/'
         self.sign = ['@','*']
         self.shell = 'adb shell '
         if not os.path.exists(self.rootdir + self.pts[:self.pts.rfind('/')]):
@@ -93,7 +92,9 @@ class hikrun_adb():
             srcfile = self.cur_dir + '/' + ''.join(arg[-1])
         else:
             srcfile = arg[-1]
-        dire = root_dir + '/adb_file/' + self.__adb_dest_file(srcfile)
+        dire = self.rootdir  + srcfile
+        if not os.path.exists(dire[:dire.rfind('/')]):
+            Shell('mkdir -p '+ dire[:dire.rfind('/')] ).exec_system()
         s = Shell()
         s.input('adb root')
         s.input('adb remount')
