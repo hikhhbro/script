@@ -7,9 +7,11 @@ class hikrun_adb():
         self.__args_list = args_list or ['']
         self.todo_dic = { }
         self.pts = Shell('tty').exe().replace('\n','')
-        self.rootdir = root_dir + '/adb_file/'
+        self.rootdir = root_dir + '/data/adb_file/'
         self.sign = ['@','*']
         self.shell = 'adb shell '
+        if not os.path.exists(self.rootdir + self.pts[:self.pts.rfind('/')]):
+            Shell('mkdir -p '+ self.rootdir + self.pts[:self.pts.rfind('/')]).exec_system()
         if os.path.exists(self.rootdir + self.pts):
             with open(self.rootdir + self.pts, "r", encoding='UTF-8')as f:
                 self.cur_dir = f.readline()
