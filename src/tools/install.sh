@@ -7,16 +7,21 @@ if [[ "$1" == "" ]];then
 else 
   SCRIPT_TOOL_NAME=$1
 fi
-. ${SCRIPT_TOOL_NAME}/src/completion/base.sh
+if [[ "$2" == "" ]];then
+  SCRIPT_TOP_DIR=`pwd`
+else 
+  SCRIPT_TOP_DIR=$2
+fi
+. src/tools/base.sh
 
 if [ -f "/usr/local/bin/${SCRIPT_TOOL_NAME}" ];then
 echo "卸载"
-. uninstall.sh
+. src/tools/uninstall.sh
 echo "卸载完成"
 fi
 if [ -f "/etc/bash_completion.d/${SCRIPT_TOOL_NAME}_prompt" ];then
 echo "卸载"
-. uninstall.sh
+. src/tools/uninstall.sh
 echo "卸载完成"
 fi
 echo "正在安装"
