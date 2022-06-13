@@ -1,4 +1,3 @@
-. base.sh
 if [[ `which python3` == "" ]];then
   sudo apt-get install python3
 fi
@@ -8,7 +7,7 @@ if [[ "$1" == "" ]];then
 else 
   SCRIPT_TOOL_NAME=$1
 fi
-
+. ${SCRIPT_TOOL_NAME}/src/completion/base.sh
 
 if [ -f "/usr/local/bin/${SCRIPT_TOOL_NAME}" ];then
 echo "卸载"
@@ -46,7 +45,11 @@ EOF
 _task sudo mv ${SCRIPT_TOP_DIR}/${SCRIPT_TOOL_NAME} /usr/local/bin/${SCRIPT_TOOL_NAME}
 _task sudo chmod 755 /usr/local/bin/${SCRIPT_TOOL_NAME}
 
-echo ". `pwd`/complete_prompt.sh \$*" >  ${SCRIPT_TOOL_NAME}_prompt
+echo  >  ${SCRIPT_TOOL_NAME}_prompt <<EOF
+if [[ -e ${SCRIPT_TOP_DIR}/src/completion/complete.sh ]]; then
+	. ${SCRIPT_TOP_DIR}/src/completion/complete.sh
+fi
+EOF
 _task sudo mv ${SCRIPT_TOOL_NAME}_prompt /etc/bash_completion.d/${SCRIPT_TOOL_NAME}_prompt
 _task sudo chmod 755 /etc/bash_completion.d/${SCRIPT_TOOL_NAME}_prompt
 _task source ~/.bashrc
