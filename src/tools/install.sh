@@ -1,4 +1,8 @@
 . base.sh
+if [[ `which python3` == "" ]];then
+  sudo apt-get install python3
+fi
+
 if [[ "$1" == "" ]];then
   SCRIPT_TOOL_NAME='hikrun'
 else 
