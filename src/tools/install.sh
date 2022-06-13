@@ -1,44 +1,47 @@
 . base.sh
-if [ -f "/usr/local/bin/hikrun" ];then
+if [[ "$1" == "" ]];then
+  SCRIPT_TOOL_NAME='hikrun'
+else 
+  SCRIPT_TOOL_NAME=$1
+fi
+
+
+if [ -f "/usr/local/bin/${SCRIPT_TOOL_NAME}" ];then
 echo "卸载"
 . uninstall.sh
 echo "卸载完成"
 fi
-if [ -f "/etc/bash_completion.d/hikrun_prompt" ];then
+if [ -f "/etc/bash_completion.d/${SCRIPT_TOOL_NAME}_prompt" ];then
 echo "卸载"
 . uninstall.sh
 echo "卸载完成"
 fi
 echo "正在安装"
-if [ ! -d company/ ];then
-    _task mkdir company
-    _task  touch company/companybase.sh
-    _task  touch company/companyfunc.sh
-fi
-if [ ! -d company/.resycle/ ];then
-    _task mkdir company/.resycle
-fi
-if [ ! -d script/ ];then
-_task mkdir script
-fi
-if [ ! -d script/.resycle/ ];then
-_task mkdir -p script/.resycle
-fi
-if [ ! -d .resycle/ ];then
-_task mkdir .resycle
-fi
 
-_task sed -i '/HIK_SCRIPT_TOP_DIR/d'  ~/.bashrc
-echo "export HIK_SCRIPT_TOP_DIR=`pwd`" >> ~/.bashrc
+_task sed -i '/SCRIPT_TOP_DIR/d'  ~/.bashrc
+echo "export SCRIPT_TOP_DIR=`pwd`" >> ~/.bashrc
+_task source ~/.bashrc
+_task sed -i '/SCRIPT_TOOL_NAME/d'  ~/.bashrc
+echo "export SCRIPT_TOOL_NAME=${SCRIPT_TOOL_NAME}" >> ~/.bashrc
 _task source ~/.bashrc
 
-echo ". `pwd`/hikrun.sh \$*" >  hikrun
-_task sudo mv hikrun /usr/local/bin/hikrun
-_task sudo chmod 755 /usr/local/bin/hikrun
+cat > ${SCRIPT_TOP_DIR}/${SCRIPT_TOOL_NAME} <<EOF
+#!/usr/bin/python3
+import os
+import sys
+root_dir = os.getenv('SCRIPT_TOP_DIR')
+sys.path.append(root_dir)
+from src import main
 
-echo ". `pwd`/hik_run_complete.sh \$*" >  hikrun_prompt
-_task sudo mv hikrun_prompt /etc/bash_completion.d/hikrun_prompt
-_task sudo chmod 755 /etc/bash_completion.d/hikrun_prompt
+if __name__ == '__main__':
+    main.main()
+EOF
+_task sudo mv ${SCRIPT_TOP_DIR}/${SCRIPT_TOOL_NAME} /usr/local/bin/${SCRIPT_TOOL_NAME}
+_task sudo chmod 755 /usr/local/bin/${SCRIPT_TOOL_NAME}
+
+echo ". `pwd`/complete_prompt.sh \$*" >  ${SCRIPT_TOOL_NAME}_prompt
+_task sudo mv ${SCRIPT_TOOL_NAME}_prompt /etc/bash_completion.d/${SCRIPT_TOOL_NAME}_prompt
+_task sudo chmod 755 /etc/bash_completion.d/${SCRIPT_TOOL_NAME}_prompt
 _task source ~/.bashrc
 echo -n "---安装完成---输入任意键结束------"
 read 
