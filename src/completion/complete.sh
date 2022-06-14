@@ -15,7 +15,7 @@ _hikrun () {
     ${lsnospace}
     COMPREPLY=( ${res[*]} )  
 }
-__hikrun_program="hikrun"
+__hikrun_program=${SCRIPT_TOOL_NAME}
 have ${__hikrun_program} && \
  complete -o default -F _hikrun  ${__hikrun_program}
  unset __hikrun_program
