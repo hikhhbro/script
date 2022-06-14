@@ -36,8 +36,9 @@ echo "正在安装"
 
 sed -i '/SCRIPT_TOP_DIR/d'  ~/.bashrc
 sed -i '/SCRIPT_TOOL_NAME/d'  ~/.bashrc
-echo "export SCRIPT_TOP_DIR=\"`pwd`\"" >> ~/.bashrc
-echo "export SCRIPT_TOOL_NAME=\"${SCRIPT_TOOL_NAME}\"" >> ~/.bashrc
+
+sed -i "/shopt -oq posix/iexport SCRIPT_TOP_DIR=\"`pwd`\"" ~/.bashrc
+sed -i "/shopt -oq posix/iexport SCRIPT_TOOL_NAME=\"`pwd`\"" ~/.bashrc
 _task source ~/.bashrc
 
 cat > ${SCRIPT_TOP_DIR}/${SCRIPT_TOOL_NAME} <<EOF
