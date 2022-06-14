@@ -1,6 +1,13 @@
 if [[ `which python3` == "" ]];then
   sudo apt-get install python3
 fi
+source ~/.bashrc
+
+if [[ "${SCRIPT_TOP_DIR}" != "" ]] || [[ "${SCRIPT_TOOL_NAME}" != "" ]] ;then
+    echo   "已安装过${SCRIPT_TOP_DIR} 正在卸载 .... "
+    . src/tools/uninstall.sh  ${SCRIPT_TOOL_NAME}
+fi
+
 
 if [[ "$1" == "" ]];then
   SCRIPT_TOOL_NAME='hikrun'
@@ -16,24 +23,21 @@ fi
 
 if [ -f "/usr/local/bin/${SCRIPT_TOOL_NAME}" ];then
 echo "卸载"
-. src/tools/uninstall.sh
+. src/tools/uninstall.sh ${SCRIPT_TOOL_NAME}
 echo "卸载完成"
 fi
 if [ -f "/etc/bash_completion.d/${SCRIPT_TOOL_NAME}_prompt" ];then
 echo "卸载"
-. src/tools/uninstall.sh
+. src/tools/uninstall.sh ${SCRIPT_TOOL_NAME}
 echo "卸载完成"
 fi
 echo "正在安装"
 
-bashrc_dir=${SCRIPT_TOP_DIR}/src/completion/.bashrc
-cat > ${bashrc_dir} <<EOF
-export SCRIPT_TOP_DIR=`pwd`
-export SCRIPT_TOOL_NAME=${SCRIPT_TOOL_NAME}
-EOF
 
-_task sed -i '/'${bashrc_dir}'/d'  ~/.bashrc
-echo "source '${bashrc_dir}'=`pwd`" >> ~/.bashrc
+sed -i '/SCRIPT_TOP_DIR/d'  ~/.bashrc
+sed -i '/SCRIPT_TOOL_NAME/d'  ~/.bashrc
+echo "export SCRIPT_TOP_DIR=\"`pwd`\"" >> ~/.bashrc
+echo "export SCRIPT_TOOL_NAME=\"${SCRIPT_TOOL_NAME}\"" >> ~/.bashrc
 _task source ~/.bashrc
 
 cat > ${SCRIPT_TOP_DIR}/${SCRIPT_TOOL_NAME} <<EOF
