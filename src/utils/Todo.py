@@ -31,9 +31,15 @@ class Todo():
         with open("%s" % (self.todo_file)) as rf:
             json_data = json.load(rf)
         return json_data
-
+    def __init_git(self):
+        git_remote = input("请输出远程仓库地址: ")
+        Shell('cd %s && git init  &&git remote add orgin %s' %(self.todo_dir,git_remote) ).exe()
     def __add_gitlab(self,commit):
-        Shell('cd %s && git add todo/todo_list.json && git commit -m %s' %(self.todo_dir,commit) ).exe()
+        if not os.path.exists(self.todo_dir + '.git'):
+            print("此目录任不是git仓库，请初始化")
+            self.__init_git()
+            return
+        Shell('cd %s && git add . && git commit -m %s' %(self.todo_dir,commit) ).exe()
         
     def __text(self,text:list):
         return ' '.join(text)
@@ -96,7 +102,7 @@ class Todo():
             else:
                 continue
             break
-        with open("%s/todo/todo_list.json" % (self.root_dir), "w+") as wf:
+        with open("%s" % (self.todo_file), "w+") as wf:
             js = json.dumps(txt_dic,indent=1)
             wf.write(js)
             self.__add_gitlab("rm todo")
