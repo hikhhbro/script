@@ -158,7 +158,7 @@ def get_compile_path(f):
 class main():
     def __init__(self, args_list=None):
         self.__args_list = args_list or []
-        self.comp = Json('.complete.json')
+        self.comp = Json('/data/.complete.json')
     def _opt(self):
         return list(self.comp.read_json().keys()) + ['todo','adb','cd','script']
 

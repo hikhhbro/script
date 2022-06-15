@@ -8,7 +8,7 @@ from command.Listdirs import CurFile
 
 class CompTemp():
     def __init__(self,args_list = None):
-        self.file = '.complete.json'
+        self.file = '/data/.complete.json'
         self.trie = Trie(Json(self.file).read_json())
         self.args = args_list[1:] or []
     
@@ -105,10 +105,10 @@ if __name__ == '__main__':
         opt = CompTemp(myclass.asgs_list).get()
     if not opt :
         module = myclass.get_class()
-        try:
-            opt = getattr(module(myclass.cur), myclass.get_opname() + '_opt')()
-        except :
-            pass
+        # try:
+        opt = getattr(module(myclass.cur), myclass.get_opname() + '_opt')()
+        # except :
+        #     pass
     Complete(opt).run()
     
     #     pass 
