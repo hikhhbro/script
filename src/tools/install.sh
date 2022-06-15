@@ -38,7 +38,7 @@ sed -i '/SCRIPT_TOP_DIR/d'  ~/.bashrc
 sed -i '/SCRIPT_TOOL_NAME/d'  ~/.bashrc
 
 sed -i "/shopt -oq posix/iexport SCRIPT_TOP_DIR=\"`pwd`\"" ~/.bashrc
-sed -i "/shopt -oq posix/iexport SCRIPT_TOOL_NAME=\"`pwd`\"" ~/.bashrc
+sed -i "/shopt -oq posix/iexport SCRIPT_TOOL_NAME=\"${SCRIPT_TOOL_NAME}\"" ~/.bashrc
 _task source ~/.bashrc
 
 cat > ${SCRIPT_TOP_DIR}/${SCRIPT_TOOL_NAME} <<EOF
