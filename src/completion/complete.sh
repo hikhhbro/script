@@ -7,12 +7,13 @@ _hikrun () {
       end='n'
     fi
     
-    local res=( $(python3 ${HIK_SCRIPT_TOP_DIR}/src/completion/complete.py ${COMP_WORDS[*]} ${end}) )
+    local res=( $(python3 ${HIK_SCRIPT_TOP_DIR}/src/complete.py ${COMP_WORDS[*]} ${end}) )
     local lsnospace=${res[*]:0:3}
     unset res[0]
     unset res[1]
     unset res[2]
     ${lsnospace}
+    echo "test"
     COMPREPLY=( ${res[*]} )  
 }
 __hikrun_program=${SCRIPT_TOOL_NAME}
