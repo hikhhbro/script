@@ -10,12 +10,18 @@ fi
 
 
 if [[ "$1" == "" ]];then
-  SCRIPT_TOOL_NAME='hikrun'
+  read -p "请输入工具名称[hikrun]: " SCRIPT_TOOL_NAME
+  if [[ "${SCRIPT_TOOL_NAME}" == "" ]];then
+    SCRIPT_TOOL_NAME='hikrun'
+  fi
 else 
   SCRIPT_TOOL_NAME=$1
 fi
 if [[ "$2" == "" ]];then
-  SCRIPT_TOP_DIR=`pwd`
+   read -p "请输入工具安装路径[`pwd`]: " SCRIPT_TOP_DIR
+  if [[ "${SCRIPT_TOP_DIR}" == "" ]];then
+        SCRIPT_TOP_DIR=`pwd`
+  fi
 else 
   SCRIPT_TOP_DIR=$2
 fi
