@@ -3,6 +3,7 @@ import sys
 from command.Json import Json
 from command.Trie import Trie
 from command.Base import Myclass
+from command.Listdirs import CurFile
 
 
 class CompTemp():
@@ -104,9 +105,12 @@ if __name__ == '__main__':
         opt = CompTemp(myclass.asgs_list).get()
     if not opt :
         module = myclass.get_class()
-        opt = getattr(module(myclass.cur), myclass.get_opname() + '_opt')()
+        try:
+            opt = getattr(module(myclass.cur), myclass.get_opname() + '_opt')()
+        except :
+            pass
     Complete(opt).run()
-    # except :
+    
     #     pass 
     # com = Complete(sys.argv)
     # com = Complete(['hikrun','test1','y'])

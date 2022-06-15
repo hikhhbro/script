@@ -20,19 +20,19 @@ class Myclass():
         sys.path.append(os.getenv('SCRIPT_TOP_DIR')+"/src/utils")
         tmp = sys.argv
         self.isend = True if tmp[-1] == 'y' else False
-        self.asgs_list = tmp[1:-1] if "complete.py" in tmp[0] else tmp[:-1]    
+        if tmp[-1]  in ['n','y']:
+            self.asgs_list = tmp[1:-1] if "complete.py" in tmp[0] or "main.py" in tmp[0] else tmp[:-1]   
+        else:
+            self.asgs_list = tmp
         if self.isend :
             self.cur = [''] 
         else :
             self.cur = [self.asgs_list[-1]] 
             del self.asgs_list[-1]  
     def get_sub_tool(self):
-        if len(self.asgs_list) == 1:
-            out  = self.asgs_list[0]
-        else :
-            out  = self.asgs_list[1]
-        model = importlib.import_module(out)
-        return getattr(model,out)
+        out  = self.asgs_list[0]
+        model = importlib.import_module(out.capitalize())
+        return getattr(model,out.capitalize())
     
     def get_class(self):
         if len(self.asgs_list) == 1 and self.asgs_list[0] == os.getenv('SCRIPT_TOOL_NAME') :

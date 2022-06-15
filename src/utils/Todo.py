@@ -1,11 +1,11 @@
 import json
 import time
 import os
-from shell import Shell
+from command.Shell import Shell
 import copy
-class hikrun_todo():
+class Todo():
     def __init__(self, args_list=None):
-        self.root_dir = os.getenv('HIK_SCRIPT_TOP_DIR')
+        self.root_dir = os.getenv('SCRIPT_TOP_DIR')
         self.__args_list = args_list or []
         self.todo_dic = { }
         self.option_dic = {
@@ -13,24 +13,27 @@ class hikrun_todo():
             'rm' : self.rm,
             'show' : self.show,
         }
-
+        self.todo_dir = self.root_dir + '/data/todo/'
+        self.todo_file = self.todo_dir + 'todo_list.json'
+        if not os.path.exists(self.todo_file):
+            Shell('mkdir -p '+ self.todo_dir + "&& echo '{}'> %s" %(self.todo_file)).exec_system()
     def __write_json(self,text):
-        with open("%s/todo/todo_list.json" % (self.root_dir)) as rf:
+        with open("%s" % (self.todo_file)) as rf:
             json_data = json.load(rf)
         if not json_data.__contains__(time.strftime("%Y/%m/%d")):
             json_data[time.strftime("%Y/%m/%d")] = [text]
         else :
             json_data[time.strftime("%Y/%m/%d")].append(text)
-        with open("%s/todo/todo_list.json" % (self.root_dir), "w+") as wf:
+        with open("%s" % (self.todo_file), "w+") as wf:
             js = json.dumps(json_data,indent=1)
             wf.write(js)
     def __read_json(self):    
-        with open("%s/todo/todo_list.json" % (self.root_dir)) as rf:
+        with open("%s" % (self.todo_file)) as rf:
             json_data = json.load(rf)
         return json_data
 
     def __add_gitlab(self,commit):
-        Shell('cd %s/todo/ && git add todo/todo_list.json && git commit -m %s' %(self.root_dir,commit) ).exe()
+        Shell('cd %s && git add todo/todo_list.json && git commit -m %s' %(self.todo_dir,commit) ).exe()
         
     def __text(self,text:list):
         return ' '.join(text)
@@ -100,5 +103,5 @@ class hikrun_todo():
 
     def _opt(self):
         return list(self.option_dic.keys())
-    def run(self):
+    def exec(self):
         self.option_dic[self.__args_list[0]](self.__args_list[1:]) 

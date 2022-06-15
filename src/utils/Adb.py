@@ -48,6 +48,7 @@ class Adb(Base):
         print('\t'.join(out))
     
     def __adb_cmd(self,cmd:str):
+        Shell("adb root").exec_system()
         return Shell(self.shell + cmd)
     def __adb_dest_file(self, f):
         return f.replace('/', '#')
@@ -59,6 +60,8 @@ class Adb(Base):
         print(self.cur_dir)
     def __ls(self,arg:list):
         sub=''
+        if not arg: 
+            arg = ["/"]
         if arg[0][0] == '-':
             sub=arg[0]
         self.__pase_out(self.__adb_cmd('ls -F %s %s' %(sub,self.cur_dir + arg[-1])).exe())

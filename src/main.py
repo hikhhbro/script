@@ -166,14 +166,18 @@ class main():
 
 
 def run():
+    uns = []
+    uns.append("/usr/local/bin/" + os.getenv('SCRIPT_TOOL_NAME'))
+    if sys.argv[0] in uns:
+        del sys.argv[0] 
     tmp_arg = copy.copy(sys.argv)
-    if 'main.py' in  tmp_arg[0] or ("/usr/local/bin/"+ os.getenv('SCRIPT_TOOL_NAME') ) in  tmp_arg[0]:
+    if 'main.py' in  tmp_arg[0] :
         del tmp_arg[0]
     if tmp_arg[-1]  in ['n','y']:
         del tmp_arg[-1]
     myclass = Myclass()
     module = myclass.get_sub_tool()
-    module(tmp_arg[2:]).exec()
+    module(tmp_arg[1:]).exec()
 
 if __name__ == '__main__':
     run()
