@@ -182,17 +182,4 @@ def run():
 if __name__ == '__main__':
     run()
 
-    # if sys.argv[1] in list(run.keys()):
-    #     run[sys.argv[1]](sys.argv[2:])
-    # elif sys.argv[1][0:sys.argv[1].rfind('-')] in list(run.keys()):
-    #     tmp_cmd = [sys.argv[1][sys.argv[1].rfind('-'):]] + sys.argv[2:]
-    #     run[sys.argv[1][0:sys.argv[1].rfind('-')]](tmp_cmd)
-    # else:
-    #     s = Shell()
-    #     f = get_compile_path(sys.argv[1])
-    #     s.input('source ${HIK_SCRIPT_TOP_DIR}/base.sh')
-    #     s.input('. ' + f)
-    #     s.input(get_probe(sys.argv[1]) + ' ' + ''.join(sys.argv[2:]))
-    #     s.exec_system()
-
 
