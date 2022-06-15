@@ -1,8 +1,8 @@
 import os
-from shell import Shell
-class hikrun_script():
+from command.Shell import Shell
+class Script():
     def __init__(self, args_list=None):
-        self.root_dir = os.getenv('HIK_SCRIPT_TOP_DIR')
+        self.root_dir = os.getenv('SCRIPT_TOP_DIR')
         self.__args_list = args_list or []
         self.option_dic = {
             'readme' : self.__readme,
@@ -22,6 +22,6 @@ class hikrun_script():
     def _opt(self):
         return list(self.option_dic.keys())
 
-    def run(self):
+    def exec(self):
         self.option_dic[self.__args_list[0]](self.__args_list[1:]) 
 
