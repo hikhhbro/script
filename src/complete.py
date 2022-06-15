@@ -1,48 +1,9 @@
 import os
 import sys
-import importlib
+from command.Json import Json
+from command.Trie import Trie
+from command.Base import Myclass
 
-from src.command import Json
-from src.command import Trie
-
-isend = True if sys.argv[-1] == 'y' else False
-asgs_list = sys.argv[1:-1] if "complete.py" in sys.argv[0] else sys.argv[:-1]    
-if isend :
-    cur = [''] 
-else :
-    cur = [asgs_list[-1]] 
-    del asgs_list[-1]  
-def get_class():
-    global isend 
-    global asgs_list 
-    out=asgs_list[0]
-    del asgs_list[0]
-    if isend :
-        if len(asgs_list) > 0:
-            out = out + "_" + asgs_list[0]
-            del asgs_list[0]
-    else :
-        if len(asgs_list) > 0:
-            out = out + "_" + asgs_list[0]
-            del asgs_list[0]
-    model = importlib.import_module(out)
-    return getattr(model,out)
-
-def get_opname():
-    global isend 
-    global asgs_list 
-    if isend :
-        if len(asgs_list) > 0:
-            if asgs_list[0][0] != '-':
-                return  asgs_list[0]
-        else :
-            return ''    
-    else :
-        if len(asgs_list) > 0:
-            if asgs_list[0][0] != '-':
-                return  asgs_list[0]
-        else :
-            return ''    
 
 class CompTemp():
     def __init__(self,args_list = None):
@@ -137,12 +98,13 @@ class Complete():
 if __name__ == '__main__':
     # Hikrun().run()
     # try:
+    myclass = Myclass()
     opt = []
-    if len(asgs_list) > 1:
-        opt = CompTemp(asgs_list).get()
+    if len(myclass.asgs_list) > 1:
+        opt = CompTemp(myclass.asgs_list).get()
     if not opt :
-        module = get_class()
-        opt = getattr(module(cur), get_opname() + '_opt')()
+        module = myclass.get_class()
+        opt = getattr(module(myclass.cur), myclass.get_opname() + '_opt')()
     Complete(opt).run()
     # except :
     #     pass 

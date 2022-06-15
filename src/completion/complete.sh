@@ -13,7 +13,6 @@ _hikrun () {
     unset res[1]
     unset res[2]
     ${lsnospace}
-    echo "test"
     COMPREPLY=( ${res[*]} )  
 }
 __hikrun_program=${SCRIPT_TOOL_NAME}
