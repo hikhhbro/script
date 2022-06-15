@@ -55,7 +55,7 @@ EOF
 _task sudo mv ${SCRIPT_TOP_DIR}/${SCRIPT_TOOL_NAME} /usr/local/bin/${SCRIPT_TOOL_NAME}
 _task sudo chmod 755 /usr/local/bin/${SCRIPT_TOOL_NAME}
 
-echo  >  ${SCRIPT_TOOL_NAME}_prompt <<EOF
+cat  >  ${SCRIPT_TOOL_NAME}_prompt <<EOF
 if [[ -e ${SCRIPT_TOP_DIR}/src/completion/complete.sh ]]; then
 	. ${SCRIPT_TOP_DIR}/src/completion/complete.sh
 fi
