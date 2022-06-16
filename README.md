@@ -68,10 +68,13 @@ Running_task => (sudo rm /etc/bash_completion.d/hikrun_prompt):
 - [ ] 记录路径 
 ### 脚本管理
 - [X] 快速打开readme
+- [ ] readme 写完自动提交
 - [ ] 构建脚本
 - [ ] 添加脚本
 - [ ] 删除脚本
 - [ ] 公司仓库初始化
+### 参数解析和管理
+- [ ] 参数管理
 ## 安装和卸载
 - [X] 自定义工具名
 ## bug
