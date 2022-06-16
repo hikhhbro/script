@@ -56,7 +56,7 @@ sys.path.append(root_dir)
 from src import main
 
 if __name__ == '__main__':
-    main.main()
+    main.run()
 EOF
 _task sudo mv ${SCRIPT_TOP_DIR}/${SCRIPT_TOOL_NAME} /usr/local/bin/${SCRIPT_TOOL_NAME}
 _task sudo chmod 755 /usr/local/bin/${SCRIPT_TOOL_NAME}
