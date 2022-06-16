@@ -100,3 +100,6 @@ Running_task => (sudo rm /etc/bash_completion.d/hikrun_prompt):
 #### 源码
 1. 私有接口 __hikrun_xxx_subcommand(opt:list) 实现源码中补全
 2. 公有接口 __hikrun(opt:list) 优先查找模板并返回,若没有则调用源码接口
+
+
+
