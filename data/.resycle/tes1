@@ -1,9 +1,0 @@
-#!/bin/bash
-test_describe() { echo "描述: "; }
-test_get_options() {
-  echo ""
-}
-test_probe() {
-local db="_debug_task"
-  ${db} echo "ces"
-}
