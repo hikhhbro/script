@@ -5,12 +5,22 @@ class CompTemp():
     def __init__(self,args_list = None):
         self.file = '/data/.complete.json'
         self.trie = Trie(Json(self.file).read_json())
-        self.args = args_list[1:] or []
+        self.args =  args_list[1:] if  args_list else []
     
     def get(self):
         return self.trie.search(self.args)
 
-    def set(self):
-        if self.trie.insert(self.args) :
-            Json(self.file).write_json(self.trie.root)
-        return False
+    def set(self,arg_list:list = None):
+        if not arg_list:
+          if self.trie.insert(self.args) :
+              Json(self.file).write_json(self.trie.root)
+          return False
+        else :
+            for item in arg_list:
+                status = self.trie.insert([item])
+            if status:
+                Json(self.file).write_json(self.trie.root)
+                return True
+            else:
+                return False
+                
