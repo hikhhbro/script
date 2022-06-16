@@ -1,22 +1,25 @@
 import os
-from shell import Shell
-class hikrun_adb():
+from command.Shell import Shell
+from command.Base import Base
+
+class Adb(Base):
     def __init__(self, args_list=None):
-        # super().__init__(opt=['/'])
+        super().__init__(args_list)
         self.__args_list = args_list or ['']
         self.todo_dic = { }
         self.pts = Shell('tty').exe().replace('\n','')
-        self.rootdir = os.getenv('HIK_SCRIPT_TOP_DIR') + '/data/adb_file/'
+        self.rootdir = self.tool_dir + '/data/adb/'
         self.sign = ['@','*']
         self.shell = 'adb shell '
-        if not os.path.exists(self.rootdir + self.pts[:self.pts.rfind('/')]):
-            Shell('mkdir -p '+ self.rootdir + self.pts[:self.pts.rfind('/')]).exec_system()
-        if os.path.exists(self.rootdir + self.pts):
-            with open(self.rootdir + self.pts, "r", encoding='UTF-8')as f:
+        self.pst_root = self.rootdir + '.pst'
+        if not os.path.exists(self.pst_root + self.pts[:self.pts.rfind('/')]):
+            Shell('mkdir -p '+ self.pst_root + self.pts[:self.pts.rfind('/')]).exec_system()
+        if os.path.exists(self.pst_root + self.pts):
+            with open(self.pst_root + self.pts, "r", encoding='UTF-8')as f:
                 self.cur_dir = f.readline()
             f.close()
         else:
-            with open(self.rootdir + self.pts, "w",encoding='UTF-8') as f:
+            with open(self.pst_root + self.pts, "w",encoding='UTF-8') as f:
                 f.write('/')
                 self.cur_dir = '/'
                 Shell('adb root && adb remount && adb disable-verity').exe()
@@ -45,6 +48,7 @@ class hikrun_adb():
         print('\t'.join(out))
     
     def __adb_cmd(self,cmd:str):
+        Shell("adb root").exec_system()
         return Shell(self.shell + cmd)
     def __adb_dest_file(self, f):
         return f.replace('/', '#')
@@ -56,6 +60,8 @@ class hikrun_adb():
         print(self.cur_dir)
     def __ls(self,arg:list):
         sub=''
+        if not arg: 
+            arg = ["/"]
         if arg[0][0] == '-':
             sub=arg[0]
         self.__pase_out(self.__adb_cmd('ls -F %s %s' %(sub,self.cur_dir + arg[-1])).exe())

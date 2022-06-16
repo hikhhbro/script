@@ -1,11 +1,11 @@
 import json
 import time
 import os
-from shell import Shell
+from command.Shell import Shell
 import copy
-class hikrun_todo():
+class Todo():
     def __init__(self, args_list=None):
-        self.root_dir = os.getenv('HIK_SCRIPT_TOP_DIR')
+        self.root_dir = os.getenv('SCRIPT_TOP_DIR')
         self.__args_list = args_list or []
         self.todo_dic = { }
         self.option_dic = {
@@ -13,24 +13,33 @@ class hikrun_todo():
             'rm' : self.rm,
             'show' : self.show,
         }
-
+        self.todo_dir = self.root_dir + '/data/todo/'
+        self.todo_file = self.todo_dir + 'todo_list.json'
+        if not os.path.exists(self.todo_file):
+            Shell('mkdir -p '+ self.todo_dir + "&& echo '{}'> %s" %(self.todo_file)).exec_system()
     def __write_json(self,text):
-        with open("%s/todo/todo_list.json" % (self.root_dir)) as rf:
+        with open("%s" % (self.todo_file)) as rf:
             json_data = json.load(rf)
         if not json_data.__contains__(time.strftime("%Y/%m/%d")):
             json_data[time.strftime("%Y/%m/%d")] = [text]
         else :
             json_data[time.strftime("%Y/%m/%d")].append(text)
-        with open("%s/todo/todo_list.json" % (self.root_dir), "w+") as wf:
+        with open("%s" % (self.todo_file), "w+") as wf:
             js = json.dumps(json_data,indent=1)
             wf.write(js)
     def __read_json(self):    
-        with open("%s/todo/todo_list.json" % (self.root_dir)) as rf:
+        with open("%s" % (self.todo_file)) as rf:
             json_data = json.load(rf)
         return json_data
-
+    def __init_git(self):
+        git_remote = input("请输出远程仓库地址: ")
+        Shell('cd %s && git init  &&git remote add orgin %s' %(self.todo_dir,git_remote) ).exe()
     def __add_gitlab(self,commit):
-        Shell('cd %s/todo/ && git add todo/todo_list.json && git commit -m %s' %(self.root_dir,commit) ).exe()
+        if not os.path.exists(self.todo_dir + '.git'):
+            print("此目录任不是git仓库，请初始化")
+            self.__init_git()
+            return
+        Shell('cd %s && git add . && git commit -m %s' %(self.todo_dir,commit) ).exe()
         
     def __text(self,text:list):
         return ' '.join(text)
@@ -93,12 +102,12 @@ class hikrun_todo():
             else:
                 continue
             break
-        with open("%s/todo/todo_list.json" % (self.root_dir), "w+") as wf:
+        with open("%s" % (self.todo_file), "w+") as wf:
             js = json.dumps(txt_dic,indent=1)
             wf.write(js)
             self.__add_gitlab("rm todo")
 
     def _opt(self):
         return list(self.option_dic.keys())
-    def run(self):
+    def exec(self):
         self.option_dic[self.__args_list[0]](self.__args_list[1:]) 

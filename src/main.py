@@ -2,17 +2,11 @@ import os
 import sys
 import time
 import copy
-from shell import Shell
+import importlib
 import subprocess
-from hikrun_json import hikrun_json
-from hikrun_todo import hikrun_todo
-from hikrun_script import hikrun_script
-from hikrun_adb import hikrun_adb
-from hikrun_cd import hikrun_cd
-root_dir = os.getenv('HIK_SCRIPT_TOP_DIR')
-dir_list = ["script", 'company']
-
-
+sys.path.append(os.getenv('SCRIPT_TOP_DIR')+"/src")
+from command.Base import Base ,Myclass
+from command.Json import Json
 class Code():
     def __init__(self, args=None):
         self.__dic = {
@@ -129,15 +123,15 @@ class Git():
 
 
 
-run = {
-    '--code': lambda args_list:  Code(args_list).run(),
-    '--rm': lambda args_list: Rm(args_list).run(),
-    '--git':lambda args_list: Git(args_list).run(),
-    'todo':lambda args_list: hikrun_todo(args_list).run(),
-    'adb':lambda args_list: hikrun_adb(args_list).exec(),
-    'cd':lambda args_list: hikrun_cd(args_list).exec(),
-    'script':lambda args_list: hikrun_script(args_list).run(),
-}
+# run = {
+#     '--code': lambda args_list:  Code(args_list).run(),
+#     '--rm': lambda args_list: Rm(args_list).run(),
+#     '--git':lambda args_list: Git(args_list).run(),
+#     'todo':lambda args_list: hikrun_todo(args_list).run(),
+#     'adb':lambda args_list: hikrun_adb(args_list).exec(),
+#     'cd':lambda args_list: hikrun_cd(args_list).exec(),
+#     'script':lambda args_list: hikrun_script(args_list).run(),
+# }
 
 
 def get_probe(f):
@@ -161,34 +155,31 @@ def get_compile_path(f):
                 item  + '/' + f
 
 
-class hikrun(hikrun_json):
+class main():
     def __init__(self, args_list=None):
-        super().__init__('.complete.json')
         self.__args_list = args_list or []
-        
+        self.comp = Json('/data/.complete.json')
     def _opt(self):
-        return list(self.read_json().keys()) + ['todo','adb','cd','script']
+        return list(self.comp.read_json().keys()) + ['todo','adb','cd','script']
 
-def main():
-    if 'hikrun.py' in  sys.argv[0] :
-        del sys.argv[0]
-    if sys.argv[-1]  in ['n','y']:
-        del sys.argv[-1]
-    if sys.argv[1] in list(run.keys()):
-        run[sys.argv[1]](sys.argv[2:])
-    elif sys.argv[1][0:sys.argv[1].rfind('-')] in list(run.keys()):
-        tmp_cmd = [sys.argv[1][sys.argv[1].rfind('-'):]] + sys.argv[2:]
-        run[sys.argv[1][0:sys.argv[1].rfind('-')]](tmp_cmd)
-    else:
-        s = Shell()
-        f = get_compile_path(sys.argv[1])
-        s.input('source ${HIK_SCRIPT_TOP_DIR}/base.sh')
-        s.input('. ' + f)
-        s.input(get_probe(sys.argv[1]) + ' ' + ''.join(sys.argv[2:]))
-        s.exec_system()
 
+
+
+def run():
+    uns = []
+    uns.append("/usr/local/bin/" + os.getenv('SCRIPT_TOOL_NAME'))
+    if sys.argv[0] in uns:
+        del sys.argv[0] 
+    tmp_arg = copy.copy(sys.argv)
+    if 'main.py' in  tmp_arg[0] :
+        del tmp_arg[0]
+    if tmp_arg[-1]  in ['n','y']:
+        del tmp_arg[-1]
+    myclass = Myclass()
+    module = myclass.get_sub_tool()
+    module(tmp_arg[1:]).exec()
 
 if __name__ == '__main__':
-    main()
+    run()
 
 

@@ -1,0 +1,16 @@
+#!/bin/bash
+: << !
+<_describe> begin
+描述: 编译安卓syscore
+<_describe> end
+<_get_options> begin
+短选项(-*):  
+长选项(--*): 
+其他选项: 
+<_get_options> end
+!
+#<user_func> 
+#<main>
+
+./build/build.py init out --target-cpu arm  --target-os android
+./build/build.py build -C out $*

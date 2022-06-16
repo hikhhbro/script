@@ -1,9 +1,26 @@
 import os
 import sys
-import compile
-from shell import Shell
-from hik_file import CurFile
-class Base():
+from command.Json import Json
+from command.Trie import Trie
+from command.Base import Myclass
+from command.Listdirs import CurFile
+
+
+class CompTemp():
+    def __init__(self,args_list = None):
+        self.file = '/data/.complete.json'
+        self.trie = Trie(Json(self.file).read_json())
+        self.args = args_list[1:] or []
+    
+    def get(self):
+        return self.trie.search(self.args)
+
+    def set(self):
+        if self.trie.insert(self.args) :
+            Json(self.file).write_json(self.trie.root)
+        return False
+
+class Complete():
     def __init__(self, opt=None):
         self.__opt =  opt or []
         self.opt = []
@@ -74,18 +91,27 @@ class Base():
             return  sys.argv[1]
         elif  len(sys.argv) > 4 :
             return sys.argv[2]
-    #     if isend == True :
-    #         self.__run_opt = None
-    #         self.__arg_list  = arg or []
-    #     else :
-    #         self.__run_opt = arg[0]
-    #         if arg == None  or len(arg) < 2:
-    #             self.__arg_list = []
-    #         else :
-    #             self.__arg_list = arg[1:]
-
-    # def in_opt(self,opt):
-    #     return opt if opt in self.__opt else None
 
     def run(self):
         self.set_out( self.get_opt(self.get_last_input()))
+    
+
+if __name__ == '__main__':
+    # Hikrun().run()
+    # try:
+    myclass = Myclass()
+    opt = []
+    if len(myclass.asgs_list) > 1:
+        opt = CompTemp(myclass.asgs_list).get()
+    if not opt :
+        module = myclass.get_class()
+        # try:
+        opt = getattr(module(myclass.cur), myclass.get_opname() + '_opt')()
+        # except :
+        #     pass
+    Complete(opt).run()
+    
+    #     pass 
+    # com = Complete(sys.argv)
+    # com = Complete(['hikrun','test1','y'])
+    # com.set_out(com.set_complete())

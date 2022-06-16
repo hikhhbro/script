@@ -1,5 +1,5 @@
-from hik_file import CurFile
-class hikrun_cd():
+from command.Listdirs import CurFile
+class Cd():
     def __init__(self, args_list=None):
         self.__args_list = args_list or []
         self.add_dic = { }
