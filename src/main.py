@@ -168,6 +168,7 @@ class main():
 def run():
     uns = []
     uns.append("/usr/local/bin/" + os.getenv('SCRIPT_TOOL_NAME'))
+    uns.append(os.getenv('SCRIPT_TOP_DIR') +"/src/main.py")
     if sys.argv[0] in uns:
         del sys.argv[0] 
     tmp_arg = copy.copy(sys.argv)
