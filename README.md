@@ -1,6 +1,42 @@
 # script
 
 linux脚本管理
+## 使用说明
+### 安装
+1. 进入下载或解压目录,如 cd /home/hik/private/script
+2. ./src/tools/install.sh
+3. 输入密码
+4. 输入自定义工具名,回车默认为hikrun
+5. 输入工具安装路径,回车默认为当前下载或者解压目录
+6. source ~/.bashrc
+
+**例子**
+```
+hik@hik:~/private/script$ ./src/tools/install.sh 
+已安装过/home/hik/private/script 正在卸载 .... 
+Running_task => (sudo rm /usr/local/bin/hikrun): 
+[sudo] password for hik: 
+Running_task => (sudo rm /etc/bash_completion.d/hikrun_prompt): 
+请输入工具名称[hikrun]: 
+请输入工具安装路径[/home/hik/private/script]: 
+正在安装
+Running_task => (source /home/hik/.bashrc): 
+Running_task => (sudo mv /home/hik/private/script/hikrun /usr/local/bin/hikrun): 
+Running_task => (sudo chmod 755 /usr/local/bin/hikrun): 
+Running_task => (sudo mv hikrun_prompt /etc/bash_completion.d/hikrun_prompt): 
+Running_task => (sudo chmod 755 /etc/bash_completion.d/hikrun_prompt): 
+Running_task => (source /home/hik/.bashrc): 
+---安装完成---输入任意键结束------
+```
+### 卸载
+${SCRIPT_TOP_DIR}/src/tools/uninstall.sh 
+
+**例子**
+```
+hik@hik:~/private/script$ ${SCRIPT_TOP_DIR}/src/tools/uninstall.sh
+Running_task => (sudo rm /usr/local/bin/hikrun): 
+Running_task => (sudo rm /etc/bash_completion.d/hikrun_prompt): 
+```
 
 ## 功能
 - [ ] 补全
