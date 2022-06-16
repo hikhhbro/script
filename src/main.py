@@ -7,6 +7,8 @@ import subprocess
 sys.path.append(os.getenv('SCRIPT_TOP_DIR')+"/src")
 from command.Base import Base ,Myclass
 from command.Json import Json
+from command.CompTemp import CompTemp
+from command.Shell import Shell
 class Code():
     def __init__(self, args=None):
         self.__dic = {
@@ -174,9 +176,13 @@ def run():
     tmp_arg = copy.copy(sys.argv)
     if tmp_arg[-1]  in ['n','y']:
         del tmp_arg[-1]
-    myclass = Myclass()
-    module = myclass.get_sub_tool()
-    module(tmp_arg[1:]).exec()
+    if  CompTemp(tmp_arg).get():
+        if os.path.exists(os.getenv('SCRIPT_TOP_DIR') + "/shell/" + tmp_arg[0]):
+            Shell(". %s/shell/%s" %(os.getenv('SCRIPT_TOP_DIR'),tmp_arg[0])).exec_system()
+    else:
+        myclass = Myclass()
+        module = myclass.get_sub_tool()
+        module(tmp_arg[1:]).exec()
 
 if __name__ == '__main__':
     run()
