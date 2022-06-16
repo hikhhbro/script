@@ -114,5 +114,9 @@ class Todo():
 
     def _opt(self):
         return list(self.option_dic.keys())
+    def add_opt(self):
+        if self.__args_list[-1][0] == '-':
+            return ['-c']
+        return []
     def exec(self):
         self.option_dic[self.__args_list[0]](self.__args_list[1:]) 
