@@ -1,5 +1,8 @@
 import os
 from command.Shell import Shell
+from command.CompTemp import CompTemp
+from command.Listdirs import CurFile
+
 class Script():
     def __init__(self, args_list=None):
         self.root_dir = os.getenv('SCRIPT_TOP_DIR')
@@ -10,10 +13,17 @@ class Script():
             'rm' : self.__readme,
             'add' : self.__add,
         }
+        self.shell_dir = self.root_dir + '/shell'
+        self.company_shell_dir = self.root_dir + '/shell/company'
     def __readme(self,text = None):
         Shell('code /%s/README.md' % self.root_dir).exe()
+        
+    
     def __build(self,text = None):
-        pass
+        dir_opt = CurFile(self.shell_dir).get_file_opt(is_ = ["exe_file"])
+        CompTemp().set(dir_opt)
+            
+        # print(dir_opt)
     def __rm(self,text = None):
         pass
     def __add(self,text = None):
