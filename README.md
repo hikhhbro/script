@@ -51,7 +51,7 @@ Running_task => (sudo rm /etc/bash_completion.d/hikrun_prompt):
     - [X]支持 1:4 区间 
     - [X]不连续 1 4 5 
     - [ ]时间  
-- [ ] 补全
+- [X] 补全
 ### adb
 - [X] ls 
 - [X] pwd
@@ -62,6 +62,7 @@ Running_task => (sudo rm /etc/bash_completion.d/hikrun_prompt):
 - [X] cd 补全
 - [X] mv 补全
 - [X] code 补全
+- [X] 关闭和打开屏幕
 ### cd
 - [X] 绝对和相对路径
 - [ ] 记录路径 
@@ -72,7 +73,7 @@ Running_task => (sudo rm /etc/bash_completion.d/hikrun_prompt):
 - [ ] 删除脚本
 - [ ] 公司仓库初始化
 ## 安装和卸载
-- [ ] 自定义工具名
+- [X] 自定义工具名
 ## bug
 
 - [ ] cd 不能补全当前目录
