@@ -31,6 +31,7 @@ class Adb(Base):
             'mv' : self.__mv,
             'code' : self.__code,
             'pwd' : self.__pwd,
+            'screen' : self.__screen,
             '' : self.__adb_shell
         }
 
@@ -48,8 +49,12 @@ class Adb(Base):
         print('\t'.join(out))
     
     def __adb_cmd(self,cmd:str):
-        Shell("adb root").exec_system()
-        return Shell(self.shell + cmd)
+        status = Shell("adb root").exe("err")
+        if not status :
+            return Shell(self.shell + cmd)
+        else :
+            print(status)
+            return Shell()
     def __adb_dest_file(self, f):
         return f.replace('/', '#')
 
@@ -140,7 +145,11 @@ class Adb(Base):
             arg = '/'
         files = Shell('adb shell ls -F ' + arg[0:l]).exe()
         return self.__pase_file(files)
-        
+    def __screen(self,arg:list):
+        if arg[0] == self.screen_opt()[0]:
+            self.__adb_cmd('echo  \'1 > /sys/class/backlight/panel0-backlight/bl_power\'').exe()
+        elif  arg[0] == self.screen_opt()[1]:
+            self.__adb_cmd('echo  \'0 > /sys/class/backlight/panel0-backlight/bl_power\'').exe()
 #adb 子命令补全选项
     def _opt(self):
         return list(self.option_dic.keys())
@@ -156,5 +165,9 @@ class Adb(Base):
 #adb code 补全选项
     def code_opt(self):
         return self.__file()
+#adb screen 补全选项
+    def screen_opt(self):
+        return ['close','open']
+    
     def exec(self):
         self.option_dic[self.__args_list[0]](self.__args_list[1:]) 
