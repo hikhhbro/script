@@ -27,10 +27,19 @@ class Script():
     def __rm(self,text = None):
         pass
     def __add(self,text = None):
-        pass
+        s = Shell()
+        s.input('code %s/%s' % (self.shell_dir,text[-1]))
+        s.input("chmod 777  %s/%s" % (self.shell_dir,text[-1]))
+        s.exe()
+        CompTemp().set([text[-1]])
+        
+        
 
     def _opt(self):
         return list(self.option_dic.keys())
+    
+    # def add_opt(self):
+    #     return list(self.option_dic.keys())
 
     def exec(self):
         self.option_dic[self.__args_list[0]](self.__args_list[1:]) 
