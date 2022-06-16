@@ -39,10 +39,10 @@ Running_task => (sudo rm /etc/bash_completion.d/hikrun_prompt):
 ```
 
 ## 功能
-- [ ] 补全
-- [ ] 功能拆分
-- [ ] 安装时工具源码目录和data目录做区分,如hikrun/data 和hikrun/src
-- [ ] 安装 可自定义模块名,如./src/tools/install.sh hik
+- [X] 补全
+- [X] 功能拆分
+- [X] 安装时工具源码目录和data目录做区分,如hikrun/data 和hikrun/src
+- [X] 安装 可自定义模块名,如./src/tools/install.sh hik
 ### todo
 
 - [ ] 添加修改功能  用提示方式重新赋值到终端
