@@ -1,24 +1,48 @@
 import os
 import sys
+import copy
 from command.Shell import Shell
 from command.Listdirs import CurFile
 import importlib
-class Base():
-    def __init__(self,args_list:list):
+class Arg():
+    def __init__(self):
+        self.arg_list = copy.copy(sys.argv)
+        if self.arg_list[-1] in  ['n','y']:
+            self.isend  = True if self.arg_list[-1] == 'y' else False
+            del  self.arg_list[-1]
+        else :
+            self.isend = None
+
+        if self.arg_list[0][-3:] == '.py':
+            del self.arg_list[0]
+        if not self.isend:
+            self.cur =   self.arg_list[-1]
+        else :
+            self.cur = ''
+        
+
+
+class Base(Arg):
+    def __init__(self,args_list:list = None):
+        super().__init__()
         self.tool_dir = os.getenv('SCRIPT_TOP_DIR')
-        self.__args_list = args_list or []
         self.option_dic = {}
     
     def _opt(self):
         return list(self.option_dic.keys())
-    def run(self):
-        self.option_dic[self.__args_list[0]](self.__args_list[1:]) 
+    def exec(self):
+        self.option_dic[self.arg_list[1]](self.arg_list[2:]) 
         
+
+
+        
+
+
 
 class Myclass():
     def __init__(self):
         sys.path.append(os.getenv('SCRIPT_TOP_DIR')+"/src/utils")
-        tmp = sys.argv
+        tmp = copy.copy(sys.argv)
         self.isend = True if tmp[-1] == 'y' else False
         if tmp[-1]  in ['n','y']:
             self.asgs_list = tmp[1:-1] if "complete.py" in tmp[0] or "main.py" in tmp[0] else tmp[:-1]   

@@ -27,4 +27,8 @@ class CompTemp():
                 return True
             else:
                 return False
+
+    def delete(self,arg_list:list = None):
+        self.trie.delete(arg_list)
+        Json(self.file).write_json(self.trie.root)
                 
