@@ -77,6 +77,7 @@ Running_task => (sudo rm /etc/bash_completion.d/hikrun_prompt):
 ## bug
 
 - [ ] cd 不能补全当前目录
+- [ ] 移除公司相关
 ## 设计
 ### 编译
 
