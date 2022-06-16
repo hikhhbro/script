@@ -172,8 +172,6 @@ def run():
     if sys.argv[0] in uns:
         del sys.argv[0] 
     tmp_arg = copy.copy(sys.argv)
-    if 'main.py' in  tmp_arg[0] :
-        del tmp_arg[0]
     if tmp_arg[-1]  in ['n','y']:
         del tmp_arg[-1]
     myclass = Myclass()
