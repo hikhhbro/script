@@ -86,12 +86,12 @@ if __name__ == '__main__':
     # try:
     myclass = Myclass()
     opt = []
-    if len(myclass.asgs_list) > 1:
-        opt = CompTemp(myclass.asgs_list).get_mopt()
-    if not opt :
-        module = myclass.get_class()
+    if len(myclass.asgs_list) == 1:
+        opt = CompTemp(myclass.asgs_list).get()
+    # if not opt :
+    module = myclass.get_class()
         # try:
-        opt = getattr(module(myclass.cur), myclass.get_opname() + '_opt')()
+    opt = getattr(module(myclass.cur), myclass.get_opname() + '_opt')() + opt
         # except :
         #     pass
     Complete(opt).run()
