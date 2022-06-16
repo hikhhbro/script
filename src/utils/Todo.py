@@ -46,6 +46,11 @@ class Todo():
     
     def add(self,text):
         if text:
+            start = text.index('-c')
+            if start >= 0:
+                c = Shell(text[start:]).exe().replace('\n','')
+                del text[start:]
+                text.append(c)
             self.__write_json(self.__text(text))
             self.__add_gitlab("add todo")
     def show(self,serial:list):
