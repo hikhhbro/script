@@ -4,7 +4,11 @@ from command.Trie import Trie
 class CompTemp():
     def __init__(self,args_list = None):
         self.file = '/data/.complete.json'
-        self.trie = Trie(Json(self.file).read_json())
+        try:
+            self.trie = Trie(Json(self.file).read_json())
+        except:
+             Json(self.file).write_json({})
+             self.trie = {}
         self.args =  args_list[1:] if  args_list else []
     
     def get(self,item = None):
@@ -26,4 +30,8 @@ class CompTemp():
                 return True
             else:
                 return False
+
+    def delete(self,arg_list:list = None):
+        self.trie.delete(arg_list)
+        Json(self.file).write_json(self.trie.root)
                 

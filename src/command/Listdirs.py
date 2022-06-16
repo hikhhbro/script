@@ -4,11 +4,11 @@ class CurFile():
         self.__file_opt = []
         if init_dir:
             if init_dir[0] == '/':
-                self.__cur_dir = init_dir
+                self.__cur_dir = init_dir + '/'
             else :
                 self.__cur_dir = os.getcwd() + '/'
         else :
-            self.__cur_dir = os.getcwd()
+            self.__cur_dir = os.getcwd() + '/'
         self.__dic_opt = {
             'all': self.__all,
             'exe_file':self.__isexecutable,

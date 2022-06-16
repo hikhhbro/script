@@ -24,3 +24,11 @@ class Trie:
                 return False
             node = node[arg][0]
         return list(node.keys())
+
+    def delete(self, arg_list:list):  # 字典中删除word
+        node = self.root
+        for arg in arg_list:
+            if not arg in node.keys():
+                return False
+        # 如果找到了就把'/'删了
+            del node[arg]

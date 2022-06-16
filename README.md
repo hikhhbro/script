@@ -70,11 +70,12 @@ Running_task => (sudo rm /etc/bash_completion.d/hikrun_prompt):
 - [X] 快速打开readme
 - [ ] readme 写完自动提交
 - [ ] 构建脚本
-- [ ] 添加脚本
-- [ ] 删除脚本
+- [X] 添加脚本
+- [X] 删除脚本
 - [ ] 公司仓库初始化
 ### 参数解析和管理
 - [ ] 参数管理
+- [ ] 编译
 ## 安装和卸载
 - [X] 自定义工具名
 ## bug
@@ -82,6 +83,7 @@ Running_task => (sudo rm /etc/bash_completion.d/hikrun_prompt):
 - [ ] cd 不能补全当前目录
 - [ ] 同级别命令出现两次不报错
 - [ ] hikrun adb 不能进shell
+- [ ] 移除公司相关
 ## 设计
 ### 编译
 
@@ -106,3 +108,6 @@ Running_task => (sudo rm /etc/bash_completion.d/hikrun_prompt):
 #### 源码
 1. 私有接口 __hikrun_xxx_subcommand(opt:list) 实现源码中补全
 2. 公有接口 __hikrun(opt:list) 优先查找模板并返回,若没有则调用源码接口
+
+
+
