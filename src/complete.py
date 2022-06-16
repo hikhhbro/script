@@ -1,24 +1,9 @@
 import os
 import sys
-from command.Json import Json
-from command.Trie import Trie
 from command.Base import Myclass
 from command.Listdirs import CurFile
+from command.CompTemp import CompTemp
 
-
-class CompTemp():
-    def __init__(self,args_list = None):
-        self.file = '/data/.complete.json'
-        self.trie = Trie(Json(self.file).read_json())
-        self.args = args_list[1:] or []
-    
-    def get(self):
-        return self.trie.search(self.args)
-
-    def set(self):
-        if self.trie.insert(self.args) :
-            Json(self.file).write_json(self.trie.root)
-        return False
 
 class Complete():
     def __init__(self, opt=None):
@@ -102,7 +87,7 @@ if __name__ == '__main__':
     myclass = Myclass()
     opt = []
     if len(myclass.asgs_list) > 1:
-        opt = CompTemp(myclass.asgs_list).get()
+        opt = CompTemp(myclass.asgs_list).get_mopt()
     if not opt :
         module = myclass.get_class()
         # try:

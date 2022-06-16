@@ -1,0 +1,16 @@
+from command.Json import Json
+from command.Trie import Trie
+
+class CompTemp():
+    def __init__(self,args_list = None):
+        self.file = '/data/.complete.json'
+        self.trie = Trie(Json(self.file).read_json())
+        self.args = args_list[1:] or []
+    
+    def get(self):
+        return self.trie.search(self.args)
+
+    def set(self):
+        if self.trie.insert(self.args) :
+            Json(self.file).write_json(self.trie.root)
+        return False
