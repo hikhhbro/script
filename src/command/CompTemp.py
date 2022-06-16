@@ -7,8 +7,11 @@ class CompTemp():
         self.trie = Trie(Json(self.file).read_json())
         self.args =  args_list[1:] if  args_list else []
     
-    def get(self):
-        return self.trie.search(self.args)
+    def get(self,item = None):
+        if not item:
+          return self.trie.search(self.args)
+        else:
+            return self.trie.search([item])
 
     def set(self,arg_list:list = None):
         if not arg_list:

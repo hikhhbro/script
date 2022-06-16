@@ -77,6 +77,8 @@ Running_task => (sudo rm /etc/bash_completion.d/hikrun_prompt):
 ## bug
 
 - [ ] cd 不能补全当前目录
+- [ ] 同级别命令出现两次不报错
+- [ ] hikrun adb 不能进shell
 ## 设计
 ### 编译
 

@@ -176,7 +176,7 @@ def run():
     tmp_arg = copy.copy(sys.argv)
     if tmp_arg[-1]  in ['n','y']:
         del tmp_arg[-1]
-    if  CompTemp(tmp_arg).get():
+    if  CompTemp().get(tmp_arg[0]):
         if os.path.exists(os.getenv('SCRIPT_TOP_DIR') + "/shell/" + tmp_arg[0]):
             Shell(". %s/shell/%s" %(os.getenv('SCRIPT_TOP_DIR'),tmp_arg[0])).exec_system()
     else:
