@@ -52,6 +52,7 @@ Running_task => (sudo rm /etc/bash_completion.d/hikrun_prompt):
     - [X]不连续 1 4 5 
     - [ ]时间  
 - [X] 补全
+- [ ] 添加rm 补全
 ### adb
 - [X] ls 
 - [X] pwd
