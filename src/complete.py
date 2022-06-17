@@ -87,8 +87,8 @@ if __name__ == '__main__':
     myclass = Myclass()
     opt = []
     module = myclass.get_class()
-        # try:
-    opt = getattr(module(myclass.arg.cur), myclass.get_opname() + '_opt')()
-        # except :
-        #     pass
+    try:
+        opt = getattr(module(myclass.arg.cur), myclass.get_opname() + '_opt')()
+    except :
+        pass
     Complete(opt).run()
