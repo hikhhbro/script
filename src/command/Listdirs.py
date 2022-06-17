@@ -26,12 +26,15 @@ class CurFile():
             return ''
         else:
             return postfix[0:l+1]
-    def get_file_opt(self,postfix='',is_=['all']):
+    def get_file_opt(self,postfix='',is_=['all'],exclude=[]):
         if postfix == None:
             postfix = ''
         else:
             postfix = self.__get_dir(postfix)
         self.__find_files(postfix,is_)
+        for item in exclude:
+            if item in   self.__file_opt:
+                self.__file_opt.remove(item)
         return self.__file_opt
 
 

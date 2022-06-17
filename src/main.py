@@ -9,6 +9,7 @@ from command.Base import Base ,Myclass
 from command.Json import Json
 from command.CompTemp import CompTemp
 from command.Shell import Shell
+from command.Listdirs import CurFile
 class Code():
     def __init__(self, args=None):
         self.__dic = {
@@ -157,14 +158,18 @@ def get_compile_path(f):
                 item  + '/' + f
 
 
-class main():
+class main(Base):
     def __init__(self, args_list=None):
-        self.__args_list = args_list or []
+        super().__init__()
         self.comp = Json('/data/.complete.json')
+        self.shell_dir = self.tool_dir + '/shell'
     def _opt(self):
-        return list(self.comp.read_json().keys()) + ['todo','adb','cd','script']
+        if not self.cur:
+            return  CurFile(self.shell_dir).get_file_opt(self.cur,["exe_file","dir"],['data/']) +['todo','adb','cd','script']
+        else:
+            return  CurFile(self.shell_dir).get_file_opt(self.cur,["exe_file","dir"],['data/'])
 
-
+# list(self.comp.read_json().keys()) +
 
 
 def run():

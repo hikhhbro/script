@@ -86,17 +86,9 @@ if __name__ == '__main__':
     # try:
     myclass = Myclass()
     opt = []
-    if len(myclass.arg.arg_list) == 1:
-        opt = CompTemp(myclass.arg.arg_list).get()
-    # if not opt :
     module = myclass.get_class()
         # try:
-    opt = getattr(module(myclass.arg.cur), myclass.get_opname() + '_opt')() + opt
+    opt = getattr(module(myclass.arg.cur), myclass.get_opname() + '_opt')()
         # except :
         #     pass
     Complete(opt).run()
-    
-    #     pass 
-    # com = Complete(sys.argv)
-    # com = Complete(['hikrun','test1','y'])
-    # com.set_out(com.set_complete())
