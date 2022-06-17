@@ -85,8 +85,9 @@ Running_task => (sudo rm /etc/bash_completion.d/hikrun_prompt):
 
 - [ ] cd 不能补全当前目录
 - [ ] 同级别命令出现两次不报错
-- [ ] hikrun adb 不能进shell
+- [X] hikrun adb 不能进shell
 - [ ] 移除公司相关
+- [ ] hikrun company/monking 多级目录补全出错
 ## 设计
 ### 编译
 
