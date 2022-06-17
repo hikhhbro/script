@@ -174,7 +174,7 @@ def run():
     tmp_arg = Arg()
     if  CompTemp().get(tmp_arg.arg_list[0]):
         if os.path.exists(os.getenv('SCRIPT_TOP_DIR') + "/shell/" + tmp_arg.arg_list[0]):
-            Shell(". %s/shell/%s" %(os.getenv('SCRIPT_TOP_DIR'),tmp_arg.arg_list[0])).exec_system()
+            Shell(". %s/shell/%s %s" %(os.getenv('SCRIPT_TOP_DIR'),tmp_arg.arg_list[0],' '.join(tmp_arg.arg_list[1:]))).exec_system()
     else:
         myclass = Myclass()
         module = myclass.get_sub_tool()

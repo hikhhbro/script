@@ -1,3 +1,4 @@
 *.pyc
 data/*
 shell/.resycle/*
+shell/company/*
