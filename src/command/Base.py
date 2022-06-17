@@ -13,7 +13,7 @@ class Arg():
         else :
             self.isend = None
 
-        if self.arg_list[0][-3:] == '.py':
+        if self.arg_list[0][-3:] == '.py' or '/' + os.getenv('SCRIPT_TOOL_NAME') in self.arg_list[0]:
             del self.arg_list[0]
         if self.isend == False:
             self.cur =   self.arg_list[-1]
