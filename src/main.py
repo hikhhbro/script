@@ -164,12 +164,10 @@ class main(Base):
         self.comp = Json('/data/.complete.json')
         self.shell_dir = self.tool_dir + '/shell'
     def _opt(self):
-        if not self.cur:
-            return  CurFile(self.shell_dir).get_file_opt(self.cur,["exe_file","dir"],['data/']) +['todo','adb','cd','script']
-        else:
+        if '/' in self.cur:
             return  CurFile(self.shell_dir).get_file_opt(self.cur,["exe_file","dir"],['data/'])
-
-# list(self.comp.read_json().keys()) +
+        else:
+            return  CurFile(self.shell_dir).get_file_opt(self.cur,["exe_file","dir"],['data/']) +['todo','adb','cd','script']
 
 
 def run():
