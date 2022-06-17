@@ -8,7 +8,7 @@
             "program": "${file}",
             "console": "integratedTerminal",
             "justMyCode": true,
-            "args": ["script","rm","test1"]
+            "args": ["adb"]
         }
     ]
 }
