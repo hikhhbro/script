@@ -72,7 +72,7 @@ class Adb(Base):
         self.__pase_out(self.__adb_cmd('ls -F %s %s' %(sub,self.cur_dir + arg[-1])).exe())
     def __cd(self,arg:list):
         self.cur_dir = self.__adb_cmd('cd "%s && pwd"' %arg[-1]).exe().replace('\n','')
-        with open(self.rootdir + self.pts, "w",encoding='UTF-8') as f:
+        with open(self.pst_root + self.pts, "w",encoding='UTF-8') as f:
             f.write(self.cur_dir)
         f.close()
     def __cp(self,arg:list):
