@@ -32,6 +32,7 @@ class Adb(Base):
             'code' : self.__code,
             'pwd' : self.__pwd,
             'screen' : self.__screen,
+            'push':self.__push,
             '' : self.__adb_shell
         }
 
@@ -122,6 +123,16 @@ class Adb(Base):
         s.input('adb disable-verity')
         s.input('adb shell')
         s.exec_system()
+    def __push(self, arg:list):
+        if arg[-1][0] == '/':
+              cur_dir = arg[-1][0]
+        else:
+            cur_dir = os.path.realpath(arg[-1])
+        for parent, dirnames, filenames in os.walk(cur_dir):
+            for dirname in dirnames:
+                dir_path = os.path.join(parent, dirname)
+                Shell()
+
 #补全
 #adb 文件补全
     def __pase_file(self,out_file:str):
