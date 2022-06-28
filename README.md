@@ -60,7 +60,9 @@ Running_task => (sudo rm /etc/bash_completion.d/hikrun_prompt):
       git -l  列出当前仓库
       git add [主机名] [remote url] 添加仓库 主机名作为仓库名字
       git remove [主机名] 删除仓库
-
+- [ ] show  默认显示全部
+      [主机名] 显示主机名
+      -t 时间 可使用时间范围
 
 
 
