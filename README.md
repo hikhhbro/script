@@ -49,7 +49,7 @@ Running_task => (sudo rm /etc/bash_completion.d/hikrun_prompt):
 - [ ] 添加修改功能  用提示方式重新赋值到终端
 - [X] add 添加词条
       - [ ] 默认添加为当前主机名,如没有,则添加默认文件
-      - [ ] add [主机名]
+      - [ ] add --[主机名]
 - [X] rm 删除  
     - [X]支持 1:4 区间 
     - [X]不连续 1 4 5 
