@@ -23,5 +23,5 @@ class Shell():
             return stdoutinfo.decode('utf-8')
 
     def exec_system(self):
-        os.system(self.cmd)
+        os.system('/bin/bash -c "%s"' %(self.cmd))
         self.cmd = ''
