@@ -1,9 +1,11 @@
+from distutils.debug import DEBUG
 import os
 import sys
 import copy
 from command.Shell import Shell
 from command.Listdirs import CurFile
 import importlib
+import logging
 class Arg():
     def __init__(self):
         self.arg_list = copy.copy(sys.argv)
@@ -20,6 +22,7 @@ class Arg():
             del  self.arg_list[-1]
         else :
             self.cur = ''
+          
         
 
 
@@ -27,6 +30,7 @@ class Base(Arg):
     def __init__(self,args_list:list = None):
         super().__init__()
         self.tool_dir = os.getenv('SCRIPT_TOP_DIR')
+        self.tool_name = os.getenv("SCRIPT_TOOL_NAME")
         self.option_dic = {}
     
     def _opt(self):

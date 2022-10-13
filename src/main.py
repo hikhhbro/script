@@ -4,12 +4,24 @@ import time
 import copy
 import importlib
 import subprocess
+import logging
 sys.path.append(os.getenv('SCRIPT_TOP_DIR')+"/src")
 from command.Base import Base ,Myclass,Arg
 from command.Json import Json
 from command.CompTemp import CompTemp
+from command.Log import Log
 from command.Shell import Shell
 from command.Listdirs import CurFile
+
+if sys.argv[-1] == "-v":
+    Log.config(Log.DEBUG)
+    del sys.argv[-1]
+elif sys.argv[-1] == "-vv":
+    Log.config(Log.NOTSET)
+    del sys.argv[-1]
+else:
+    Log.config(Log.INFO)
+    
 class Code():
     def __init__(self, args=None):
         self.__dic = {
@@ -167,7 +179,7 @@ class main(Base):
         if '/' in self.cur:
             return  CurFile(self.shell_dir).get_file_opt(self.cur,["exe_file","dir"],['data/'])
         else:
-            return  CurFile(self.shell_dir).get_file_opt(self.cur,["exe_file","dir"],['data/']) +['todo','adb','cd','script']
+            return  CurFile(self.shell_dir).get_file_opt(self.cur,["exe_file","dir"],['data/']) +['todo','adb','cd','script','build','repo']
 
 
 def run():

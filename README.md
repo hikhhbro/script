@@ -1,8 +1,11 @@
 # script
 
 linux脚本管理
+
 ## 使用说明
+
 ### 安装
+
 1. 进入下载或解压目录,如 cd /home/hik/private/script
 2. ./src/tools/install.sh
 3. 输入密码
@@ -11,6 +14,7 @@ linux脚本管理
 6. source ~/.bashrc
 
 **例子**
+
 ```
 hik@hik:~/private/script$ ./src/tools/install.sh 
 已安装过/home/hik/private/script 正在卸载 .... 
@@ -28,10 +32,13 @@ Running_task => (sudo chmod 755 /etc/bash_completion.d/hikrun_prompt):
 Running_task => (source /home/hik/.bashrc): 
 ---安装完成---输入任意键结束------
 ```
+
 ### 卸载
-${SCRIPT_TOP_DIR}/src/tools/uninstall.sh 
+
+${SCRIPT_TOP_DIR}/src/tools/uninstall.sh
 
 **例子**
+
 ```
 hik@hik:~/private/script$ ${SCRIPT_TOP_DIR}/src/tools/uninstall.sh
 Running_task => (sudo rm /usr/local/bin/hikrun): 
@@ -39,35 +46,36 @@ Running_task => (sudo rm /etc/bash_completion.d/hikrun_prompt):
 ```
 
 ## 功能
+
 - [X] 补全
 - [X] 功能拆分
 - [X] 安装时工具源码目录和data目录做区分,如hikrun/data 和hikrun/src
 - [X] 安装 可自定义模块名,如./src/tools/install.sh hik
 - [ ] 手动添加提示
+
 ### todo
 
 - [ ] 添加修改功能  用提示方式重新赋值到终端
 - [X] add 添加词条
-      - [ ] 默认添加为当前主机名,如没有,则添加默认文件
-      - [ ] add --[主机名]
-- [X] rm 删除  
-    - [X]支持 1:4 区间 
-    - [X]不连续 1 4 5 
-    - [ ]时间  
+  - [ ] 默认添加为当前主机名,如没有,则添加默认文件
+  - [ ] add --[主机名]
+- [X] rm 删除
+  - [X]支持 1:4 区间
+  - [X]不连续 1 4 5
+  - [ ]时间
 - [X] 补全
 - [ ] 添加rm 补全
-- [ ] 添加区分仓库功能和主机识别功能 
-      git -l  列出当前仓库
-      git add [主机名] [remote url] 添加仓库 主机名作为仓库名字
-      git remove [主机名] 删除仓库
+- [ ] 添加区分仓库功能和主机识别功能
+  git -l  列出当前仓库
+  git add [主机名] [remote url] 添加仓库 主机名作为仓库名字
+  git remove [主机名] 删除仓库
 - [ ] show  默认显示全部
-      [主机名] 显示主机名
-      -t 时间 可使用时间范围
-
-
+  [主机名] 显示主机名
+  -t 时间 可使用时间范围
 
 ### adb
-- [X] ls 
+
+- [X] ls
 - [X] pwd
 - [X] cd
 - [X] mv
@@ -77,10 +85,14 @@ Running_task => (sudo rm /etc/bash_completion.d/hikrun_prompt):
 - [X] mv 补全
 - [X] code 补全
 - [X] 关闭和打开屏幕
+
 ### cd
+
 - [X] 绝对和相对路径
-- [ ] 记录路径 
+- [ ] 记录路径
+
 ### 脚本管理
+
 - [X] 快速打开readme
 - [ ] readme 写完自动提交
 - [ ] 构建脚本
@@ -88,11 +100,18 @@ Running_task => (sudo rm /etc/bash_completion.d/hikrun_prompt):
 - [X] 删除脚本
 - [ ] 公司仓库初始化
 - [ ] 公司脚本提示去除公司目录
+
 ### 参数解析和管理
+
 - [ ] 参数管理
 - [ ] 编译
+
+### build
+
 ## 安装和卸载
+
 - [X] 自定义工具名
+
 ## bug
 
 - [ ] cd 不能补全当前目录
@@ -100,30 +119,59 @@ Running_task => (sudo rm /etc/bash_completion.d/hikrun_prompt):
 - [X] hikrun adb 不能进shell
 - [ ] 移除公司相关
 - [ ] hikrun company/monking 多级目录补全出错
+
 ## 设计
+
 ### 编译
 
 ### 补全
-#### 优先级: 
+
+#### 优先级:
+
 模板 > 代码
+
 #### 模板
+
 1. 添加接口  --completion-add ,  --completion-add={opt} , --completion-add={opt:help}
-  * --completion-add 添加当前选项  如 hikrun todo  show --completion-add   则为todo 添加show
-  * --completion-add={opt}  例 hikrun todo --completion-add={show,rm}  为todo 添加show 和rm
-  * --completion-add={opt:help}  例 hikrun todo --completion-add={show:显示,rm:删除}  为todo 添加show 和rm, show 帮助信息为 显示 , hikrun todo show -h   -> 显示
+
+* --completion-add 添加当前选项  如 hikrun todo  show --completion-add   则为todo 添加show
+* --completion-add={opt}  例 hikrun todo --completion-add={show,rm}  为todo 添加show 和rm
+* --completion-add={opt:help}  例 hikrun todo --completion-add={show:显示,rm:删除}  为todo 添加show 和rm, show 帮助信息为 显示 , hikrun todo show -h   -> 显示
+
 2. 模板文件 .complete.json
-  * 格式 使用前缀树来存储,用嵌套字典实现
-  ```
+
+* 格式 使用前缀树来存储,用嵌套字典实现
+
+```
 {
   "deny": [
     {},
     "held"
   ]
 }
-  ```
+```
+
 #### 源码
+
 1. 私有接口 __hikrun_xxx_subcommand(opt:list) 实现源码中补全
 2. 公有接口 __hikrun(opt:list) 优先查找模板并返回,若没有则调用源码接口
 
+### build
 
+#### init
 
+1. 初始化工程
+   1. 工程名称
+
+      1. 未初始化
+         1. 获取当前工程名称,没有则添加 ,工程名称使用-p product product=[y4,mi11,mi11-3rd,mi12s],不支持默认
+      2. 已初始化
+         1. 提示当前工程名
+   2. 添加工程目录,
+
+      1. -p 或者 --download 指定目录,则创建
+      2. 判断是否为初始化过的目录,是则提示当前目录, 否则
+
+         1. 探测是否为.repo工程, 默认提示当前工程目录,并提供输入绝对路径选项
+         2. 不是则提示非.repo工程目录,并提供输入绝对路径选项
+   3.
