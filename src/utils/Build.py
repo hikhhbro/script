@@ -194,15 +194,15 @@ class Build(Base):
 
     def __get_build_targe(self, arg: list):
         # target = self.cur_dir[len(self.project_top_dir)+1:] + (("/" + arg[0]) if arg else "")
-        if len(arg) > 0:
-            target = arg[0]
+        Log.debug(self.cur_dir[len(self.project_top_dir)+1:])
+        if len(arg) > 0 and os.path.exists(self.cur_dir + self.cur_dir[len(self.project_top_dir)+1:] + arg[0]):
+              target = self.cur_dir[len(self.project_top_dir)+1:] + arg[0]
         else :
-            target = ""
+            target = self.cur_dir[len(self.project_top_dir)+1:]
         Log.debug(self.cur_dir + target)
         if  os.path.exists(self.cur_dir + target):
-            Log.debug(self.cur_dir[len(self.project_top_dir)+1:])
             Log.debug(target)
-            return self.cur_dir[len(self.project_top_dir)+1:] + target , 'dir'
+            return self.cur_dir  + target , 'dir'
         return target , 'module'
 
     def __lock(self):
@@ -238,11 +238,11 @@ class Build(Base):
             s.input("%s init -C out --debug -p  %s --target-cpu=%s --sdk=%s/prebuilt/android-toolchain" %
                     (self.build_dic["tool"],self.build_dic["project"], self.build_dic["cpu"], self.project_top_dir))
         
-        if os.path.exists(self.project_top_dir + '/out/mi11/internal/' + target + '/build.sh'):
-            s.input(self.project_top_dir + '/out/mi11/internal/' + target + '/build.sh')
-        else:
+        if not os.path.exists(self.project_top_dir + '/out/mi11/internal/' + target + '/build.sh') or '--force' in arg:
             s.input("%s build -C out -p %s %s " %
                     (self.build_dic["tool"],self.build_dic["project"], target))
+        else:
+            s.input(self.project_top_dir + '/out/mi11/internal/' + target + '/build.sh')
         s.exec_system()
 
     def aosp(self, arg: list):
