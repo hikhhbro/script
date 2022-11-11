@@ -32,7 +32,6 @@ class Build(Base):
                 self.projects_list = json.load(f)
         self.cur_dir = os.getcwd() + '/'
         self.build_dic = {}
-        # self.project_top_dir = self.__get_project_top_dir() or "/home/hik/ws/mina_gsi_arm64"
         self.project_top_dir = self.__get_project_top_dir() 
         self.__lock_file = None
         if self.project_top_dir:
@@ -103,19 +102,6 @@ class Build(Base):
             return "monking"
         Log.error("探测编译类型失败, 请使用手动添加")
         exit()
-
-    def __probe_product_type(self):
-        Log.debug("开始探测manifes.xml中的产品类型...")
-        product_dic = {
-            "m11": ["mina-compat.xml", "phoneos.xml"],
-            "y4-tv": ["tvos.xml"],
-        }
-        xml_name = self.__read_include_name_frome_xml()
-        for key in product_dic:
-            if xml_name in product_dic[key]:
-                Log.tips("探测到产品类型为 %s" % (key))
-                return key
-        return None
 
     def __probe_project_top_dir(self):
         # 探测.repo 目录,工程必须为repo
@@ -246,8 +232,8 @@ class Build(Base):
             s.input("%s init -C out --debug -p  %s --target-cpu=%s --sdk=%s/prebuilt/android-toolchain" %
                     (self.build_dic["tool"],self.build_dic["project"], self.build_dic["cpu"], self.project_top_dir))
         
-        if os.path.exists(self.project_top_dir + '/out/mi11/internal/' + target + '/build.sh') and not self.force_buld:
-            s.input(self.project_top_dir + '/out/mi11/internal/' + target + '/build.sh')
+        if os.path.exists(self.project_top_dir + '/out/%s/internal/' + target + '/build.sh' %(self.build_dic['project'])) and not self.force_buld:
+            s.input(self.project_top_dir + '/out/%s/internal/' + target + '/build.sh' %(self.build_dic['project']))
         else:
             s.input("%s build -C out -p %s %s " %
                     (self.build_dic["tool"],self.build_dic["project"], target))
