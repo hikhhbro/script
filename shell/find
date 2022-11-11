@@ -1,0 +1,39 @@
+ while read -r line
+do
+  if [[ "$line" != "[" ]] && [[ "$line" != "]" ]] ;then
+    if [[ "${line: -1}" == "," ]];then
+        line=${line:1:0-2}
+    else
+        line=${line:1:0-1}
+    fi
+    # echo $line 
+    cur_dir=`pwd`
+
+    if [[ "${cur_dir:0:${#line}}" == "${line}" ]];then
+        # echo ${cur_dir:0:${#line}}
+        cd ${cur_dir:0:${#line}}
+        file=$1
+        file="${file##*.}"
+        if [[ "$file" == "java" ]];then
+            path=`find packages/  frameworks/ -name $1`
+            echo ${cur_dir:0:${#line}}/${path}
+            code ${cur_dir:0:${#line}}/${path}
+        else
+            path=(`find packages/  frameworks/ -name $1.java`)
+            if [ "${#path[@]}" -eq "1" ];then
+                code ${cur_dir:0:${#line}}/${path}
+            else
+               for p in ${path[@]}
+               do
+                  echo ${cur_dir:0:${#line}}/${p}
+               done
+            fi
+            
+            
+        fi
+        
+        
+    fi
+  fi
+
+done < "/home/hik/private/script/data/build/projects_dir"
