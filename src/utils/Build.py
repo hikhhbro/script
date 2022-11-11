@@ -232,8 +232,8 @@ class Build(Base):
             s.input("%s init -C out --debug -p  %s --target-cpu=%s --sdk=%s/prebuilt/android-toolchain" %
                     (self.build_dic["tool"],self.build_dic["project"], self.build_dic["cpu"], self.project_top_dir))
         
-        if os.path.exists(self.project_top_dir + '/out/%s/internal/' + target + '/build.sh' %(self.build_dic['project'])) and not self.force_buld:
-            s.input(self.project_top_dir + '/out/%s/internal/' + target + '/build.sh' %(self.build_dic['project']))
+        if os.path.exists(self.project_top_dir + '/out/%s/internal/' %(self.build_dic['project']) + target + '/build.sh') and not self.force_buld:
+            s.input(self.project_top_dir + '/out/%s/internal/' %(self.build_dic['project']) + target + '/build.sh' )
         else:
             s.input("%s build -C out -p %s %s " %
                     (self.build_dic["tool"],self.build_dic["project"], target))
