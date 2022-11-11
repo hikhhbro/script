@@ -55,7 +55,7 @@ class Build(Base):
             "flutter": " ",
             "buildroot": " ",
         }
-
+        self.force_buld = False
     def __set_projects_dir_interaction(self, input_path):
         if not input_path:
             input_path = Log.input("请输入工程顶级目录路径", self.cur_dir)
@@ -194,15 +194,15 @@ class Build(Base):
 
     def __get_build_targe(self, arg: list):
         # target = self.cur_dir[len(self.project_top_dir)+1:] + (("/" + arg[0]) if arg else "")
-        Log.debug(self.cur_dir[len(self.project_top_dir)+1:])
-        if len(arg) > 0 and os.path.exists(self.cur_dir + self.cur_dir[len(self.project_top_dir)+1:] + arg[0]):
-              target = self.cur_dir[len(self.project_top_dir)+1:] + arg[0]
+        if len(arg) > 0:
+            target = arg[0]
         else :
-            target = self.cur_dir[len(self.project_top_dir)+1:]
+            target = ""
         Log.debug(self.cur_dir + target)
         if  os.path.exists(self.cur_dir + target):
+            Log.debug(self.cur_dir[len(self.project_top_dir)+1:])
             Log.debug(target)
-            return self.cur_dir  + target , 'dir'
+            return self.cur_dir[len(self.project_top_dir)+1:] + target , 'dir'
         return target , 'module'
 
     def __lock(self):
@@ -226,6 +226,13 @@ class Build(Base):
         if self.__lock_file and os.path.exists(self.__lock_file):
             os.remove(self.__lock_file)
             Log.debug("编译任务结束，已解锁 %s" % (self.__lock_file))
+    
+    def __parsing_args(self,arg: list):
+        if '--force' in arg:
+            arg.remove('--force')
+            self.force_buld = True
+            return True
+        return False
 
 # <-----编译类型----->
 
@@ -233,16 +240,17 @@ class Build(Base):
         s = Shell()
         s.input("cd %s" % (self.project_top_dir))
         s.input("export MINACORE_TOP_DIR=%s/" % (self.project_top_dir))
+        self.__parsing_args(arg)
         target,target_type = self.__get_build_targe(arg)
         if not os.path.exists(self.project_top_dir + '/out'):
             s.input("%s init -C out --debug -p  %s --target-cpu=%s --sdk=%s/prebuilt/android-toolchain" %
                     (self.build_dic["tool"],self.build_dic["project"], self.build_dic["cpu"], self.project_top_dir))
         
-        if not os.path.exists(self.project_top_dir + '/out/mi11/internal/' + target + '/build.sh') or '--force' in arg:
+        if os.path.exists(self.project_top_dir + '/out/mi11/internal/' + target + '/build.sh') and not self.force_buld:
+            s.input(self.project_top_dir + '/out/mi11/internal/' + target + '/build.sh')
+        else:
             s.input("%s build -C out -p %s %s " %
                     (self.build_dic["tool"],self.build_dic["project"], target))
-        else:
-            s.input(self.project_top_dir + '/out/mi11/internal/' + target + '/build.sh')
         s.exec_system()
 
     def aosp(self, arg: list):
