@@ -15,10 +15,12 @@
 #<user_func> 
 #<main>
 db=""
-
+echo ${LANG}
 if [ "$1" = 't' ];then
 repo forall -c 'committime=`git log --after "'$2' 07:00"   -1 --pretty=format:"%cd"`;if [ "$committime" != "" ]; then echo -e "\033[33m$(pwd)\033[0m" ;git log -1;echo "";fi'
 elif [ "$1" = 'an' ];then
-repo forall -c 'committime=`git log  -1 --author="'$2'"`;if [ "$committime" != "" ]; then echo -e "\033[33m$(pwd)\033[0m" ; git log -1; echo "";fi'
-
+repo forall -c 'committime=`git log  --author="'$2'"`;if [ "$committime" != "" ]; then echo -e "\033[33m$(pwd)\033[0m" ; git log --author="'$2'" ; echo "";fi'
+elif [[ "$1" == "grep" ]];then
+echo " repo forall -c 'git log --grep="launcher apk" ' "
 fi
+

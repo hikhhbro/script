@@ -1,0 +1,23 @@
+if [[ "$(git symbolic-ref --short -q HEAD)" == "hik-dev" ]];then
+  git checkout -B push_tmp
+else
+  exit
+fi
+log=(`grep "hikhhbrodebug:" -rn`)
+log_file=()
+log_line=()
+for((i=0;i<${#log[@]};i=i+2));
+do
+  array=(${log[$i]//:/ }) 
+  log_file[${#log_file[*]}]=${array[0]}
+  log_line[${#log_line[*]}]=${array[1]}
+done
+
+for((i=0;i<${#log_file[@]};i++));
+do
+  sed -i "${log_line[$i]}d" ${log_file[$i]}
+  git add ${log_file[$i]}
+done
+
+git commit --amend --no-edit
+git log -1

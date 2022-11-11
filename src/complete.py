@@ -34,6 +34,9 @@ class Complete():
 
     def get_default_opt(self):
         if self.__opt :
+            if  'get_file_opt' in self.__opt:
+                self.__opt.remove('get_file_opt')
+                return  self.__opt + CurFile().get_file_opt(self.get_last_input(True))
             return self.__opt
         return CurFile().get_file_opt(self.get_last_input(True))
     def get_opt(self, arg):

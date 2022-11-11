@@ -1,0 +1,8 @@
+{
+  "project": null,
+  "type": "aosp",
+  "repo": false,
+  "url":null,
+  "mode":"userdebug",
+  "tool":["make"]
+}
