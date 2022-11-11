@@ -32,6 +32,7 @@ class Base(Arg):
         self.tool_dir = os.getenv('SCRIPT_TOP_DIR')
         self.tool_name = os.getenv("SCRIPT_TOOL_NAME")
         self.option_dic = {}
+        self.data_dir = self.tool_dir + '/data/' 
     
     def _opt(self):
         return list(self.option_dic.keys())
