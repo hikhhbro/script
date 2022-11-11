@@ -5,6 +5,8 @@ from command.Log import Log
 class Shell():
     def __init__(self, cmd=''):
         self.cmd = cmd
+        if self.cmd:
+          Log.debug(self.cmd) 
 
     class Input(object):
         def __init__(self,cmd_str) :
@@ -41,4 +43,13 @@ class Shell():
     def exec_system(self):
         status = os.system('/bin/bash -c "%s"' %(self.cmd))
         self.cmd = ''
+        return status
+        
+    def exec_script(self,file,arg):
+        arg_str = ""
+        for str_ in arg:
+            arg_str = arg_str + ' \\\"' + str_ + '\\\"'
+        cmd = file + ' ' + arg_str
+        Log.debug('/bin/bash -c ' + '\"' + cmd + '\"')
+        status = os.system('/bin/bash -c ' + '\"' + cmd + '\"')
         return status

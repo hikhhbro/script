@@ -179,14 +179,15 @@ class main(Base):
         if '/' in self.cur:
             return  CurFile(self.shell_dir).get_file_opt(self.cur,["exe_file","dir"],['data/'])
         else:
-            return  CurFile(self.shell_dir).get_file_opt(self.cur,["exe_file","dir"],['data/']) +['todo','adb','cd','script','build','repo']
+            return  CurFile(self.shell_dir).get_file_opt(self.cur,["exe_file","dir"],['data/']) +['todo','adb','cd','script','build','repo','readcode']
 
 
 def run():
     tmp_arg = Arg()
     if  CompTemp().get(tmp_arg.arg_list[0]):
-        if os.path.exists(os.getenv('SCRIPT_TOP_DIR') + "/shell/" + tmp_arg.arg_list[0]):
-            Shell(". %s/shell/%s %s" %(os.getenv('SCRIPT_TOP_DIR'),tmp_arg.arg_list[0],' '.join(tmp_arg.arg_list[1:]))).exec_system()
+        exr_file = os.getenv('SCRIPT_TOP_DIR') + "/shell/" + tmp_arg.arg_list[0]
+        if os.path.exists(exr_file):
+            Shell().exec_script(exr_file,tmp_arg.arg_list[1:])
     else:
         myclass = Myclass()
         module = myclass.get_sub_tool()
