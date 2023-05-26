@@ -1,0 +1,5 @@
+git log -1
+tesg=`git fetch miui   gsi12-dev_compt_android_3rdApp`
+git checkout FETCH_HEAD 
+git log -1
+pwd

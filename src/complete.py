@@ -8,7 +8,7 @@ from command.CompTemp import CompTemp
 class Complete():
     def __init__(self, opt=None):
         self.__opt =  opt or []
-        self.opt = []
+        self.opt = opt or []
         self.opt.append('--help')
         self.setspace = {True: 'compopt +o nospace',
                          False: 'compopt -o nospace'}
@@ -49,7 +49,7 @@ class Complete():
             for item in self.opt:
                 if len(arg) <= len(item) and arg == item[0:len(arg)]:
                     self.default_opt = False
-                    self.out_list.append(item)
+                    self.out_list.append(self.get_arg_prefix + item)
             if self.default_opt :
                 for item in self.get_default_opt():
                     if len(arg) <= len(item) and arg == item[0:len(arg)]:

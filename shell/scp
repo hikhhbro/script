@@ -1,0 +1,35 @@
+Ip="10.224.162.202"
+User="hik"
+Passwd=" "
+download_dir="/home/hik/image_bak/"
+my_scp(){
+
+# expect -c "
+# spawn  scp "$1" "${User}@${Ip}:/$2"
+# expect \"password:\"
+# send \"${Passwd}\r\"
+# expect eof
+# "
+scp "$1" "${User}@${Ip}:/$2"
+}
+arg1=$1
+echo ${arg1:0:4}
+if [[ "$1" == "" ]];then
+  exit
+elif [[ "$2" == "" ]];then
+  if [[ "${arg1:0:4}" == "http" ]];then
+      url=${arg1}
+      file_name=${url##*/}
+      file_name=${download_dir}${file_name%"?"*}
+      echo ${url}
+      echo ${file_name}
+      wget -O  ${file_name} "${url}"
+  else
+      file_name=${arg1}
+      echo ${file_name}  
+  fi
+  my_scp "${file_name}" "/home/hik/work/"
+elif [[ "$2" != "" ]];then
+  my_scp "$1" "$2"
+fi
+

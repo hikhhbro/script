@@ -15,16 +15,21 @@ class Todo():
         }
         self.todo_dir = self.root_dir + '/data/todo/'
         self.todo_file = self.todo_dir + 'todo_list.json'
+        self.done_file = self.todo_dir + 'done_list.json'
         if not os.path.exists(self.todo_file):
             Shell('mkdir -p '+ self.todo_dir + "&& echo '{}'> %s" %(self.todo_file)).exec_system()
-    def __write_json(self,text):
-        with open("%s" % (self.todo_file)) as rf:
+        if not os.path.exists(self.done_file):
+            Shell('mkdir -p '+ self.todo_dir + "&& echo '{}'> %s" %(self.done_file)).exec_system()
+    def __write_json(self,text,w_file=None):
+        if not w_file:
+            w_file = self.todo_file
+        with open("%s" % (w_file)) as rf:
             json_data = json.load(rf)
         if not json_data.__contains__(time.strftime("%Y/%m/%d")):
             json_data[time.strftime("%Y/%m/%d")] = [text]
         else :
             json_data[time.strftime("%Y/%m/%d")].append(text)
-        with open("%s" % (self.todo_file), "w+") as wf:
+        with open("%s" % (w_file), "w+") as wf:
             js = json.dumps(json_data,indent=1)
             wf.write(js)
     def __read_json(self):    
@@ -55,13 +60,20 @@ class Todo():
             self.__write_json(self.__text(text))
             self.__add_gitlab("add todo")
     def show(self,serial:list):
-        txt_dic = self.__read_json()
+        print_serial = True
+        if serial and serial[0] == "done":
+            del serial[0]
+            print_serial = False
+            with open("%s" % (self.done_file)) as rf:
+                txt_dic = json.load(rf)
+        else:
+            txt_dic = self.__read_json()
         prefix_i = 0
         if not txt_dic.__contains__(' '.join(serial)):
             for k,v in txt_dic.items():
                 print("\033[1;34m   %s\033[0m" % k)
                 for i in range(len(v)):
-                    print("%s: %s" %(prefix_i,v[i]))
+                    print("%s%s" %((str(prefix_i)+": " if print_serial else ""),v[i]))
                     prefix_i = prefix_i + 1
         else :
             print("\033[1;34m   %s\033[0m" % ' '.join(serial))
@@ -86,7 +98,10 @@ class Todo():
         r["serial"] = list(set(r["serial"]))
         r["serial"].sort()
         return r
-                
+
+    def remove_todo_item(self,txt_dic,index,range):
+        self.__write_json("["+index+"]: "+ txt_dic[index][range],self.done_file)
+        del txt_dic[index][range]
     def rm(self,serial:list):
         txt_dic = self.__read_json()
         s = self.__get_rm_serial(serial)
@@ -97,7 +112,7 @@ class Todo():
             for i in range(len(v)):
                 if s["serial"]:
                     if prefix_i in s["serial"]:
-                        del txt_dic[k][i-i_r]
+                        self.remove_todo_item(txt_dic,k,i-i_r)
                         i_r = i_r + 1
                         if not txt_dic[k]:
                             txt_dic.pop(k)
@@ -116,8 +131,12 @@ class Todo():
     def _opt(self):
         return list(self.option_dic.keys())
     def add_opt(self):
-        if self.__args_list[-1][0] == '-':
+        if self.cur[0] == '-':
             return ['-c']
         return []
+      
+    def show_opt(self):
+        return ['done']
+      
     def exec(self):
         self.option_dic[self.__args_list[0]](self.__args_list[1:]) 
