@@ -43,10 +43,21 @@ class MyLogger():
             __msg = "%s:" %(msg)
         else:
             __msg = "%s[ 默认:%s ]:" %(msg,default)
-        str = input(__msg) or default;
+        str = input(__msg) or default
         logging.debug(__msg + str)
         return str
 
+        
+    def select(self, msg,u_list,default=0):
+      for i in range(0,len(u_list)):
+        self.tips("%d:%s" % (i, u_list[i]))
+      __msg = "%s[ 默认:%s ]:" %(msg,u_list[0] + " 或者 " + str(default))
+      ret = input(__msg)
+      if ret.isdigit():
+          return u_list[int(ret)]
+      return ret
+          
+        
     def config(self, level):
         if not  self.__init_config :
             self.__level = level

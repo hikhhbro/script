@@ -262,12 +262,6 @@ class Build(Base):
         if '--toolchain' in arg:
             arg.remove('--toolchain')
             return "--toolchain"
-        if "-m" in arg:
-            arg.remove('-m')
-            return "menuconfig"
-        if "-d" in arg:
-            arg.remove('-d')
-            return "distclean"
         return ""
 
 # <-----编译类型----->
@@ -339,14 +333,29 @@ class Build(Base):
 
     def vela(self,arg: list):
         Log.debug("vela")
-        build_opt_ = self.__parsing_args(arg)
+        build_opt_ = ""
+        Log.debug(arg)
+        if "menuconfig" in arg :
+          build_opt_ = "menuconfig"
+        elif "distclean" in arg:
+          build_opt_ = "distclean"
+        # build_opt_ = self.__parsing_args(arg)
         Shell("mkdir -p %s" % (self.log_dir)).exec_system()
-        if len(self.build_dic["projects"]) == 1:
-          projects = self.build_dic["projects"][0]
+        projects = Log.select("请选择编译", self.build_dic["projects"])
+        Log.debug(projects)
         s = Shell()
         s.input("cd %s" % (self.project_top_dir))
-        s.input("%s vendor/%s/boards/%s %s -j" % (self.build_dic["tool"][0],self.build_dic["project"],projects,build_opt_))
+        
+        if projects == "all":
+          for i in range(0,len(self.build_dic["projects"]) -1 ):
+            s.input("%s vendor/%s/boards/%s %s -j" % (self.build_dic["tool"][0],self.build_dic["project"],self.build_dic["projects"][i],build_opt_))
+        else:
+          s.input("%s vendor/%s/boards/%s %s -j" % (self.build_dic["tool"][0],self.build_dic["project"],projects,build_opt_))
+    
+        if self.build_dic["pack_tool"] and not build_opt_ :
+            s.input("%s" % (self.build_dic["pack_tool"]))
         s.exec_system()
+          
         
         
 
@@ -504,8 +513,14 @@ class Build(Base):
 
     def __download(self):
         s = Shell()
-        s.input_and_echo("repo init -u %s -b %s -m %s %s" %
-                         (self.build_dic["url"], self.build_dic["branch"], self.build_dic["xml"],self.build_dic["repo_tool"]))
+        branch = ""
+        xml = ""
+        if self.build_dic["branch"] :
+          branch = "-b " + self.build_dic["branch"]
+        if self.build_dic["xml"]:
+          xml = "-m " + self.build_dic["xml"]
+        s.input_and_echo("repo init -u %s %s %s %s" %
+                         (self.build_dic["url"], branch, xml ,self.build_dic["repo_tool"]))
         if s.exec_system() != 0:
             Log.tips("repo init 失败")
             exit()
@@ -592,6 +607,14 @@ class Build(Base):
         return ["com.android.wifi","com.android.tethering","services","framework-minus-apex"] 
 
     def _opt(self):
-        if self.cur[0] == '-':
+        if self.build_dic["type"] == "vela":
+          return ["menuconfig","distclean"]
+        elif self.cur[0] == '-':
             return list(self.option_dic.keys())
         return ["get_file_opt"] + self.__get_history()
+      
+    def menuconfig_opt(self):
+      return self.build_dic["projects"]
+    
+    def distclean_opt(self):
+      return self.build_dic["projects"]

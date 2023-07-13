@@ -179,7 +179,7 @@ class main(Base):
         if '/' in self.cur:
             return  CurFile(self.shell_dir).get_file_opt(self.cur,["exe_file","dir"],['data/'])
         else:
-            return  CurFile(self.shell_dir).get_file_opt(self.cur,["exe_file","dir"],['data/']) +['todo','adb','cd','script','build','repo','readcode']
+            return  CurFile(self.shell_dir).get_file_opt(self.cur,["exe_file","dir"],['data/']) +['todo','adb','cd','script','build','repo','readcode','flash']
 
 
 def run():
