@@ -47,9 +47,9 @@ class Complete():
             return r
         else :
             for item in self.opt:
-                if len(arg) <= len(item) and arg == item[0:len(arg)]:
+                if len(arg) <= len(item) and (self.get_arg_prefix + arg) == item[0:len(self.get_arg_prefix + arg)]:
                     self.default_opt = False
-                    self.out_list.append(self.get_arg_prefix + item)
+                    self.out_list.append(item)
             if self.default_opt :
                 for item in self.get_default_opt():
                     if len(arg) <= len(item) and arg == item[0:len(arg)]:
@@ -90,6 +90,7 @@ if __name__ == '__main__':
     myclass = Myclass()
     opt = []
     try:
+        os.chdir("/home/hik/ws/allwinnertech")
         module = myclass.get_class()
         opt = getattr(module(myclass.arg.cur), myclass.get_opname() + '_opt')()
     except :

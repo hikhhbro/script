@@ -262,6 +262,8 @@ class Build(Base):
         if '--toolchain' in arg:
             arg.remove('--toolchain')
             return "--toolchain"
+        if '--check' in arg:
+          return "--check"
         return ""
 
 # <-----编译类型----->
@@ -333,15 +335,27 @@ class Build(Base):
 
     def vela(self,arg: list):
         Log.debug("vela")
-        build_opt_ = ""
         Log.debug(arg)
+        build_opt_ = self.__parsing_args(arg)
+        if build_opt_ == "--check" and self.build_dic_value("check_tool"):
+          s = Shell("cd %s " % (self.cur_dir))
+          s.input("git log --pretty=format:%h -n 2")
+          commits = s.exe('out')
+          commits = commits.splitlines()
+          Log.debug(commits)
+          check_tool = self.project_top_dir + '/' + self.build_dic_value("check_tool")
+          Shell("%s -g %s %s" %(check_tool,commits[0],commits[1])).exec_system()
+          exit(1)
         if "menuconfig" in arg :
           build_opt_ = "menuconfig"
         elif "distclean" in arg:
           build_opt_ = "distclean"
-        # build_opt_ = self.__parsing_args(arg)
+        #
         Shell("mkdir -p %s" % (self.log_dir)).exec_system()
-        projects = Log.select("请选择编译", self.build_dic["projects"])
+        if len(self.build_dic["projects"]) > 1:
+          projects = Log.select("请选择编译", self.build_dic["projects"])
+        else :
+          projects = self.build_dic["projects"][0]
         Log.debug(projects)
         s = Shell()
         s.input("cd %s" % (self.project_top_dir))
@@ -352,7 +366,7 @@ class Build(Base):
         else:
           s.input("%s vendor/%s/boards/%s %s -j" % (self.build_dic["tool"][0],self.build_dic["project"],projects,build_opt_))
     
-        if self.build_dic["pack_tool"] and not build_opt_ :
+        if self.build_dic_value("pack_tool") and not build_opt_ :
             s.input("%s" % (self.build_dic["pack_tool"]))
         s.exec_system()
           
@@ -432,6 +446,13 @@ class Build(Base):
         if not root:
             root = self.build_dic
         return root.__contains__(key)
+
+
+    def build_dic_value(self, key):
+        if self.build_dic.__contains__(key):
+            return  self.build_dic[key]
+        return  None
+
 
     def __add_build_type_interaction(self):
         Log.tips("暂不支持交互编译类型添加")
@@ -608,7 +629,7 @@ class Build(Base):
 
     def _opt(self):
         if self.build_dic["type"] == "vela":
-          return ["menuconfig","distclean"]
+          return ["menuconfig","distclean","--check"]
         elif self.cur[0] == '-':
             return list(self.option_dic.keys())
         return ["get_file_opt"] + self.__get_history()
