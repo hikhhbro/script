@@ -96,6 +96,7 @@ class Opt():
           "sub":[]
         }
         self.file_opt = file_opt
+        self.retreat = ''
         if opt:
           if isinstance(opt,list):
             for item in opt:
@@ -140,4 +141,12 @@ class Opt():
       else :
           opt = self.get_sub_opt()
       return opt
+    
+    def shield_opt(self,scope="all"):
+      if self.retreat :
+        if scope == 'all':
+          self.opt_type(self.retreat).clear()
+        else :
+          self.opt_type(self.retreat).remove(self.retreat)
+        
   

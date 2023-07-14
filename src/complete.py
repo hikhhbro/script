@@ -62,10 +62,10 @@ class Complete():
                         self.out_list.append(self.get_arg_prefix + item)
             return self.out_list
 
-
     def set_out(self, out_list):
         print(self.setspace[self.getlsspace()])
         print(' '.join(out_list))
+        
     def getlsspace(self):
         if len(self.out_list) == 0 or (len(self.out_list) == 1 and self.out_list[-1][-1] == '/' or self.out_list[-1][-1] == '='):
             return False
@@ -102,8 +102,10 @@ if __name__ == '__main__':
     i = 1
     obj = module(myclass.arg.cur)
     method = myclass.get_opname()
+    shield = ''
     while method :
         f = getattr(obj, method + '_opt',None)
+        shield = method
         if not f:
           i = i+1
           method = myclass.get_opname(i)
@@ -111,6 +113,9 @@ if __name__ == '__main__':
           break
     f = getattr(obj, method + '_opt',None)
     opt = f()
+    if shield :
+      opt.retreat = shield
+      opt.shield_opt()
     # except :
     #     pass
     Complete(opt).run()
