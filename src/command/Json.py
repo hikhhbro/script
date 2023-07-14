@@ -16,3 +16,4 @@ class Json:
         with open(self.file) as rf:
             json_data = json.load(rf)
         return json_data
+      

@@ -371,9 +371,9 @@ class Build(Base):
         
         if projects == "all":
           for i in range(0,len(self.build_dic["projects"]) -1 ):
-            s.input("%s vendor/%s/boards/%s %s -j" % (self.build_dic["tool"][0],self.build_dic["project"],self.build_dic_value("projects_path") + self.build_dic["projects"][i],build_opt_))
+            s.input("%s vendor/%s/boards/%s %s -j" % (self.build_dic["tool"][0],self.build_dic["project"],self.build_dic_value("configs_path") + self.build_dic["projects"][i],build_opt_))
         else:
-          s.input("%s vendor/%s/boards/%s %s -j" % (self.build_dic["tool"][0],self.build_dic["project"],self.build_dic_value("projects_path") + projects,build_opt_))
+          s.input("%s vendor/%s/boards/%s %s -j" % (self.build_dic["tool"][0],self.build_dic["project"],self.build_dic_value("configs_path") + projects,build_opt_))
     
         if self.build_dic_value("pack_tool") and not build_opt_ :
             s.input("%s" % (self.build_dic["pack_tool"]))
@@ -559,6 +559,35 @@ class Build(Base):
             Log.tips("repo sync 失败")
             exit()
 
+    def __input_list(self,k):
+        i = 0;
+        tmp_list = []
+        while True:
+          s = "输入y退出，请输入第%d个%s" %(i,k)
+          i = i + 1
+          ret = Log.input(s)
+          if ret == 'y' :
+            break
+          tmp_list.append(ret)
+        return tmp_list
+
+    def __input_str(self,k):
+        return Log.input("请输入%s" %(k))
+
+    def __input_bool(self,k):
+      return bool(Log.input("请输入%s" %(k)))
+
+    def __init_config(self):
+        Log.debug(self.project_top_dir)
+        for k,v in self.build_dic.items():
+          if not v:
+            if isinstance(v,list) :
+                self.build_dic[k] = self.__input_list(k)
+            elif isinstance(v,str) :
+                self.build_dic[k] = self.__input_str(k)
+            elif isinstance(v,bool) :
+                self.build_dic[k] = self.__input_bool(k)
+
     def __init(self, arg: list):
         Log.debug("开始初始化")
     # 1. 处理传入的参数
@@ -585,13 +614,15 @@ class Build(Base):
             self.__set_build_tpye(
                 self.__get_build_type_interaction(build_type_list))
         Log.debug(self.build_dic)
-        self.__get_xml_interaction()
-        self.__get_branch_interaction()
-        Log.debug(self.build_dic)
+        
+    
+        # self.__get_xml_interaction()
+        # self.__get_branch_interaction()
+        # Log.debug(self.build_dic)
 
     # 5. 初始化编译参数
-        # build_args = self.__get_build_args(self.build_dic["type"])
-        # Log.debug(build_args)
+        self.__init_config()
+        Log.debug(self.build_dic)
 
     # 6. 生成编译参数文件
         # self.build_dic.update(build_args)
