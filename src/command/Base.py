@@ -48,17 +48,6 @@ class Base(Arg):
 class Myclass():
     def __init__(self):
         sys.path.append(os.getenv('SCRIPT_TOP_DIR')+"/src/utils")
-        # tmp = copy.copy(sys.argv)
-        # self.isend = True if tmp[-1] == 'y' else False
-        # if tmp[-1]  in ['n','y']:
-        #     self.asgs_list = tmp[1:-1] if "complete.py" in tmp[0] or "main.py" in tmp[0] else tmp[:-1]   
-        # else:
-        #     self.asgs_list = tmp
-        # if self.isend :
-        #     self.cur = [''] 
-        # else :
-        #     self.cur = [self.asgs_list[-1]] 
-        #     del self.asgs_list[-1]  
         self.arg = Arg()
     def get_sub_tool(self):
         out  = self.arg.arg_list[0]
@@ -96,3 +85,57 @@ class Myclass():
                     return  self.arg.arg_list[0]
             else :
                 return ''    
+
+
+class Opt():
+    def __init__(self,opt=None):
+        self.opt = {
+          "long":["--help"],
+          "short":[],
+          "sub":[]
+        }
+        if opt:
+          if isinstance(opt,list):
+            for item in opt:
+              self.opt_type(item).append(item)
+          else :
+              self.opt_type(opt).append(item)
+
+    def get_long_opt(self):
+      return self.opt["long"]
+
+    def get_short_opt(self):
+      return self.opt["short"]
+
+    def get_sub_opt(self):
+      return self.opt["sub"]
+
+    def set_long_opt(self,opt):
+      if isinstance(opt,list):
+        self.opt["long"] = self.opt["long"] + opt
+      else :
+        self.opt["long"].append(opt)
+
+    def set_short_opt(self,opt):
+      if isinstance(opt,list):
+        self.opt["short"] = self.opt["short"] + opt
+      else :
+        self.opt["short"].append(opt)
+
+    def set_sub_opt(self,opt):
+      if isinstance(opt,list):
+        self.opt["sub"] = self.opt["sub"] + opt
+      else :
+        self.opt["sub"].append(opt)
+        
+
+
+    def opt_type(self,arg):
+      if '--' == arg[0:2] :
+          opt = self.get_long_opt()
+      elif '-' in arg[0] :
+          opt = self.get_short_opt()
+      else :
+          opt = self.get_sub_opt()
+      return opt
+  

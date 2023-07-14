@@ -1,15 +1,14 @@
 import os
 import sys
 from command.Base import Myclass
+from command.Base import Opt
 from command.Listdirs import CurFile
 from command.CompTemp import CompTemp
 
 
 class Complete():
     def __init__(self, opt=None):
-        self.__opt =  opt or []
-        self.opt = opt or []
-        self.opt.append('--help')
+        self.opt = opt
         self.setspace = {True: 'compopt +o nospace',
                          False: 'compopt -o nospace'}
         self.out_list = []
@@ -17,6 +16,12 @@ class Complete():
         self.isend = True if sys.argv[-1] == 'y' else False
         self.asgs_list = sys.argv[1:-1] if "complete.py" in sys.argv[0] else sys.argv[:-1]
         self.get_arg_prefix = ''
+        
+    def get_dic_value(self,dic,key):
+        if dic.__contains__(key):
+            return  dic[key]
+        return  None
+    
     def get_last_input(self,arg_full=False):
         if arg_full :
             if self.isend :
@@ -32,12 +37,13 @@ class Complete():
                 self.get_arg_prefix = self.asgs_list[-1][0:l+1]
                 return self.asgs_list[-1][l+1:]
 
+
     def get_default_opt(self):
-        if self.__opt :
-            if  'get_file_opt' in self.__opt:
+        if self.opt.get_sub_opt() :
+            if  'get_file_opt' in self.opt.get_sub_opt():
                 self.__opt.remove('get_file_opt')
-                return  self.__opt + CurFile().get_file_opt(self.get_last_input(True))
-            return self.__opt
+                return self.opt.get_sub_opt() +  CurFile().get_file_opt(self.get_last_input(True))
+            return self.opt.get_sub_opt()
         return CurFile().get_file_opt(self.get_last_input(True))
     def get_opt(self, arg):
         if not arg or arg[-1] =='/':
@@ -46,7 +52,8 @@ class Complete():
                 r[0] = self.get_arg_prefix + r[0] 
             return r
         else :
-            for item in self.opt:
+            opt = self.opt.opt_type(arg)
+            for item in opt:
                 if len(arg) <= len(item) and (self.get_arg_prefix + arg) == item[0:len(self.get_arg_prefix + arg)]:
                     self.default_opt = False
                     self.out_list.append(item)
@@ -88,8 +95,9 @@ if __name__ == '__main__':
     # Hikrun().run()
     # try:
     myclass = Myclass()
-    opt = []
+    opt = Opt()
     try:
+        # 单独调试切换目录，非调试状态注意去除
         os.chdir("/home/hik/ws/allwinnertech")
         module = myclass.get_class()
         opt = getattr(module(myclass.arg.cur), myclass.get_opname() + '_opt')()

@@ -6,7 +6,7 @@ import importlib
 import subprocess
 import logging
 sys.path.append(os.getenv('SCRIPT_TOP_DIR')+"/src")
-from command.Base import Base ,Myclass,Arg
+from command.Base import Base ,Myclass,Arg,Opt
 from command.Json import Json
 from command.CompTemp import CompTemp
 from command.Log import Log
@@ -177,9 +177,9 @@ class main(Base):
         self.shell_dir = self.tool_dir + '/shell'
     def _opt(self):
         if '/' in self.cur:
-            return  CurFile(self.shell_dir).get_file_opt(self.cur,["exe_file","dir"],['data/'])
+            return  Opt(CurFile(self.shell_dir).get_file_opt(self.cur,["exe_file","dir"],['data/']))
         else:
-            return  CurFile(self.shell_dir).get_file_opt(self.cur,["exe_file","dir"],['data/']) +['todo','adb','cd','script','build','repo','readcode','flash']
+            return  Opt(CurFile(self.shell_dir).get_file_opt(self.cur,["exe_file","dir"],['data/']) +['todo','adb','cd','script','build','repo','readcode','flash'])
 
 
 def run():

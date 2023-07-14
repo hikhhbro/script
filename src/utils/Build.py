@@ -1,6 +1,7 @@
 from turtle import update
 from command.Shell import Shell
 from command.Base import Base
+from command.Base import Opt
 from command.Log import Log
 
 import os
@@ -350,7 +351,7 @@ class Build(Base):
           build_opt_ = "menuconfig"
         elif "distclean" in arg:
           build_opt_ = "distclean"
-        #
+        
         Shell("mkdir -p %s" % (self.log_dir)).exec_system()
         if len(self.build_dic["projects"]) > 1:
           projects = Log.select("请选择编译", self.build_dic["projects"])
@@ -362,9 +363,9 @@ class Build(Base):
         
         if projects == "all":
           for i in range(0,len(self.build_dic["projects"]) -1 ):
-            s.input("%s vendor/%s/boards/%s %s -j" % (self.build_dic["tool"][0],self.build_dic["project"],self.build_dic["projects"][i],build_opt_))
+            s.input("%s vendor/%s/boards/%s %s -j" % (self.build_dic["tool"][0],self.build_dic["project"],self.build_dic_value("projects_path") + self.build_dic["projects"][i],build_opt_))
         else:
-          s.input("%s vendor/%s/boards/%s %s -j" % (self.build_dic["tool"][0],self.build_dic["project"],projects,build_opt_))
+          s.input("%s vendor/%s/boards/%s %s -j" % (self.build_dic["tool"][0],self.build_dic["project"],self.build_dic_value("projects_path") + projects,build_opt_))
     
         if self.build_dic_value("pack_tool") and not build_opt_ :
             s.input("%s" % (self.build_dic["pack_tool"]))
@@ -451,7 +452,7 @@ class Build(Base):
     def build_dic_value(self, key):
         if self.build_dic.__contains__(key):
             return  self.build_dic[key]
-        return  None
+        return  ""
 
 
     def __add_build_type_interaction(self):
@@ -629,13 +630,13 @@ class Build(Base):
 
     def _opt(self):
         if self.build_dic["type"] == "vela":
-          return ["menuconfig","distclean","--check"]
+          return Opt(["menuconfig","distclean","--check"])
         elif self.cur[0] == '-':
-            return list(self.option_dic.keys())
-        return ["get_file_opt"] + self.__get_history()
+            return Opt(list(self.option_dic.keys()))
+        return Opt(["get_file_opt"] + self.__get_history())
       
     def menuconfig_opt(self):
-      return self.build_dic["projects"]
+      return Opt(self.build_dic["projects"])
     
     def distclean_opt(self):
-      return self.build_dic["projects"]
+      return Opt(self.build_dic["projects"])
