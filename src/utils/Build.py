@@ -265,6 +265,11 @@ class Build(Base):
             return "--toolchain"
         if '--check' in arg:
           return "--check"
+
+        if "--menuconfig" in arg :
+          build_opt_ = "menuconfig"
+        if "--distclean" in arg:
+          build_opt_ = "distclean"
         return ""
 
 # <-----编译类型----->
@@ -346,17 +351,19 @@ class Build(Base):
           Log.debug(commits)
           check_tool = self.project_top_dir + '/' + self.build_dic_value("check_tool")
           Shell("%s -g %s %s" %(check_tool,commits[0],commits[1])).exec_system()
-          exit(1)
-        if "menuconfig" in arg :
-          build_opt_ = "menuconfig"
-        elif "distclean" in arg:
-          build_opt_ = "distclean"
-        
+          exit(1)        
         Shell("mkdir -p %s" % (self.log_dir)).exec_system()
-        if len(self.build_dic["projects"]) > 1:
-          projects = Log.select("请选择编译", self.build_dic["projects"])
+        
+        projects = list(set(arg) & set(self.build_dic["projects"]))
+        Log.debug(projects)
+        if not projects :
+          if len(self.build_dic["projects"]) > 1:
+            projects = Log.select("请选择编译", self.build_dic["projects"])
+          else :
+            projects = self.build_dic["projects"][0]
         else :
-          projects = self.build_dic["projects"][0]
+          projects = projects[0]
+
         Log.debug(projects)
         s = Shell()
         s.input("cd %s" % (self.project_top_dir))
@@ -630,13 +637,8 @@ class Build(Base):
 
     def _opt(self):
         if self.build_dic["type"] == "vela":
-          return Opt(["menuconfig","distclean","--check"])
+          return Opt(["--menuconfig","--distclean","--check"] + self.build_dic["projects"])
         elif self.cur[0] == '-':
             return Opt(list(self.option_dic.keys()))
         return Opt(["get_file_opt"] + self.__get_history())
       
-    def menuconfig_opt(self):
-      return Opt(self.build_dic["projects"])
-    
-    def distclean_opt(self):
-      return Opt(self.build_dic["projects"])

@@ -22,6 +22,13 @@ class Arg():
             del  self.arg_list[-1]
         else :
             self.cur = ''
+            
+    def last_cur(self,num):
+        if len(self.arg_list) < 2:
+            return self.cur
+        if self.cur and num < len(self.arg_list):
+            return self.arg_list[-(num+1)]
+        return ''
           
         
 
@@ -72,19 +79,13 @@ class Myclass():
         model = importlib.import_module(out)
         return getattr(model,out)
 
-    def get_opname(self):
-        if self.arg.isend :
-            if len(self.arg.arg_list) > 0:
-                if self.arg.arg_list[0][0] != '-':
-                    return  self.arg.arg_list[0]
-            else :
-                return ''    
+    def get_opname(self,last=1):
+        if len(self.arg.arg_list) > 0 and last <= len(self.arg.arg_list):
+            if self.arg.arg_list[-last][0] != '-':
+                return  self.arg.arg_list[-last]
+            return ""
         else :
-            if len(self.arg.arg_list) > 0:
-                if self.arg.arg_list[0][0] != '-':
-                    return  self.arg.arg_list[0]
-            else :
-                return ''    
+            return ''    
 
 
 class Opt():

@@ -18,21 +18,6 @@ class MyLogger():
         self.critical = logging.critical
         
 
-    # def debug(self, msg):
-    #     logging.debug(msg)
-
-    # def info(self, msg):
-    #     logging.info(msg)
-
-    # def wanging(self, msg):
-    #     logging.wanging(msg)
-
-    # def error(self, msg):
-    #     logging.error(msg)
-
-    # def critical(self, msg):
-    #     logging.critical(msg)
-
     def tips(self, msg):
         if self.__level > logging.DEBUG:
             print(msg)

@@ -4,7 +4,7 @@ from command.Base import Myclass
 from command.Base import Opt
 from command.Listdirs import CurFile
 from command.CompTemp import CompTemp
-
+import types
 
 class Complete():
     def __init__(self, opt=None):
@@ -96,11 +96,22 @@ if __name__ == '__main__':
     # try:
     myclass = Myclass()
     opt = Opt()
-    try:
+    # try:
         # 单独调试切换目录，非调试状态注意去除
-        os.chdir("/home/hik/ws/allwinnertech")
-        module = myclass.get_class()
-        opt = getattr(module(myclass.arg.cur), myclass.get_opname() + '_opt')()
-    except :
-        pass
+    # os.chdir("/home/hik/ws/allwinnertech")
+    module = myclass.get_class()
+    i = 1
+    obj = module(myclass.arg.cur)
+    method = myclass.get_opname()
+    while method :
+        f = getattr(obj, method + '_opt',None)
+        if not f:
+          i = i+1
+          method = myclass.get_opname(i)
+        else :
+          break
+    f = getattr(obj, method + '_opt',None)
+    opt = f()
+    # except :
+    #     pass
     Complete(opt).run()
