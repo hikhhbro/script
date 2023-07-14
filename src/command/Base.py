@@ -89,12 +89,13 @@ class Myclass():
 
 
 class Opt():
-    def __init__(self,opt=None):
+    def __init__(self,opt=None,file_opt = False):
         self.opt = {
           "long":["--help"],
           "short":[],
           "sub":[]
         }
+        self.file_opt = file_opt
         if opt:
           if isinstance(opt,list):
             for item in opt:

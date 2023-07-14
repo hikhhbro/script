@@ -267,9 +267,10 @@ class Build(Base):
           return "--check"
 
         if "--menuconfig" in arg :
-          build_opt_ = "menuconfig"
+          return "menuconfig"
+           
         if "--distclean" in arg:
-          build_opt_ = "distclean"
+          return "distclean"
         return ""
 
 # <-----编译类型----->
@@ -636,9 +637,9 @@ class Build(Base):
         return ["com.android.wifi","com.android.tethering","services","framework-minus-apex"] 
 
     def _opt(self):
-        if self.build_dic["type"] == "vela":
+        if self.build_dic_value("type") == "vela":
           return Opt(["--menuconfig","--distclean","--check"] + self.build_dic["projects"])
-        elif self.cur[0] == '-':
-            return Opt(list(self.option_dic.keys()))
-        return Opt(["get_file_opt"] + self.__get_history())
+        # elif self.cur[0] == '-':
+        #     return Opt(list(self.option_dic.keys()))
+        return Opt(self.__get_history(),True)
       

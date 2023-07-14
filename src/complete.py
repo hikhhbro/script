@@ -40,8 +40,7 @@ class Complete():
 
     def get_default_opt(self):
         if self.opt.get_sub_opt() :
-            if  'get_file_opt' in self.opt.get_sub_opt():
-                self.__opt.remove('get_file_opt')
+            if  self.opt.file_opt:
                 return self.opt.get_sub_opt() +  CurFile().get_file_opt(self.get_last_input(True))
             return self.opt.get_sub_opt()
         return CurFile().get_file_opt(self.get_last_input(True))
