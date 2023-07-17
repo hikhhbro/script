@@ -105,8 +105,8 @@ if __name__ == '__main__':
     shield = ''
     while method :
         f = getattr(obj, method + '_opt',None)
-        shield = method
         if not f:
+          shield = method
           i = i+1
           method = myclass.get_opname(i)
         else :

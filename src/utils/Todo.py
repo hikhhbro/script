@@ -2,6 +2,7 @@ import json
 import time
 import os
 from command.Shell import Shell
+from command.Base import Opt
 import copy
 class Todo():
     def __init__(self, args_list=None):
@@ -129,14 +130,14 @@ class Todo():
             self.__add_gitlab("rm todo")
 
     def _opt(self):
-        return list(self.option_dic.keys())
+        return Opt(list(self.option_dic.keys()))
     def add_opt(self):
         if self.cur[0] == '-':
-            return ['-c']
-        return []
+            return Opt(['-c'])
+        return Opt([])
       
     def show_opt(self):
-        return ['done']
+        return Opt(['done'])
       
     def exec(self):
         self.option_dic[self.__args_list[0]](self.__args_list[1:]) 

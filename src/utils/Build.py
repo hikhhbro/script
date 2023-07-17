@@ -354,7 +354,7 @@ class Build(Base):
           Shell("%s -g %s %s" %(check_tool,commits[0],commits[1])).exec_system()
           exit(1)        
         Shell("mkdir -p %s" % (self.log_dir)).exec_system()
-        
+        Log.debug(arg)
         projects = list(set(arg) & set(self.build_dic["projects"]))
         Log.debug(projects)
         if not projects :
