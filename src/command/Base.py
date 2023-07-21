@@ -42,7 +42,7 @@ class Base(Arg):
         self.data_dir = self.tool_dir + '/data/' 
     
     def _opt(self):
-        return list(self.option_dic.keys())
+        return Opt(list(self.option_dic.keys()))
     def exec(self):
         self.option_dic[self.arg_list[1]](self.arg_list[2:]) 
         
