@@ -3,7 +3,7 @@
     "python.autoComplete.extraPaths": [
     "./src/"
     ],
-    "python.languageServer": "Pylance",
+    "python.languageServer": "Jedi",
     "files.associations": {
       "*.js": "javascript",
       "iostream": "cpp"

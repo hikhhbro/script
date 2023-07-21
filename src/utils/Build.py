@@ -404,47 +404,15 @@ class Build(Base):
             js = json.dumps(self.build_dic, indent=1)
             f.write(js)
 
-    def __get_history_project_args_interaction(self, msg=None):
+    def __get_history_project_args_interaction(self):
         # 1. 打印已有工程模板选项
-        for i in range(len(self.__history_project_file_list)):
-            Log.tips("%d:%s" % (i, self.__history_project_file_list[i]))
-        if self.project_top_dir and os.path.exists(self.project_top_dir + '/.build.' + os.getenv("SCRIPT_TOOL_NAME")):
-            tmp_project_name = Log.input("当前工程名称:%s,是否需要更改" % (self.build_dic["project"]), "N")
-            if tmp_project_name != "N" and tmp_project_name != "n":
-                Log.debug(tmp_project_name)
-                self.__set_history_project_args(tmp_project_name)
-                project_name = tmp_project_name
-            else:
-                return self.build_dic["project"]
-        elif not self.__history_project_file_list:
-            project_name = Log.input("暂时没有可用工程,请输入工程名称创建")
-            self.__set_history_project_args(project_name)
-        else:
-            project_name = Log.input(
-                msg or "请选择工程", not self.__history_project_file_list or self.__history_project_file_list[0]+" or " + "0")
-    # 选择已有工程
-        Log.debug(project_name)
-        if project_name in self.__history_project_file_list:
-            Log.debug(self.build_dic)
-            self.build_dic.update(
-                self.__get_history_project_args(project_name))
-            Log.debug(self.build_dic)
-        elif project_name.isdigit():
-            if int(project_name) < len(self.__history_project_file_list):
-                Log.debug(self.build_dic)
-                Log.debug(self.__history_project_file_list)
-                Log.debug(int(project_name))
-                self.build_dic.update(self.__get_history_project_args(
-                    self.__history_project_file_list[int(project_name)]))
-                Log.debug(self.build_dic)
-                project_name = self.__history_project_file_list[int(
-                    project_name)]
-            else:
-                self.__get_history_project_args_interaction("暂时没有%d选项,请重写输入<=%d,或者输入全名" % (
-                    int(project_name), len(self.__history_project_file_list)-1))
-        # 创建新工程
-        else:
-            project_name = Log.input("输入工程不存在,是否创建此工程", project_name)
+        if self.build_dic:
+          Log.tips("当前工程为%s" %(self.build_dic[type]))
+          exit(1)
+        else :
+          project_name = Log.select("请选择工程", self.__history_project_file_list)
+          Log.debug(project_name)
+          self.build_dic.update(self.__get_history_project_args(project_name))
         return project_name
 
     def __add_history_project(self):
