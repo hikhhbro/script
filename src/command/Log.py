@@ -37,7 +37,7 @@ class MyLogger():
       for i in range(0,len(u_list)):
         self.tips("%d:%s" % (i, u_list[i]))
       __msg = "%s[ 默认:%s ]:" %(msg,u_list[0] + " 或者 " + str(default))
-      ret = input(__msg)
+      ret = input(__msg) or u_list[default]
       if ret.isdigit():
           return u_list[int(ret)]
       return ret
