@@ -120,6 +120,7 @@ class Flash(Base):
 
     def find_devices(self,device):
       devices = []
+      ret = ''
       if "/dev/ttyUSB" in  device:
         datanames = os.listdir("/dev")  
         for i in datanames:
