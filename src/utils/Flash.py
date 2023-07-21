@@ -167,11 +167,11 @@ class Flash(Base):
       Log.debug(cmd_list)
 
     def exec(self):
-        Log.debug(self.handle_cmd())
-        # try:
-        #     Shell(self.handle_cmd())
-        # except Exception as e:
-        #     Log.error(e)
+        # Log.debug(self.handle_cmd())
+        try:
+            Shell(self.handle_cmd()).exec_system()
+        except Exception as e:
+            Log.error(e)
 
     def help(self, arg: list):
         pass
