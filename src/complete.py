@@ -43,7 +43,10 @@ class Complete():
             if  self.opt.file_opt:
                 return self.opt.get_sub_opt() +  CurFile().get_file_opt(self.get_last_input(True))
             return self.opt.get_sub_opt()
-        return CurFile().get_file_opt(self.get_last_input(True))
+        elif self.opt.file_opt :
+            return CurFile().get_file_opt(self.get_last_input(True))
+        else :
+            return ['']
     def get_opt(self, arg):
         if not arg or arg[-1] =='/':
             r = self.get_default_opt()
@@ -64,6 +67,10 @@ class Complete():
 
     def set_out(self, out_list):
         print(self.setspace[self.getlsspace()])
+        if self.opt.file_opt :
+            print("true")
+        else :
+            print("false")
         print(' '.join(out_list))
         
     def getlsspace(self):
@@ -97,7 +104,7 @@ if __name__ == '__main__':
     opt = Opt()
     # try:
         # 单独调试切换目录，非调试状态注意去除
-    # os.chdir("/home/hik/ws/allwinnertech")
+    # os.chdir("/home/hik/ws")
     module = myclass.get_class()
     i = 1
     obj = module(myclass.arg.cur)

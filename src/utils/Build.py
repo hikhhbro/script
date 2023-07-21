@@ -694,7 +694,7 @@ class Build(Base):
     def _opt(self):
         if self.build_dic_value("type") == "vela":
           return Opt(["--menuconfig","--distclean","--check"] + self.build_dic["projects"] + list(self.option_dic.keys()))
-        # elif self.cur[0] == '-':
-        #     return Opt(list(self.option_dic.keys()))
+        elif not self.build_dic:
+            return Opt(['--init'],False)
         return Opt(self.__get_history(),True)
       
