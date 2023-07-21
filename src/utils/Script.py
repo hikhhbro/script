@@ -3,6 +3,7 @@ from command.Shell import Shell
 from command.CompTemp import CompTemp
 from command.Listdirs import CurFile
 from command.Base import Base
+from command.Base import Opt
 
 class Script(Base):
     def __init__(self, args_list=None):
@@ -38,7 +39,7 @@ class Script(Base):
         CompTemp().set([text[-1]])
         
     def add_opt(self):
-        return CurFile(self.shell_dir).get_file_opt(self.cur)
+        return Opt(CurFile(self.shell_dir).get_file_opt(self.cur))
 
     def rm_opt(self):
         return self.add_opt()
