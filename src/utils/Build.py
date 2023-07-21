@@ -85,6 +85,7 @@ class Build(Base):
         Log.debug(self.build_dic)
         self.option_dic = {
             '--init': self.__init,
+            '--sync-build-type':self.__sync_build_type
         }
         self.build_cmd = {
             "monking": self.monking,
@@ -271,6 +272,7 @@ class Build(Base):
            
         if "--distclean" in arg:
           return "distclean"
+      
         return ""
 
 # <-----编译类型----->
@@ -637,24 +639,46 @@ class Build(Base):
     #     if  self.project_has_key('roofts'):
           
 
+
+    def __sync_build_type(self,arg: list):
+      Log.debug("sync build type")
+      build_dic_tmp = {}
+
+      build_dic_tmp.update(dict.fromkeys(self.build_dic,""))
+
+      with open(self.__history_project_file_dir + self.build_dic["type"]) as f:
+          build_dic_tmp.update(json.load(f))
+          
+      with open(self.__history_project_file_dir + self.build_dic["type"], "w+") as f:
+        js = json.dumps(build_dic_tmp, indent=1)
+        f.write(js)
+      
+      build_dic_tmp.update(self.build_dic)
+      
+      with open(self.project_top_dir + '/.build.' + os.getenv("SCRIPT_TOOL_NAME"), "w+") as f:
+          js = json.dumps(build_dic_tmp, indent=1)
+          f.write(js)
+        
+        
+
     def __start_build(self, arg: list):
         if self.__get_type() in self.build_cmd.keys():
             self.build_cmd[self.__get_type()](arg)
 
     def exec(self):
-        if self.__is_locked():
-            Log.tips("已经有编译任务在执行")
-            return
-        self.__lock()
-        try:
-            if self.__args_list[0] in self.option_dic.keys():
-                self.option_dic[self.__args_list[0]](self.__args_list[1:])
-            else:
-                self.__start_build(self.__args_list[0:])
-        except Exception as e:
-            Log.error(e)
-        finally:
-            self.__unlock()
+        # if self.__is_locked():
+        #     Log.tips("已经有编译任务在执行")
+        #     return
+        # self.__lock()
+        # try:
+        if self.__args_list[0] in self.option_dic.keys():
+            self.option_dic[self.__args_list[0]](self.__args_list[1:])
+        else:
+            self.__start_build(self.__args_list[0:])
+    # except Exception as e:
+    #     Log.error(e)
+    # finally:
+        # self.__unlock()
 
     def help(self, arg: list):
         print(
@@ -669,7 +693,7 @@ class Build(Base):
 
     def _opt(self):
         if self.build_dic_value("type") == "vela":
-          return Opt(["--menuconfig","--distclean","--check"] + self.build_dic["projects"])
+          return Opt(["--menuconfig","--distclean","--check"] + self.build_dic["projects"] + list(self.option_dic.keys()))
         # elif self.cur[0] == '-':
         #     return Opt(list(self.option_dic.keys()))
         return Opt(self.__get_history(),True)
