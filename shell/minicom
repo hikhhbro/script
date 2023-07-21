@@ -1,0 +1,21 @@
+rec=$(cat '.build.hikrun' |  jq -r '.baudrate')
+devs=($(ls /dev/ttyUSB*))
+# echo ${devs[@]}
+dev=''
+if [ -n "$1" ];then 
+  dev="/dev/ttyUSB"$1
+elif [ ${#devs[@]} -eq 1 ];then
+  dev=$devs
+elif [ ${#devs[@]} -gt 1 ];then
+
+  for i in "${!devs[@]}";   
+  do 
+      printf  "%s:%s\n" "$i" "${devs[$i]}"  
+  done
+  read -p "选择串口号 : " char
+  dev="/dev/ttyUSB"$char
+
+fi
+  # echo $dev 
+  # echo $rec 
+minicom -D  $dev -b $rec
