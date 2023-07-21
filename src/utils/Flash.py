@@ -76,13 +76,9 @@ class Flash(Base):
 
 
 
-        # self.build_cmd = {
-        #     "monking": self.monking,
-        #     "aosp": self.aosp,
-        #     "vela": self.vela,
-        #     "flutter": " ",
-        #     "buildroot": " ",
-        # }
+        self.devices_cmd = {
+            "uart": self.find_uart_devices,
+        }
 
 
 
@@ -101,32 +97,38 @@ class Flash(Base):
       return None
 
 
-    def handle_cmd(self):
-      Log.debug(self.__args_list)
-      if len(self.__args_list) > 1 and  "-p" in self.__args_list[0]:
-        if "port" in self.flash_dic.keys():
-          self.flash_dic["port"] = "/dev/ttyUSB%s" %(self.__args_list[1])
-      else :
-        self.flash_dic["port"] = self.find_devices(self.flash_dic["port"])
-      str = ""
-      for key,value in self.flash_dic.items():
-        # if key == "tool": 
-        #     str = "sudo " + value + " "
-        Log.debug(value)
-        Log.debug(key)
-        str += ("sudo " + value + " ") if key == "tool"  else  (" --" + key + "=" + value + " ")
-      Log.debug(str)
-      return str
+    # def handle_cmd(self):
+    #   Log.debug(self.__args_list)
+    #   if len(self.__args_list) > 1 and  "-p" in self.__args_list[0]:
+    #     if "port" in self.flash_dic.keys():
+    #       self.flash_dic["port"] = "/dev/ttyUSB%s" %(self.__args_list[1])
+    #   else :
+    #     self.flash_dic["port"] = self.find_devices(self.flash_dic["port"])
+    #   str = ""
+    #   for key,value in self.flash_dic.items():
+    #     # if key == "tool": 
+    #     #     str = "sudo " + value + " "
+    #     Log.debug(value)
+    #     Log.debug(key)
+    #     str += ("sudo " + value + " ") if key == "tool"  else  (" --" + key + "=" + value + " ")
+    #   Log.debug(str)
+    #   return str
 
-    def find_devices(self,device):
+
+    def is_devices(self, key):
+      if self.devices_cmd.__contains__(key):
+          return  self.devices_cmd[key]
+      return  ""
+
+    def find_uart_devices(self):
       devices = []
-      ret = ''
-      if "/dev/ttyUSB" in  device:
-        datanames = os.listdir("/dev")  
-        for i in datanames:
-          if "ttyUSB" in i:
-            devices.append("/dev/" + i)
+      datanames = os.listdir("/dev")  
+      for i in datanames:
+        if "ttyUSB" in i:
+          devices.append("/dev/" + i)
+      devices.sort()
       Log.debug(devices)
+      ret = devices[0]
       if len(devices) > 1:
           for i in range(len(devices)):
             Log.tips("%d:%s" % (i, devices[i]))
@@ -136,13 +138,40 @@ class Flash(Base):
               ret = devices[int(ret)]
           Log.debug(ret)
       return ret
+    
+
+  
+    def get_arg_value(self,arg):
+      if isinstance(self.flash_dic[arg],str):
+        if self.is_devices(self.flash_dic[arg]):
+            return self.devices_cmd[self.flash_dic[arg]]()
+      elif isinstance(self.flash_dic[arg],dict):
+        key = Log.select("请选择烧录镜像",list(self.flash_dic[arg].keys()))
+        Log.debug(key)
+        return self.flash_dic[arg][key]
+
+
+    def handle_cmd(self):
+      cmd_list = self.flash_dic['cmd'].split(' ')
+      for i  in range(0,len(cmd_list)):
+        if '$' == cmd_list[i][0]:
+          cmd_list[i] = self.get_arg_value(cmd_list[i])
           
+        elif '=$' in cmd_list[i]:
+          start = cmd_list[i].rfind('$')
+          cmd_list[i] = cmd_list[i][0:start] + self.get_arg_value(cmd_list[i][start:])
+
+      Log.debug(cmd_list)
+      return ' '.join(cmd_list)
+          
+      Log.debug(cmd_list)
 
     def exec(self):
-        try:
-          Shell(self.handle_cmd())
-        except Exception as e:
-            Log.error(e)
+        Log.debug(self.handle_cmd())
+        # try:
+        #     Shell(self.handle_cmd())
+        # except Exception as e:
+        #     Log.error(e)
 
     def help(self, arg: list):
         pass
