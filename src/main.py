@@ -4,23 +4,29 @@ import time
 import copy
 import importlib
 import subprocess
-import logging
+
 sys.path.append(os.getenv('SCRIPT_TOP_DIR')+"/src")
-from command.Base import Base ,Myclass,Arg,Opt
-from command.Json import Json
-from command.CompTemp import CompTemp
-from command.Log import Log
-from command.Shell import Shell
-from command.Listdirs import CurFile
+sys.path.append(os.getenv('SCRIPT_TOP_DIR')+"/src/command")
+from Base import Base,Myclass,Arg,Opt
+from Json import Json
+from CompTemp import CompTemp
+from Shell import Shell
+from Listdirs import CurFile
+
+import Log
+
+
+fmt = '%(asctime)s - %(levelname)-7s %(filename)s:%(lineno)-10d %(message)s'
+datefmt ='%Y/%m/%d %H:%M:%S'
 
 if sys.argv[-1] == "-v":
-    Log.config(Log.DEBUG)
+    Log.basicConfig(level=Log.DEBUG, format=fmt,datefmt=datefmt)
     del sys.argv[-1]
 elif sys.argv[-1] == "-vv":
-    Log.config(Log.NOTSET)
+    Log.basicConfig(level=Log.NOTSET, format=fmt,datefmt=datefmt)
     del sys.argv[-1]
 else:
-    Log.config(Log.INFO)
+    Log.basicConfig(level=Log.INFO, format=fmt,datefmt=datefmt)
     
 class Code():
     def __init__(self, args=None):
@@ -134,21 +140,6 @@ class Git():
             self.print_add()
 
 
-
-
-
-
-# run = {
-#     '--code': lambda args_list:  Code(args_list).run(),
-#     '--rm': lambda args_list: Rm(args_list).run(),
-#     '--git':lambda args_list: Git(args_list).run(),
-#     'todo':lambda args_list: hikrun_todo(args_list).run(),
-#     'adb':lambda args_list: hikrun_adb(args_list).exec(),
-#     'cd':lambda args_list: hikrun_cd(args_list).exec(),
-#     'script':lambda args_list: hikrun_script(args_list).run(),
-# }
-
-
 def get_probe(f):
     index = f.rfind('/')
     if index != -1:
@@ -175,11 +166,20 @@ class main(Base):
         super().__init__()
         self.comp = Json('/data/.complete.json')
         self.shell_dir = self.tool_dir + '/shell'
+        self.app_dir = self.tool_dir + '/src/utils/'
+
+    def _get_app(self):
+      apps_list = CurFile(self.app_dir).get_file_opt(exclude=["__init__.py","__pycache__/","Completion.py"])
+      for i in range(len(apps_list)):
+        apps_list[i] = apps_list[i].split('.')[0].lower()
+      return apps_list
+
+
     def _opt(self):
         if '/' in self.cur:
-            return  Opt(CurFile(self.shell_dir).get_file_opt(self.cur,["exe_file","dir"],['data/']))
+            return  Opt(CurFile(self.shell_dir).get_file_opt(self.cur,["exe_file","dir"],[]))
         else:
-            return  Opt(CurFile(self.shell_dir).get_file_opt(self.cur,["exe_file","dir"],['data/']) +['todo','adb','cd','script','build','repo','readcode','flash'])
+            return  Opt(CurFile(self.shell_dir).get_file_opt(self.cur,["exe_file","dir"],['data/']) + self._get_app())
 
 
 def run():
@@ -195,5 +195,7 @@ def run():
 
 if __name__ == '__main__':
     run()
+    # ds =  main()
+    # ds.get_app()
 
 

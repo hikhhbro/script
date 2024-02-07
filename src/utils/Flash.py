@@ -124,7 +124,7 @@ class Flash(Base):
       devices = []
       datanames = os.listdir("/dev")  
       for i in datanames:
-        if "ttyUSB" in i:
+        if "ttyUSB" in i or  "ttyCH" in i:
           devices.append("/dev/" + i)
       devices.sort()
       Log.debug(devices)
@@ -132,7 +132,7 @@ class Flash(Base):
       if len(devices) > 1:
           for i in range(len(devices)):
             Log.tips("%d:%s" % (i, devices[i]))
-          ret = Log.input("选择窗口设备", devices[0] +  " or 0")
+          ret = Log.getcmd("选择窗口设备", devices[0] +  " or 0")
           Log.debug(ret)
           if ret.isdigit():
               ret = devices[int(ret)]
@@ -146,6 +146,9 @@ class Flash(Base):
         if self.is_devices(self.flash_dic[arg]):
             return self.devices_cmd[self.flash_dic[arg]]()
       elif isinstance(self.flash_dic[arg],dict):
+        if len(list(self.flash_dic[arg].values())) == 1: 
+          return list(self.flash_dic[arg].values())[0]
+      
         key = Log.select("请选择烧录镜像",list(self.flash_dic[arg].keys()))
         Log.debug(key)
         return self.flash_dic[arg][key]

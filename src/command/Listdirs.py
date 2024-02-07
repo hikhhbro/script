@@ -33,8 +33,9 @@ class CurFile():
             postfix = self.__get_dir(postfix)
         self.__find_files(postfix,is_)
         for item in exclude:
-            if item in   self.__file_opt:
+            if item in  self.__file_opt:
                 self.__file_opt.remove(item)
+
         return self.__file_opt
 
 

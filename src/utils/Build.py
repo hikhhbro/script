@@ -1,8 +1,7 @@
 from turtle import update
-from command.Shell import Shell
-from command.Base import Base
-from command.Base import Opt
-from command.Log import Log
+from Shell import Shell
+from Base import Base , Opt
+import Log
 
 import os
 import re
@@ -12,7 +11,7 @@ import xmltodict
 import time
 import itertools
 from datetime import datetime, timedelta
-
+import shutil 
 
 
 def components(path):
@@ -87,7 +86,7 @@ class Build(Base):
             '--init': self.__init,
             '--sync-build-type':self.__sync_build_type
         }
-        self.build_cmd = {
+        self.build_cmd = {''
             "monking": self.monking,
             "aosp": self.aosp,
             "vela": self.vela,
@@ -97,13 +96,13 @@ class Build(Base):
         self.force_buld = False
     def __set_projects_dir_interaction(self, input_path):
         if not input_path:
-            input_path = Log.input("请输入工程顶级目录路径", self.cur_dir)
+            input_path = Log.getcmd("请输入工程顶级目录路径", self.cur_dir)
         else:
-            input_path = Log.input(
+            input_path = Log.getcmd(
                 "设置工程顶级目录为,需更改请输入(./或者. 为当前路径,回车使用默认)", input_path)
         Log.debug(os.path.abspath(input_path))
         if not os.path.exists(os.path.abspath(input_path)):
-            sw = Log.input("输入路径不存在,是否创建此目录(Y/N)", input_path)
+            sw = Log.getcmd("输入路径不存在,是否创建此目录(Y/N)", input_path)
             Log.debug("%s,%s" % (sw, input_path))
             if sw == "y" or sw == "Y" or sw == input_path:
                 os.makedirs(input_path)
@@ -272,7 +271,8 @@ class Build(Base):
            
         if "--distclean" in arg:
           return "distclean"
-      
+        if "--pack" in arg:
+          return "pack"
         return ""
 
 # <-----编译类型----->
@@ -304,6 +304,7 @@ class Build(Base):
             s.input("%s build -C out -p %s %s " %
                     (self.build_dic["tool"][0],self.build_dic["project"], target))
         s.exec_system()
+
 
     def aosp(self, arg: list):
         Log.debug("aosp")
@@ -345,6 +346,7 @@ class Build(Base):
     def vela(self,arg: list):
         Log.debug("vela")
         Log.debug(arg)
+        pack=""
         build_opt_ = self.__parsing_args(arg)
         if build_opt_ == "--check" and self.build_dic_value("check_tool"):
           s = Shell("cd %s " % (self.cur_dir))
@@ -352,9 +354,13 @@ class Build(Base):
           commits = s.exe('out')
           commits = commits.splitlines()
           Log.debug(commits)
-          check_tool = self.project_top_dir + '/' + self.build_dic_value("check_tool")
+          check_tool =  self.project_top_dir + '/' + self.build_dic_value("check_tool")
           Shell("%s -g %s %s" %(check_tool,commits[0],commits[1])).exec_system()
-          exit(1)        
+          exit(1)  
+        if build_opt_ == "pack":
+          pack = build_opt_
+          build_opt_ = ""
+        
         Shell("mkdir -p %s" % (self.log_dir)).exec_system()
         Log.debug(arg)
         projects = list(set(arg) & set(self.build_dic["projects"]))
@@ -373,16 +379,27 @@ class Build(Base):
         
         if projects == "all":
           for i in range(0,len(self.build_dic["projects"]) -1 ):
-            s.input("%s vendor/%s/boards/%s %s -j" % (self.build_dic["tool"][0],self.build_dic["project"],self.build_dic_value("configs_path") + self.build_dic["projects"][i],build_opt_))
+            s.input("%s vendor/%s/boards/%s %s -j 20" % (self.build_dic["tool"][0],self.build_dic["project"],self.build_dic_value("configs_path") + self.build_dic["projects"][i],build_opt_))
         else:
-          s.input("%s vendor/%s/boards/%s %s -j" % (self.build_dic["tool"][0],self.build_dic["project"],self.build_dic_value("configs_path") + projects,build_opt_))
-    
-        if self.build_dic_value("pack_tool") and not build_opt_ :
-            s.input("%s" % (self.build_dic["pack_tool"]))
+          s.input("%s vendor/%s/boards/%s %s -j 20" % (self.build_dic["tool"][0],self.build_dic["project"],self.build_dic_value("configs_path") + projects,build_opt_))
+  
         s.exec_system()
+        
+        if self.build_dic_value("pack_tool") and pack == "pack" :
+            Shell("cd %s && %s" % (self.project_top_dir,self.build_dic["pack_tool"])).exec_system()
+        
+        compile_commands = self.project_top_dir + '/' + "compile_commands/";
+        if os.path.exists(compile_commands):  
+          Log.debug(build_opt_)
+          if build_opt_ :
+            shutil.rmtree(compile_commands)  
+            os.mkdir(compile_commands)
           
-        
-        
+          filelist = os.listdir(compile_commands)   
+          for file in filelist:
+            src = os.path.join(compile_commands, file)
+            dst = self.project_top_dir + '/compile_commands.json'
+            shutil.move(src, dst)
 
     def __get_history_project_args(self, name):
         Log.debug("获取%s历史工程参数" % (name))
@@ -407,7 +424,7 @@ class Build(Base):
     def __get_history_project_args_interaction(self):
         # 1. 打印已有工程模板选项
         if self.build_dic:
-          Log.tips("当前工程为%s" %(self.build_dic[type]))
+          Log.tips("当前工程为%s" %(self.build_dic['type']))
           exit(1)
         else :
           project_name = Log.select("请选择工程", self.__history_project_file_list)
@@ -442,7 +459,7 @@ class Build(Base):
             self.__add_build_type_interaction()
         for i in range(len(build_type_list)):
             Log.tips("%d:%s" % (i, build_type_list[i]))
-        build_type = Log.input("请选择编译类型", build_type_list[0]+" or " + "0")
+        build_type = Log.getcmd("请选择编译类型", build_type_list[0]+" or " + "0")
         if build_type == "y" or build_type == "Y":
             self.__add_build_type_interaction()
         elif build_type in build_type_list:
@@ -471,7 +488,7 @@ class Build(Base):
         if 'xml' in self.build_dic.keys() and isinstance(self.build_dic['xml'],list):
             for i in range(len(self.build_dic['xml'])):
                 Log.tips("%d:%s" % (i, self.build_dic['xml'][i]))
-            res = Log.input("请选择xml", self.build_dic['xml'][0]+" or " + "0")
+            res = Log.getcmd("请选择xml", self.build_dic['xml'][0]+" or " + "0")
             Log.debug(res)
             xml = self.__get_input(self.build_dic['xml'],res)
             Log.debug(xml)
@@ -481,7 +498,7 @@ class Build(Base):
         if 'branch' in self.build_dic.keys() and isinstance(self.build_dic['branch'],list):
             for i in range(len(self.build_dic['branch'])):
                 Log.tips("%d:%s" % (i, self.build_dic['branch'][i]))
-            res = Log.input("请选择branch", self.build_dic['branch'][0]+" or " + "0")
+            res = Log.getcmd("请选择branch", self.build_dic['branch'][0]+" or " + "0")
             Log.debug(res)
             branch = self.__get_input(self.build_dic['branch'],res)
             Log.debug(branch)
@@ -535,17 +552,17 @@ class Build(Base):
         while True:
           s = "输入y退出，请输入第%d个%s" %(i,k)
           i = i + 1
-          ret = Log.input(s)
+          ret = Log.getcmd(s)
           if ret == 'y' :
             break
           tmp_list.append(ret)
         return tmp_list
 
     def __input_str(self,k):
-        return Log.input("请输入%s" %(k))
+        return Log.getcmd("请输入%s" %(k))
 
     def __input_bool(self,k):
-      return bool(Log.input("请输入%s" %(k)))
+      return bool(Log.getcmd("请输入%s" %(k)))
 
     def __init_config(self):
         Log.debug(self.project_top_dir)
@@ -661,7 +678,7 @@ class Build(Base):
 
     def _opt(self):
         if self.build_dic_value("type") == "vela":
-          return Opt(["--menuconfig","--distclean","--check"] + self.build_dic["projects"] + list(self.option_dic.keys()))
+          return Opt(["--menuconfig","--distclean","--check","--pack"] + self.build_dic["projects"] + list(self.option_dic.keys()))
         elif not self.build_dic:
             return Opt(['--init'],False)
         return Opt(self.__get_history(),True)

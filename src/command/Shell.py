@@ -1,6 +1,6 @@
 import subprocess
 import os
-from command.Log import Log
+import Log
 
 class Shell():
     def __init__(self, cmd=''):

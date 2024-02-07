@@ -1,9 +1,10 @@
 import os
 import sys
-from command.Base import Myclass
-from command.Base import Opt
-from command.Listdirs import CurFile
-from command.CompTemp import CompTemp
+
+sys.path.append(os.getenv('SCRIPT_TOP_DIR')+"/src/command")
+from Base import Myclass , Opt
+from Listdirs import CurFile
+import CompTemp
 import types
 
 class Complete():
