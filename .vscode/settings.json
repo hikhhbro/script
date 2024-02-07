@@ -1,7 +1,11 @@
-{
-    "python.formatting.provider": "autopep8",
+{ 
+  "[python]": {
+    "editor.defaultFormatter": "ms-python.black-formatter"
+  },
     "python.autoComplete.extraPaths": [
-    "./src/"
+    "/home/hik/private/script/src/",
+    "/home/hik/private/script/src/command/",
+    "/home/hik/private/script/src/utils/"
     ],
     "python.languageServer": "Jedi",
     "files.associations": {
@@ -9,6 +13,8 @@
       "iostream": "cpp"
     },
     "python.analysis.extraPaths": [
-      "./src/"
+      "./src/",
+      "./src/command/",
+      "./src/utils/"
     ]
 } 
