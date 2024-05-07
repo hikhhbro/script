@@ -3,7 +3,7 @@ from command.Trie import Trie
 
 class CompTemp():
     def __init__(self,args_list = None):
-        self.file = '/data/.complete.json'
+        self.file = 'data/.complete.json'
         try:
             self.trie = Trie(Json(self.file).read_json())
         except:

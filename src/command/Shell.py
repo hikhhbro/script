@@ -20,13 +20,17 @@ class Shell():
             
     def input(self, cmd_str):
         Log.debug(cmd_str)
-        if self.cmd == '':
+        if cmd_str == '':
+            pass
+        elif self.cmd == '':
             self.cmd = cmd_str
         else:
             self.cmd += ' && ' + cmd_str
     def input_and_echo(self, cmd_str):
         Log.tips(cmd_str)
-        if self.cmd == '':
+        if cmd_str == '':
+            pass
+        elif self.cmd == '':
             self.cmd = cmd_str
         else:
             self.cmd += ' && ' + cmd_str

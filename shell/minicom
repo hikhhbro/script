@@ -1,6 +1,6 @@
 rec=$(cat '.build.hikrun' |  jq -r '.baudrate')
-devs=($(ls /dev/ttyUSB*))
-# echo ${devs[@]}
+devs=($(ls /dev/ttyUSB*) $(ls /dev/ttyCH341USB*))
+echo ${devs[@]}
 dev=''
 if [ -n "$1" ];then 
   dev="/dev/ttyUSB"$1

@@ -1,0 +1,7 @@
+
+sudo iptables -P FORWARD ACCEPT
+if [[ `pwd` == "/home/hik/ws/js" ]];then
+  cd bin/
+  cp ../nuttx/nuttx . && sudo ./nuttx app/com.xiaomi.vela.testcase
+fi
+

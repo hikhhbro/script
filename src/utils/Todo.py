@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 import json
 import time
 import os
@@ -24,17 +26,17 @@ class Todo():
     def __write_json(self,text,w_file=None):
         if not w_file:
             w_file = self.todo_file
-        with open("%s" % (w_file)) as rf:
+        with open(w_file,encoding='utf-8') as rf:
             json_data = json.load(rf)
         if not json_data.__contains__(time.strftime("%Y/%m/%d")):
             json_data[time.strftime("%Y/%m/%d")] = [text]
         else :
             json_data[time.strftime("%Y/%m/%d")].append(text)
-        with open("%s" % (w_file), "w+") as wf:
-            js = json.dumps(json_data,indent=1)
+        with open(w_file, "w+",encoding='utf-8') as wf:
+            js = json.dumps(json_data,indent=1,ensure_ascii=False)
             wf.write(js)
     def __read_json(self):    
-        with open("%s" % (self.todo_file)) as rf:
+        with open(self.todo_file,'r',encoding='utf-8') as rf:
             json_data = json.load(rf)
         return json_data
     def __init_git(self):

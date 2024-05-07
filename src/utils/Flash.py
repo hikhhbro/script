@@ -1,7 +1,7 @@
 from turtle import update
-from command.Shell import Shell
-from command.Base import Base
-from command.Log import Log
+from Shell import Shell
+from Base import Base
+import Log
 
 import os
 import re

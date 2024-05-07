@@ -275,6 +275,15 @@ class Build(Base):
           return "pack"
         return ""
 
+    def config_env(self):
+      cmd = ''
+      if self.build_dic_value("env") :
+        for k,v in self.build_dic["env"].items():
+          if k == "g":
+            cmd = 'sudo ln -sf  /usr/bin/g++-%d  /usr/bin/g++ && sudo ln -sf  /usr/bin/gcc-%d  /usr/bin/gcc' %(v,v)
+      Log.debug(":%s:" %(cmd))
+      return cmd
+
 # <-----编译类型----->
 
     def monking(self, arg: list):
@@ -376,6 +385,7 @@ class Build(Base):
         Log.debug(projects)
         s = Shell()
         s.input("cd %s" % (self.project_top_dir))
+        s.input(self.config_env())
         
         if projects == "all":
           for i in range(0,len(self.build_dic["projects"]) -1 ):
@@ -425,7 +435,7 @@ class Build(Base):
         # 1. 打印已有工程模板选项
         if self.build_dic:
           Log.tips("当前工程为%s" %(self.build_dic['type']))
-          exit(1)
+          return self.build_dic['type']
         else :
           project_name = Log.select("请选择工程", self.__history_project_file_list)
           Log.debug(project_name)
@@ -541,7 +551,7 @@ class Build(Base):
         if s.exec_system() != 0:
             Log.tips("repo init 失败")
             exit()
-        s.input_and_echo("repo sync -j4 -d -c --no-tag")
+        s.input_and_echo("repo sync -j32 -d -c --no-tag")
         if s.exec_system() != 0:
             Log.tips("repo sync 失败")
             exit()
@@ -564,10 +574,91 @@ class Build(Base):
     def __input_bool(self,k):
       return bool(Log.getcmd("请输入%s" %(k)))
 
+    def __parse_repo(self,cmd):
+      url = cmd[(cmd.find("init")+len("init")):]
+      Log.debug(url)
+      i = 0
+      while url[i] == ' ':
+        i = i+1
+        if url[i:i+2] == '-u':
+          i = i+2
+
+      url = url[i:]
+      Log.debug(url)
+      tmp = url.find(' ')
+      tmp_str = url[tmp:]
+      if "yourname" in url[:tmp] :
+        url = url[:tmp].replace("yourname","wangyingdong")
+      elif "your-name" in url[:tmp] :
+        url = url[:tmp].replace("your-name","wangyingdong")
+
+      self.build_dic["url"] = url
+      Log.debug(self.build_dic["url"]) 
+      Log.debug(tmp_str)
+      i = 0
+      while tmp_str[0] == ' ':
+        tmp_str = tmp_str[1:]
+      b = True
+      while b:
+        if tmp_str[0] == ' ':
+          tmp_str = tmp_str[1:]
+          continue
+        ops = tmp_str[:2]
+        Log.debug(ops)
+        tmp_str = tmp_str[3:]
+        Log.debug(tmp_str)
+        while tmp_str[0] == ' ':
+          tmp_str = tmp_str[1:]
+          continue
+        end = tmp_str.find(' ')
+        if end < 0:
+          ret = tmp_str
+          Log.debug(ret)
+          b = False
+        else:
+          ret = tmp_str[:end]
+          Log.debug(ret)
+        tmp_str = tmp_str[end+1:]
+
+        Log.debug(ops)
+        if ops == '-b':
+          self.build_dic["branch"] = ret
+          Log.debug(self.build_dic["branch"])
+        elif ops == '-m':
+          self.build_dic["xml"] = ret
+          Log.debug(self.build_dic["xml"])
+
+    def __parse_build(self,cmd):
+      tmp_str = cmd[len("./build.sh vendor/"):]
+      Log.debug(tmp_str)
+      end = tmp_str.find("/")
+      self.build_dic["project"] = tmp_str[:end]
+      Log.debug(self.build_dic["project"])
+      tmp_str = tmp_str[end+len("boards/")+1:]
+      Log.debug(tmp_str)
+      
+      end = tmp_str.rfind("/")
+      self.build_dic["configs_path"] = tmp_str[:end+1]
+      Log.debug(self.build_dic["configs_path"])
+      
+      self.build_dic["projects"].append(tmp_str[end+1:])
+      Log.debug(self.build_dic["projects"])
+      
+      
+      
+      
+
     def __init_config(self):
         Log.debug(self.project_top_dir)
+        # Log.tips("输入下载命令")
+        cmd = self.__input_str("下载命令")
+        self.__parse_repo(cmd)
+        
+        cmd = self.__input_str("编译命令")
+        self.__parse_build(cmd)
+        
         for k,v in self.build_dic.items():
-          if not v:
+          if not v and not self.build_dic[k]:
             if isinstance(v,list) :
                 self.build_dic[k] = self.__input_list(k)
             elif isinstance(v,str) :
