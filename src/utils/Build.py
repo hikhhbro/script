@@ -356,6 +356,10 @@ class Build(Base):
         Log.debug("vela")
         Log.debug(arg)
         pack=""
+        if Log.isdebug():
+            ve = "V=1"
+        else :
+            ve=""
         build_opt_ = self.__parsing_args(arg)
         if build_opt_ == "--check" and self.build_dic_value("check_tool"):
           s = Shell("cd %s " % (self.cur_dir))
@@ -389,9 +393,9 @@ class Build(Base):
         
         if projects == "all":
           for i in range(0,len(self.build_dic["projects"]) -1 ):
-            s.input("%s vendor/%s/boards/%s %s -j 20" % (self.build_dic["tool"][0],self.build_dic["project"],self.build_dic_value("configs_path") + self.build_dic["projects"][i],build_opt_))
+            s.input("%s vendor/%s/boards/%s %s -j 20 %s" % (self.build_dic["tool"][0],self.build_dic["project"],self.build_dic_value("configs_path") + self.build_dic["projects"][i],build_opt_,ve))
         else:
-          s.input("%s vendor/%s/boards/%s %s -j 20" % (self.build_dic["tool"][0],self.build_dic["project"],self.build_dic_value("configs_path") + projects,build_opt_))
+          s.input("%s vendor/%s/boards/%s %s -j 20 %s" % (self.build_dic["tool"][0],self.build_dic["project"],self.build_dic_value("configs_path") + projects,build_opt_,ve))
   
         s.exec_system()
         

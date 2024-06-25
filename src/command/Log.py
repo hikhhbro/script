@@ -2222,3 +2222,9 @@ def select( msg,u_list,default=0):
   if ret.isdigit():
       return u_list[int(ret)]
   return ret
+
+def isdebug():
+    if root.level  > DEBUG:
+        return False
+    else :
+        return True

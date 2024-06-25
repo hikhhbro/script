@@ -1,0 +1,9 @@
+if [[ "$1" == "-i" ]];then 
+  cmake -B build -DBOARD_CONFIG=sim/nsh -GNinja 
+elif [[ "$1" == "-c" ]];then
+  cmake --build build --clean-first  -v | tee build.log
+elif [[ "$1" == "-m" ]];then
+    cmake --build build   -t menuconfig
+else
+    cmake --build build   -v | tee build.log
+fi
