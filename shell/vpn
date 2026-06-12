@@ -1,0 +1,13 @@
+
+gsettings set org.gnome.system.proxy mode 'manual'
+unset http_proxy
+unset https_proxy
+unset HTTP_PROXY
+unset HTTPS_PROXY
+unset ALL_PROXY
+unset NO_PROXY
+unset no_proxy
+unset all_proxy
+
+
+/ws/clash/xsus-1.6.3-linux-amd64.AppImage > /dev/null 2>&1 & disown

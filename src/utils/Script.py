@@ -33,6 +33,7 @@ class Script(Base):
             print("文件不存在")
     def __add(self,text = None):
         s = Shell()
+        s.input('touch %s/%s' % (self.shell_dir,text[-1]))
         s.input('code %s/%s' % (self.shell_dir,text[-1]))
         s.input("chmod 777  %s/%s" % (self.shell_dir,text[-1]))
         s.exe()
