@@ -1,6 +1,18 @@
 #!/bin/bash
 set -euo pipefail
 
+# --------------------------
+# 配置：你的 GitHub 仓库地址模板
+# 把下面的占位符改成你自己的
+# --------------------------
+GITHUB_REPO_URL="git@github.com:hikhhbro/note.git"
+
+# 1. 解析参数
+TARGET_REMOTE=""
+if [ $# -ge 1 ] && [ "$1" = "github" ]; then
+    TARGET_REMOTE="github"
+fi
+
 # 1. 获取当前 Git 仓库的 .git 目录路径
 GIT_DIR=$(git rev-parse --git-dir 2>/dev/null)
 
@@ -27,7 +39,22 @@ echo "📝 执行 git commit"
 
 git commit -m "$(date '+%Y-%m-%d %H:%M:%S')" > /dev/null 2>&1 
 
-echo "🚀 执行 git push"
-git push > /dev/null 2>&1
+
+# 4. 推送逻辑：有 github 参数则推送到 github，否则推送到默认 origin
+if [ -n "$TARGET_REMOTE" ]; then
+
+    if [ "$TARGET_REMOTE" = "github" ]; then
+        if ! git remote | grep -q "^github$"; then
+            echo "⚠️  未找到 github 远程，正在添加..."
+            git remote add github "$GITHUB_REPO_URL"
+            echo "✅ 已添加 github 远程：$GITHUB_REPO_URL"
+        fi
+    fi
+    echo "🚀 正在推送到远程 $TARGET_REMOTE"
+    git push "$TARGET_REMOTE" -f > /dev/null
+else
+    echo "🚀 正在推送到默认远程 origin"
+    git push hik > /dev/null
+fi
 
 echo "✅ 所有操作完成"
