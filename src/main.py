@@ -16,6 +16,10 @@ from Listdirs import CurFile
 import Log
 
 
+root_dir = os.getenv('SCRIPT_TOP_DIR') or os.getcwd()
+dir_list = ['shell']
+
+
 fmt = '%(asctime)s - %(levelname)-7s %(filename)s:%(lineno)-10d %(message)s'
 datefmt ='%Y/%m/%d %H:%M:%S'
 
@@ -33,7 +37,7 @@ class Code():
         self.__dic = {
             '-c': self.__company_file,
             '-adb': self.__adb_file,
-            '-adb-sync': self.__adb_sync_file,
+            '-adb-sync': self.__adb_file,
             None: self.__open_file
         }
         
@@ -53,7 +57,7 @@ class Code():
         self.__code_file(f)
 
     def __script_file(self, args_list):
-        f = root_dir + '/' + 'script/' + ''.join(args_list[-1])
+        f = root_dir + '/' + 'shell/' + ''.join(args_list[-1])
         self.__code_file(f)
 
     def __find_file(self, args_list):
@@ -105,7 +109,7 @@ class Rm():
             self.__args_list.pop(0)
             dir_tmp = 'company/'
         else:
-            dir_tmp = 'script/'
+            dir_tmp = 'shell/'
         f = root_dir + '/' + dir_tmp + ''.join(self.__args_list[-1])
         resycle = root_dir + '/' + dir_tmp + \
             '.resycle/' + ''.join(self.__args_list[-1])
@@ -123,7 +127,7 @@ class Git():
     def __get_remote(self):
         return Shell('git remote -v').exe().split('\n')[0]
     def __get_branch(self):
-        return Shell("git branch | sed -n '/\* /s///p'").exe()[:-1]
+        return Shell(r"git branch | sed -n '/\* /s///p'").exe()[:-1]
 
 
     def add(self):
@@ -162,8 +166,29 @@ def get_compile_path(f):
 
 
 class main(Base):
+    help_summary = "hikrun 顶层入口：分发 Python 工具、shell 脚本和脚本目录。"
+    help_usage = "{tool_name} <工具|脚本> [参数]"
+    help_options = {
+        "build": "构建工程",
+        "repo": "比较 repo manifest",
+        "adb": "adb 常用操作",
+        "movie": "影视资源工具",
+        "flash": "工程烧录工具",
+        "cd": "终端目录跳转",
+        "script": "管理 shell 脚本",
+        "todo": "待办事项",
+        "readcode": "代码阅读辅助",
+        "note": "笔记管理",
+        "--help": "显示当前帮助",
+    }
+    help_examples = [
+        "hikrun --help",
+        "hikrun adb --help",
+        "hikrun note code 工作/记录",
+    ]
+
     def __init__(self, args_list=None):
-        super().__init__()
+        super().__init__(args_list)
         self.comp = Json('/data/.complete.json')
         self.shell_dir = self.tool_dir + '/shell'
         self.app_dir = self.tool_dir + '/src/utils/'
@@ -184,10 +209,17 @@ class main(Base):
 
 def run():
     tmp_arg = Arg()
-    if  CompTemp().get(tmp_arg.arg_list[0]):
+    if not tmp_arg.arg_list:
+        main([]).help()
+        return
+    if tmp_arg.arg_list[0] in {"--help", "-h", "help"}:
+        # 顶层帮助只处理第一个参数，模块级 --help 交给对应模块。
+        main(tmp_arg.arg_list[1:]).help()
+        return
+    if CompTemp().get(tmp_arg.arg_list[0]):
         exr_file = os.getenv('SCRIPT_TOP_DIR') + "/shell/" + tmp_arg.arg_list[0]
         if os.path.exists(exr_file):
-            Shell().exec_script(exr_file,tmp_arg.arg_list[1:])
+            Shell().exec_script(exr_file, tmp_arg.arg_list[1:])
     else:
         myclass = Myclass()
         module = myclass.get_sub_tool()

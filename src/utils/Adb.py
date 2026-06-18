@@ -1,8 +1,27 @@
 import os
 from command.Shell import Shell
-from command.Base import Base
+from command.Base import Base, Opt
 
 class Adb(Base):
+    help_summary = "在 adb shell 上执行常用文件、目录和屏幕操作。"
+    help_usage = "{tool_name} adb <子命令> [参数]"
+    help_options = {
+        "ls": "列出设备当前目录文件",
+        "cd": "切换记录的设备当前目录",
+        "cp": "在设备内复制文件",
+        "mv": "在设备内移动文件",
+        "code": "拉取设备文件到本地编辑后推回",
+        "pwd": "显示记录的设备当前目录",
+        "screen": "打开或关闭屏幕背光",
+        "push": "推送本地文件到设备",
+        "--help": "显示当前帮助",
+    }
+    help_examples = [
+        "hikrun adb ls",
+        "hikrun adb cd /system",
+        "hikrun adb code /system/build.prop",
+    ]
+
     def __init__(self, args_list=None):
         super().__init__(args_list)
         self.__args_list = args_list or ['']
@@ -133,8 +152,7 @@ class Adb(Base):
                 dir_path = os.path.join(parent, dirname)
                 Shell()
 
-#补全
-#adb 文件补全
+# 补全：adb 文件补全
     def __pase_file(self,out_file:str):
         out = []
         file_list = out_file.split('\n')
@@ -161,24 +179,34 @@ class Adb(Base):
             self.__adb_cmd('echo  \'1 > /sys/class/backlight/panel0-backlight/bl_power\'').exe()
         elif  arg[0] == self.screen_opt()[1]:
             self.__adb_cmd('echo  \'0 > /sys/class/backlight/panel0-backlight/bl_power\'').exe()
-#adb 子命令补全选项
+# adb 子命令补全选项
     def _opt(self):
-        return list(self.option_dic.keys())
-#adb ls 补全选项
+        return Opt([item for item in self.option_dic.keys() if item])
+# adb ls 补全选项
     def ls_opt(self):
-        return self.__file()
-#adb cd 补全选项
+        return Opt(self.__file())
+# adb cd 补全选项
     def cd_opt(self):
-        return self.__file()
-#adb mv 补全选项
+        return Opt(self.__file())
+# adb mv 补全选项
     def mv_opt(self):
-        return self.__file()
-#adb code 补全选项
+        return Opt(self.__file())
+# adb code 补全选项
     def code_opt(self):
-        return self.__file()
-#adb screen 补全选项
+        return Opt(self.__file())
+# adb screen 补全选项
+    def __screen_choices(self):
+        return ['close', 'open']
+
     def screen_opt(self):
-        return ['close','open']
+        return Opt(self.__screen_choices())
     
     def exec(self):
-        self.option_dic[self.__args_list[0]](self.__args_list[1:]) 
+        # 先处理公共帮助，再执行 adb 子命令；空命令默认进入 adb shell。
+        if self.should_show_help(self.__args_list):
+            self.help(self.__args_list[0] if self.__args_list and self.__args_list[0] in self.option_dic else None)
+            return
+        command = self.__args_list[0] if self.__args_list else ''
+        if command not in self.option_dic:
+            command = ''
+        self.option_dic[command](self.__args_list[1:] if self.__args_list else [])

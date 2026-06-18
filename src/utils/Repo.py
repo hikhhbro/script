@@ -1,19 +1,40 @@
-import xmltodict
+try:
+    import xmltodict
+except ImportError:
+    xmltodict = None
 import os
 from command.Shell import Shell
-from command.Base import Base
+from command.Base import Base, Opt
 
 class Repo(Base):
+    help_summary = "比较两个 repo manifest XML 的项目差异。"
+    help_usage = "{tool_name} repo <left.xml> <right.xml> [--same-name|--all]"
+    help_options = {
+        "--same-name": "比较同名项目的差异",
+        "--all": "显示全部 revision 差异",
+        "--help": "显示当前帮助",
+    }
+    help_examples = [
+        "hikrun repo old.xml new.xml --all",
+        "hikrun repo old.xml new.xml --same-name",
+    ]
+
     def __init__(self, args_list=None):
         super().__init__(args_list)
-        self.__args_list = args_list or ['']
-        self.short_options = self.__args_list[2]
-        self.xml_project = [self.__read_project_frome_xml(self.__args_list[0]),self.__read_project_frome_xml(self.__args_list[1])]
-    def __read_project_frome_xml(self,xml_path):
-        f=open(xml_path)
-        xml=f.read()
-        d=xmltodict.parse(xml)
-        f.close()
+        self.__args_list = args_list if isinstance(args_list, list) else ([] if not args_list else [args_list])
+        self.short_options = self.__args_list[2] if len(self.__args_list) > 2 else ''
+        self.xml_project = []
+        if len(self.__args_list) >= 2:
+            self.xml_project = [
+                self.__read_project_frome_xml(self.__args_list[0]),
+                self.__read_project_frome_xml(self.__args_list[1]),
+            ]
+    def __read_project_frome_xml(self, xml_path):
+        if xmltodict is None:
+            raise RuntimeError("xmltodict is required for repo XML parsing")
+        with open(xml_path) as f:
+            xml = f.read()
+        d = xmltodict.parse(xml)
         return d["manifest"]["project"]
     
     def __get_map(self,xml_project):
@@ -114,11 +135,23 @@ class Repo(Base):
                     l = " " if __map[i[1]][1] else i[1]
                     r = i[1] if __map[i[1]][1] else " "
                     print(f"{times}: {i[0]:{max_name_len}} : {l:{max_revision_len}} <---> {r:{max_revision_len}}")   
+    def help(self, command=None):
+        super().help(command)
+
+    def _opt(self):
+        return Opt(['--same-name', '--all'], True)
+
     def exec(self):
-        if self.short_options == "--same-name":
+        if self.should_show_help(self.__args_list):
+            self.help()
+        elif len(self.__args_list) < 3 or not self.xml_project:
+            self.help()
+        elif self.short_options == "--same-name":
             self.__same_name_diff_revision()
         elif self.short_options == "--all":
             self.__all_diff_revision()
+        else:
+            self.help()
 
 
 

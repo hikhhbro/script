@@ -1,13 +1,16 @@
 from turtle import update
 from Shell import Shell
-from Base import Base
+from Base import Base, Opt
 import Log
 
 import os
 import re
 import pathlib
 import json
-import xmltodict
+try:
+    import xmltodict
+except ImportError:
+    xmltodict = None
 import time
 import itertools
 from datetime import datetime, timedelta
@@ -16,30 +19,28 @@ from datetime import datetime, timedelta
 
 def components(path):
     '''
-    Returns the individual components of the given file path
-    string (for the local operating system).
+    返回路径的各级组成部分。
 
-    The returned components, when joined with os.path.join(), point to
-    the same location as the original path.
+    返回结果重新用 os.path.join 拼接后，仍指向原路径位置。
     '''
     components = []
-    # The loop guarantees that the returned components can be
+    # 循环保证拆出的路径片段重新拼接后仍指向同一位置。
     # os.path.joined with the path separator and point to the same
     # location:    
     while True:
-        (new_path, tail) = os.path.split(path)  # Works on any platform
+        (new_path, tail) = os.path.split(path)  # 兼容不同平台
         components.append(tail)        
-        if new_path == path:  # Root (including drive, on Windows) reached
+        if new_path == path:  # 已到达根目录
             break
         path = new_path
     components.append(new_path)
 
-    components.reverse()  # First component first
+    components.reverse()  # 保持从根到叶子的顺序
     return components
 
 def longest_prefix(iter0, iter1):
     '''
-    Returns the longest common prefix of the given two iterables.
+    返回两个可迭代对象的最长公共前缀。
     '''
     longest_prefix = []
     for (elmt0, elmt1) in zip(iter0, iter1):
@@ -52,20 +53,29 @@ def common_prefix_path(path0, path1):
     return os.path.join(*longest_prefix(components(path0), components(path1)))
 
 class Flash(Base):
+    help_summary = "根据工程配置选择设备和镜像并执行烧录命令。"
+    help_usage = "{tool_name} flash [选项]"
+    help_options = {
+        "--help": "显示当前帮助",
+    }
+    help_examples = [
+        "hikrun flash",
+    ]
+
     def __init__(self, args_list=None):
         super().__init__(args_list)
         self.__args_list = args_list or ['']
         self.flash_dic = {}
         self.projects_path = self.tool_dir + '/data/build/projects_dir'
-        
+        self.projects_list = []
+
         if not os.path.exists(self.tool_dir + '/data/build'):
             Shell('mkdir -p ' + self.tool_dir + '/data/build').exec_system()
         if os.path.exists(self.projects_path):
             with open(self.projects_path) as f:
                 self.projects_list = json.load(f)
         self.cur_dir = os.getcwd() + '/'
-        self.project_top_dir = self.__get_project_top_dir() 
-        self.projects_list = []      
+        self.project_top_dir = self.__get_project_top_dir()
           
         if self.project_top_dir:
             build_dic = {}
@@ -128,6 +138,8 @@ class Flash(Base):
           devices.append("/dev/" + i)
       devices.sort()
       Log.debug(devices)
+      if not devices:
+          return ''
       ret = devices[0]
       if len(devices) > 1:
           for i in range(len(devices)):
@@ -170,14 +182,21 @@ class Flash(Base):
       Log.debug(cmd_list)
 
     def exec(self):
-        # Log.debug(self.handle_cmd())
+        if self.should_show_help(self.__args_list):
+            self.help()
+            return
         try:
-            Shell(self.handle_cmd()).exec_system()
+            cmd = self.handle_cmd()
+            if cmd:
+                Shell(cmd).exec_system()
         except Exception as e:
             Log.error(e)
 
-    def help(self, arg: list):
-        pass
+    def help(self, command=None):
+        super().help(command)
+
+    def _opt(self):
+        return Opt([])
 
 
 

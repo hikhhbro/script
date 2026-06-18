@@ -1,15 +1,24 @@
 import os
 from command.Shell import Shell
 from command.Base import Base
-from command.Log import Log
+import Log
 
 class Readcode(Base):
+    help_summary = "根据记录的 import 列表在当前代码树中定位源码文件。"
+    help_usage = "{tool_name} readcode <工作名>"
+    help_options = {
+        "--help": "显示当前帮助",
+    }
+    help_examples = [
+        "hikrun readcode demo",
+    ]
+
     def __init__(self, args_list=None):
         super().__init__(args_list)
         self.__args_list = args_list or ['']
         self.work_root = self.data_dir + 'readcode/'
-        if not  os.path.exists(self.work_root):
-            os.mkdir(self.work_root)
+        if not os.path.exists(self.work_root):
+            os.makedirs(self.work_root, exist_ok=True)
         self.option_dic = {
             '': self.__code
         }
@@ -42,10 +51,9 @@ class Readcode(Base):
                 for line in f.readlines():
                     img_file = line.strip()
                     Log.debug(img_file)
-                    file_dic = self.__parse_java_file(img_file) 
-                    file_set.add(file_dic)
-            f.close()
-            return list(file_set)
+                    file_dic = self.__parse_java_file(img_file)
+                    file_set.add(tuple(file_dic.items())[0])
+            return [dict([item]) for item in file_set]
             
     def user_file(self,work):
         if os.path.exists(self.work_root + work):
@@ -57,25 +65,39 @@ class Readcode(Base):
             return self.work_root + work + '/default_file'
         return None
         
-    def __get_files(self,file_list):
-        for root,dir_name,file_name in os.walk('./'):
+    def __get_files(self, file_list):
+        if not file_list:
+            return []
+        keywords = {key for item in file_list for key in item.keys()}
+        out = []
+        for root, dir_name, file_name in os.walk('./'):
             abs_path = os.path.abspath(root)
-            for d in dir_name:
-                if keyword in d:
-                    print(os.path.join(abs_path,d))
-            for f in file_name:
-                if keyword in f:
-                    print(os.path.join(abs_path,f))
+            for directory in dir_name:
+                if directory in keywords:
+                    out.append(os.path.join(abs_path, directory))
+            for file in file_name:
+                if file in keywords:
+                    out.append(os.path.join(abs_path, file))
+        return out
     
     def __code(self, arg: list):
+        if not arg:
+            return
         file_list = self.__parse_file(arg[0])
         files = self.__get_files(file_list)
-        # Shell("code %s" %(' '.join(files))).exec_system()
+        if files:
+            Shell("code %s" % (' '.join(files))).exec_system()
             
         
     
 
     def exec(self):
+        if self.should_show_help(self.__args_list):
+            self.help()
+            return
+        if not self.__args_list:
+            self.help()
+            return
         if self.__args_list[0] in self.option_dic.keys():
             self.option_dic[self.__args_list[0]](self.__args_list[1:])
         else:

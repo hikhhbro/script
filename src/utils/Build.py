@@ -7,7 +7,10 @@ import os
 import re
 import pathlib
 import json
-import xmltodict
+try:
+    import xmltodict
+except ImportError:
+    xmltodict = None
 import time
 import itertools
 from datetime import datetime, timedelta
@@ -16,30 +19,28 @@ import shutil
 
 def components(path):
     '''
-    Returns the individual components of the given file path
-    string (for the local operating system).
+    返回路径的各级组成部分。
 
-    The returned components, when joined with os.path.join(), point to
-    the same location as the original path.
+    返回结果重新用 os.path.join 拼接后，仍指向原路径位置。
     '''
     components = []
-    # The loop guarantees that the returned components can be
+    # 循环保证拆出的路径片段重新拼接后仍指向同一位置。
     # os.path.joined with the path separator and point to the same
     # location:    
     while True:
-        (new_path, tail) = os.path.split(path)  # Works on any platform
+        (new_path, tail) = os.path.split(path)  # 兼容不同平台
         components.append(tail)        
-        if new_path == path:  # Root (including drive, on Windows) reached
+        if new_path == path:  # 已到达根目录
             break
         path = new_path
     components.append(new_path)
 
-    components.reverse()  # First component first
+    components.reverse()  # 保持从根到叶子的顺序
     return components
 
 def longest_prefix(iter0, iter1):
     '''
-    Returns the longest common prefix of the given two iterables.
+    返回两个可迭代对象的最长公共前缀。
     '''
     longest_prefix = []
     for (elmt0, elmt1) in zip(iter0, iter1):
@@ -52,6 +53,25 @@ def common_prefix_path(path0, path1):
     return os.path.join(*longest_prefix(components(path0), components(path1)))
 
 class Build(Base):
+    help_summary = "管理工程初始化、同步构建类型和常用编译动作。"
+    help_usage = "{tool_name} build [目标|选项]"
+    help_options = {
+        "--init": "初始化当前工程的构建配置",
+        "--sync-build-type": "把当前工程配置同步回构建类型模板",
+        "--force": "强制走完整构建路径",
+        "--toolchain": "初始化或更新工具链",
+        "--check": "执行工程配置中的检查工具",
+        "--menuconfig": "进入配置菜单",
+        "--distclean": "清理构建产物",
+        "--pack": "构建后执行打包",
+        "--help": "显示当前帮助",
+    }
+    help_examples = [
+        "hikrun build --init",
+        "hikrun build services",
+        "hikrun build --force framework-minus-apex",
+    ]
+
     def __init__(self, args_list=None):
         super().__init__(args_list)
         self.__args_list = args_list or ['']
@@ -125,10 +145,11 @@ class Build(Base):
                 f.write(js)
 
     def __read_include_name_frome_xml(self):
-        f = open(self.project_top_dir + '/.repo/manifest.xml')
-        xml = f.read()
+        if xmltodict is None:
+            raise RuntimeError("xmltodict is required for manifest XML parsing")
+        with open(self.project_top_dir + '/.repo/manifest.xml') as f:
+            xml = f.read()
         d = xmltodict.parse(xml)
-        f.close()
         return d["manifest"]["include"]["@name"]
 # <---------- 自动探测 begin ------->
 
@@ -746,26 +767,20 @@ class Build(Base):
             self.build_cmd[self.__get_type()](arg)
 
     def exec(self):
-        # if self.__is_locked():
-        #     Log.tips("已经有编译任务在执行")
-        #     return
-        # self.__lock()
-        # try:
+        # 先处理公共帮助，避免 --help 被当作构建目标触发探测。
+        if self.should_show_help(self.__args_list):
+            self.help()
+            return
+        if not self.__args_list:
+            self.help()
+            return
         if self.__args_list[0] in self.option_dic.keys():
             self.option_dic[self.__args_list[0]](self.__args_list[1:])
         else:
             self.__start_build(self.__args_list[0:])
-    # except Exception as e:
-    #     Log.error(e)
-    # finally:
-        # self.__unlock()
 
-    def help(self, arg: list):
-        print(
-            "%s build init option[ --download=\"-u url -b branch -m xml -j thread -d dir\" |" % (self.tool_name))
-        print("                          -b build_type | -p product   ] : 工程初始化")
-        print("--download=\"\", -d 表示下载到指定的目录, 不用-d ,会下载到当前目录,--download=dir 初始化一个空目录,不下载")
-        print("--download=和-d 不能同时用,可以和-p,-b同时用")
+    def help(self, command=None):
+        super().help(command)
 
 
     def __get_history(self):

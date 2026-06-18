@@ -17,6 +17,20 @@ web={
 }
 
 class Movie(Base):
+    help_summary = "影视搜索、同步和下载入口。"
+    help_usage = "{tool_name} movie <子命令> [参数]"
+    help_options = {
+        "search": "搜索影视资源",
+        "sync": "同步影视数据",
+        "download": "下载影视资源",
+        "show": "展示已记录资源",
+        "--help": "显示当前帮助",
+    }
+    help_examples = [
+        "hikrun movie search 电影名",
+        "hikrun movie show",
+    ]
+
     def __init__(self, args_list=None):
         super().__init__(args_list)
         self.__args_list = args_list or []
@@ -34,7 +48,7 @@ class Movie(Base):
     # 子命令方法
     def search(self, arg: list):
         Log.todo()
-        LOg.debug()
+        Log.debug("movie search is not implemented")
 
     def sync(self, arg: list):
         Log.todo()
@@ -45,9 +59,8 @@ class Movie(Base):
     def show(self, arg: list):
         Log.todo()
 
-    def help(self):
-        Log.tips("请输入 %s movie [option]" % (self.tool_name))
-        Log.tips("[option]: %s" % (" | ".join(self._opt().get_sub_opt())))
+    def help(self, command=None):
+        super().help(command)
 
     # 子命令补全提示方法
     def _opt(self):
@@ -61,7 +74,10 @@ class Movie(Base):
 
     # 执行方法
     def exec(self):
-        if len(self.__args_list) < 1:
+        if self.should_show_help(self.__args_list):
+            self.help(self.__args_list[0] if self.__args_list and self.__args_list[0] in self.option_dic else None)
+            return
+        if len(self.__args_list) < 1 or self.__args_list[0] not in self.option_dic:
             self.help()
-        else:
-            self.option_dic[self.__args_list[0]](self.__args_list[1:])
+            return
+        self.option_dic[self.__args_list[0]](self.__args_list[1:])

@@ -4,12 +4,32 @@ import json
 import time
 import os
 from command.Shell import Shell
-from command.Base import Opt
+from command.Base import Base, Opt
 import copy
-class Todo():
+class Todo(Base):
+    help_summary = "记录、查看和完成待办事项。"
+    help_usage = "{tool_name} todo <子命令> [参数]"
+    help_options = {
+        "add": "新增待办；可用 -c 捕获命令输出",
+        "rm": "按序号或序号范围完成待办",
+        "show": "显示待办；show done 显示已完成",
+        "--help": "显示当前帮助",
+    }
+    help_examples = [
+        "hikrun todo add 修复补全",
+        "hikrun todo show",
+        "hikrun todo rm 0:2",
+    ]
+
     def __init__(self, args_list=None):
+        super().__init__(args_list)
         self.root_dir = os.getenv('SCRIPT_TOP_DIR')
-        self.__args_list = args_list or []
+        if isinstance(args_list, list):
+            self.__args_list = args_list
+        elif args_list:
+            self.__args_list = [args_list]
+        else:
+            self.__args_list = []
         self.todo_dic = { }
         self.option_dic = {
             'add' : self.add,
@@ -57,9 +77,10 @@ class Todo():
             if '-c' in text:
               start = text.index('-c')
               if start >= 0:
-                  c = Shell(text[start:]).exe().replace('\n','')
+                  c = Shell(' '.join(text[start + 1:])).exe().replace('\n', '')
                   del text[start:]
-                  text.append(c)
+                  if c:
+                      text.append(c)
             self.__write_json(self.__text(text))
             self.__add_gitlab("add todo")
     def show(self,serial:list):
@@ -134,7 +155,7 @@ class Todo():
     def _opt(self):
         return Opt(list(self.option_dic.keys()))
     def add_opt(self):
-        if self.cur[0] == '-':
+        if self.cur and self.cur[0] == '-':
             return Opt(['-c'])
         return Opt([])
       
@@ -142,4 +163,11 @@ class Todo():
         return Opt(['done'])
       
     def exec(self):
-        self.option_dic[self.__args_list[0]](self.__args_list[1:]) 
+        # 先处理公共帮助；未知子命令时显示帮助，避免 KeyError。
+        if self.should_show_help(self.__args_list):
+            self.help(self.__args_list[0] if self.__args_list and self.__args_list[0] in self.option_dic else None)
+            return
+        if not self.__args_list or self.__args_list[0] not in self.option_dic:
+            self.help()
+            return
+        self.option_dic[self.__args_list[0]](self.__args_list[1:])

@@ -7,7 +7,7 @@ class Compile:
         self.options = "options>"
         self.other = "other"
         self.main = "main"
-        self.root_dir = os.getenv('HIK_SCRIPT_TOP_DIR')
+        self.root_dir = os.getenv('HIK_SCRIPT_TOP_DIR') or os.getenv('SCRIPT_TOP_DIR') or os.getcwd()
         self.root_dir_len = len(self.root_dir)
         self.filepath = filepath
         self.filedir,self.filename = os.path.split(filepath)
