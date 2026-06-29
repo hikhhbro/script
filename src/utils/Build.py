@@ -74,7 +74,7 @@ class Build(Base):
 
     def __init__(self, args_list=None):
         super().__init__(args_list)
-        self.__args_list = args_list or ['']
+        self.__args_list = self.args
         self.projects_path = self.tool_dir + '/data/build/projects_dir'
         self.__history_project_file_dir = self.tool_dir + '/data/build/history_project/'
         self.__build_tpye_dir = self.tool_dir + '/src/template/build_tpye/'
@@ -102,10 +102,10 @@ class Build(Base):
         if self.build_dic:
             self.log_dir = "/home/hik/sub_ws/log/" + self.build_dic['project'] + '/'
         Log.debug(self.build_dic)
-        self.option_dic = {
+        self.set_commands({
             '--init': self.__init,
             '--sync-build-type':self.__sync_build_type
-        }
+        })
         self.build_cmd = {''
             "monking": self.monking,
             "aosp": self.aosp,
@@ -767,17 +767,10 @@ class Build(Base):
             self.build_cmd[self.__get_type()](arg)
 
     def exec(self):
-        # 先处理公共帮助，避免 --help 被当作构建目标触发探测。
-        if self.should_show_help(self.__args_list):
+        if not self.__args_list and not self.should_show_help(self.__args_list):
             self.help()
             return
-        if not self.__args_list:
-            self.help()
-            return
-        if self.__args_list[0] in self.option_dic.keys():
-            self.option_dic[self.__args_list[0]](self.__args_list[1:])
-        else:
-            self.__start_build(self.__args_list[0:])
+        return self.dispatch(self.__args_list, default=self.__start_build)
 
     def help(self, command=None):
         super().help(command)

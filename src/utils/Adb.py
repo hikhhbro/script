@@ -24,7 +24,7 @@ class Adb(Base):
 
     def __init__(self, args_list=None):
         super().__init__(args_list)
-        self.__args_list = args_list or ['']
+        self.__args_list = self.args
         self.todo_dic = { }
         self.pts = Shell('tty').exe().replace('\n','')
         self.rootdir = self.tool_dir + '/data/adb/'
@@ -43,7 +43,7 @@ class Adb(Base):
                 self.cur_dir = '/'
                 Shell('adb root && adb remount && adb disable-verity').exe()
             f.close()
-        self.option_dic = {
+        self.set_commands({
             'ls' : self.__ls,
             'cd' : self.__cd,
             'cp' : self.__cp,
@@ -53,7 +53,7 @@ class Adb(Base):
             'screen' : self.__screen,
             'push':self.__push,
             '' : self.__adb_shell
-        }
+        })
 
 
     
@@ -175,13 +175,17 @@ class Adb(Base):
         files = Shell('adb shell ls -F ' + arg[0:l]).exe()
         return self.__pase_file(files)
     def __screen(self,arg:list):
-        if arg[0] == self.screen_opt()[0]:
-            self.__adb_cmd('echo  \'1 > /sys/class/backlight/panel0-backlight/bl_power\'').exe()
-        elif  arg[0] == self.screen_opt()[1]:
-            self.__adb_cmd('echo  \'0 > /sys/class/backlight/panel0-backlight/bl_power\'').exe()
+        if not arg:
+            self.help('screen')
+            return
+        choices = self.__screen_choices()
+        if arg[0] == choices[0]:
+            self.__adb_cmd("echo  '1 > /sys/class/backlight/panel0-backlight/bl_power'").exe()
+        elif  arg[0] == choices[1]:
+            self.__adb_cmd("echo  '0 > /sys/class/backlight/panel0-backlight/bl_power'").exe()
 # adb 子命令补全选项
     def _opt(self):
-        return Opt([item for item in self.option_dic.keys() if item])
+        return super()._opt()
 # adb ls 补全选项
     def ls_opt(self):
         return Opt(self.__file())
@@ -202,11 +206,5 @@ class Adb(Base):
         return Opt(self.__screen_choices())
     
     def exec(self):
-        # 先处理公共帮助，再执行 adb 子命令；空命令默认进入 adb shell。
-        if self.should_show_help(self.__args_list):
-            self.help(self.__args_list[0] if self.__args_list and self.__args_list[0] in self.option_dic else None)
-            return
-        command = self.__args_list[0] if self.__args_list else ''
-        if command not in self.option_dic:
-            command = ''
-        self.option_dic[command](self.__args_list[1:] if self.__args_list else [])
+        # 空命令或未知命令默认进入 adb shell，保留原来的使用习惯。
+        return self.dispatch(self.__args_list, default=self.__adb_shell)

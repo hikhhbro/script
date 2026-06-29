@@ -33,13 +33,13 @@ class Movie(Base):
 
     def __init__(self, args_list=None):
         super().__init__(args_list)
-        self.__args_list = args_list or []
-        self.option_dic = {
+        self.__args_list = self.args
+        self.set_commands({
             "search": self.search,
             "sync": self.sync,
             "download": self.download,
             "show": self.show,
-        }
+        })
         
         self.web_dic = self.config.read(web)
         Log.debug(self.web_dic)
@@ -64,7 +64,7 @@ class Movie(Base):
 
     # 子命令补全提示方法
     def _opt(self):
-        return Opt(list(self.option_dic.keys()))
+        return super()._opt()
 
     def sync_opt(self):
         return Opt([])
@@ -74,10 +74,4 @@ class Movie(Base):
 
     # 执行方法
     def exec(self):
-        if self.should_show_help(self.__args_list):
-            self.help(self.__args_list[0] if self.__args_list and self.__args_list[0] in self.option_dic else None)
-            return
-        if len(self.__args_list) < 1 or self.__args_list[0] not in self.option_dic:
-            self.help()
-            return
-        self.option_dic[self.__args_list[0]](self.__args_list[1:])
+        return self.dispatch(self.__args_list)

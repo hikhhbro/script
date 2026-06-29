@@ -24,18 +24,13 @@ class Todo(Base):
     def __init__(self, args_list=None):
         super().__init__(args_list)
         self.root_dir = os.getenv('SCRIPT_TOP_DIR')
-        if isinstance(args_list, list):
-            self.__args_list = args_list
-        elif args_list:
-            self.__args_list = [args_list]
-        else:
-            self.__args_list = []
+        self.__args_list = self.args
         self.todo_dic = { }
-        self.option_dic = {
+        self.set_commands({
             'add' : self.add,
             'rm' : self.rm,
             'show' : self.show,
-        }
+        })
         self.todo_dir = self.root_dir + '/data/todo/'
         self.todo_file = self.todo_dir + 'todo_list.json'
         self.done_file = self.todo_dir + 'done_list.json'
@@ -153,7 +148,7 @@ class Todo(Base):
             self.__add_gitlab("rm todo")
 
     def _opt(self):
-        return Opt(list(self.option_dic.keys()))
+        return super()._opt()
     def add_opt(self):
         if self.cur and self.cur[0] == '-':
             return Opt(['-c'])
@@ -163,11 +158,4 @@ class Todo(Base):
         return Opt(['done'])
       
     def exec(self):
-        # 先处理公共帮助；未知子命令时显示帮助，避免 KeyError。
-        if self.should_show_help(self.__args_list):
-            self.help(self.__args_list[0] if self.__args_list and self.__args_list[0] in self.option_dic else None)
-            return
-        if not self.__args_list or self.__args_list[0] not in self.option_dic:
-            self.help()
-            return
-        self.option_dic[self.__args_list[0]](self.__args_list[1:])
+        return self.dispatch(self.__args_list)

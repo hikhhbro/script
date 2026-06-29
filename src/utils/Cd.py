@@ -14,7 +14,7 @@ class Cd(Base):
 
     def __init__(self, args_list=None):
         super().__init__(args_list)
-        self.__args_list = self.normalize_args(args_list)
+        self.__args_list = self.args
         self.add_dic = { }
 
     def __quote_against_shell_expansion(self,s):
@@ -40,5 +40,5 @@ class Cd(Base):
         self.__change_parent_process_directory(dir_prefix + self.__args_list[-1])
         
     def _opt(self):
-        curfile = CurFile(self.__args_list[-1])
-        return curfile.get_file_opt()
+        prefix = self.__args_list[-1] if self.__args_list else self.cur
+        return Opt(CurFile(prefix).get_file_opt())

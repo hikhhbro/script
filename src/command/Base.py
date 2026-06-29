@@ -91,9 +91,19 @@ class HelpMixin:
 
 
 class Base(HelpMixin, Arg):
+    """所有 Python 工具的公共基类。
+
+    新增工具时优先复用:
+      1. __init__ 里 super().__init__(args_list)
+      2. self.set_commands({"子命令": self.xxx})
+      3. 不需要特殊逻辑时直接继承 exec()
+    """
+
     def __init__(self, args_list: list = None, config_name="config.json"):
         super().__init__()
         self.args_list = self.normalize_args(args_list)
+        # args 是推荐的新入口；保留 args_list 兼容历史代码。
+        self.args = self.args_list
         self.tool_dir = os.getenv("SCRIPT_TOP_DIR") or os.getcwd()
         self.tool_name = os.getenv("SCRIPT_TOOL_NAME") or "hikrun"
         self.option_dic = {}
@@ -105,18 +115,73 @@ class Base(HelpMixin, Arg):
             self.config.write({})
         
     def _opt(self):
-        return Opt(list(self.option_dic.keys()))
+        return Opt(self.command_names())
+
+    def set_commands(self, commands=None, help_options=None):
+        """注册子命令表，并可同时补充 help 文案。
+
+        commands: {"命令名": 回调函数}
+        help_options: {"命令名": "中文说明"}
+        """
+        self.option_dic = dict(commands or {})
+        if help_options:
+            merged = dict(getattr(self, "help_options", {}) or {})
+            merged.update(help_options)
+            self.help_options = merged
+        return self.option_dic
+
+    def command_names(self, include_empty=False):
+        """返回可补全的子命令名；默认过滤空命令。"""
+        return [
+            name for name in self.option_dic.keys()
+            if include_empty or name
+        ]
+
+    def find_command(self, args=None):
+        """在参数中查找第一个已注册子命令。
+
+        默认只需第一个参数是子命令；Note 这类允许路径前缀的工具
+        可以用它复用同一套查找逻辑。
+        """
+        args = self.normalize_args(self.args if args is None else args)
+        for index, item in enumerate(args):
+            if item in self.option_dic:
+                return item, index
+        return None, -1
+
+    def dispatch(self, args=None, default=None, search_anywhere=False, show_help=True):
+        """公共命令分发入口。
+
+        default 传入函数时，未知子命令会交给 default(args) 处理；
+        search_anywhere=True 时，会在整个参数列表里寻找子命令。
+        """
+        args = self.normalize_args(self.args if args is None else args)
+        if self.should_show_help(args):
+            command, _ = self.find_command(args)
+            self.help(command)
+            return None
+
+        command = None
+        index = -1
+        if search_anywhere:
+            command, index = self.find_command(args)
+        elif args and args[0] in self.option_dic:
+            command, index = args[0], 0
+
+        if command is not None:
+            return self.option_dic[command](args[index + 1:])
+
+        if default is not None:
+            return default(args)
+
+        if show_help:
+            self.help()
+        return None
 
     def exec(self):
         """默认执行入口：先处理公共帮助，再分发到子命令。"""
-        args = self.args_list if self.args_list else self.arg_list[1:]
-        if self.should_show_help(args):
-            self.help(args[0] if args and args[0] in self.option_dic else None)
-            return
-        if not args or args[0] not in self.option_dic:
-            self.help()
-            return
-        self.option_dic[args[0]](args[1:])
+        args = self.args if self.args else self.arg_list[1:]
+        return self.dispatch(args)
 
 
 class Myclass:
@@ -180,9 +245,17 @@ class Opt:
         if opt:
             if isinstance(opt, list):
                 for item in opt:
-                    self.opt_type(item).append(item)
+                    self.add(item)
             else:
-                self.opt_type(opt).append(opt)
+                self.add(opt)
+
+    def add(self, opt):
+        """按选项类型添加补全项，并避免空项和重复项。"""
+        if not opt:
+            return
+        target = self.opt_type(opt)
+        if opt not in target:
+            target.append(opt)
 
     def get_long_opt(self):
         return self.opt["long"]

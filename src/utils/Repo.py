@@ -21,7 +21,7 @@ class Repo(Base):
 
     def __init__(self, args_list=None):
         super().__init__(args_list)
-        self.__args_list = args_list if isinstance(args_list, list) else ([] if not args_list else [args_list])
+        self.__args_list = self.args
         self.short_options = self.__args_list[2] if len(self.__args_list) > 2 else ''
         self.xml_project = []
         if len(self.__args_list) >= 2:

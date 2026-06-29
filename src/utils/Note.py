@@ -24,18 +24,13 @@ class Note(Base):
     ]
 
     def __init__(self, args_list=None):
-        super().__init__()
-        if isinstance(args_list, list):
-            self.__args_list = args_list
-        elif args_list:
-            self.__args_list = [args_list]
-        else:
-            self.__args_list = []
-        self.option_dic = {
+        super().__init__(args_list)
+        self.__args_list = self.args
+        self.set_commands({
             'code': self._code,
             'sync': self._sync,
             'init': self._init,
-        }
+        })
         self._load_note_root()
         Log.debug('Note init: args=%s note_root=%s' % (self.__args_list, self.note_root))
 
@@ -210,7 +205,7 @@ class Note(Base):
 
     def _opt(self):
         """顶层补全：只返回 code、sync、init 等子命令。"""
-        return Opt(list(self.option_dic.keys()))
+        return super()._opt()
 
     def code_opt(self):
         """code 后的路径补全：返回目录和文件用于导航。"""
@@ -245,23 +240,4 @@ class Note(Base):
     def exec(self):
         """分发 note 子命令，优先处理公共帮助。"""
         Log.debug('exec args=%s' % self.__args_list)
-        if self.should_show_help(self.__args_list):
-            command = self.__args_list[0] if self.__args_list and self.__args_list[0] in self.option_dic else None
-            self.help(command)
-            return
-
-        subcommand = None
-        subcommand_idx = -1
-        for i, arg in enumerate(self.__args_list):
-            if arg in self.option_dic:
-                subcommand = arg
-                subcommand_idx = i
-                break
-
-        if subcommand is None:
-            self.help()
-            return
-
-        Log.debug('exec dispatching to %s, sub_args=%s' % (subcommand, self.__args_list[subcommand_idx + 1:]))
-        sub_args = self.__args_list[subcommand_idx + 1:]
-        self.option_dic[subcommand](sub_args)
+        return self.dispatch(self.__args_list, search_anywhere=True)

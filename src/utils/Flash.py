@@ -64,7 +64,7 @@ class Flash(Base):
 
     def __init__(self, args_list=None):
         super().__init__(args_list)
-        self.__args_list = args_list or ['']
+        self.__args_list = self.args
         self.flash_dic = {}
         self.projects_path = self.tool_dir + '/data/build/projects_dir'
         self.projects_list = []

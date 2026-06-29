@@ -15,13 +15,13 @@ class Readcode(Base):
 
     def __init__(self, args_list=None):
         super().__init__(args_list)
-        self.__args_list = args_list or ['']
+        self.__args_list = self.args
         self.work_root = self.data_dir + 'readcode/'
         if not os.path.exists(self.work_root):
             os.makedirs(self.work_root, exist_ok=True)
-        self.option_dic = {
+        self.set_commands({
             '': self.__code
-        }
+        })
         self.file_suffix = '.java'
     def __get_language_file_suffix(self,line):
         tmp_list = list(line)
@@ -92,16 +92,10 @@ class Readcode(Base):
     
 
     def exec(self):
-        if self.should_show_help(self.__args_list):
+        if not self.__args_list and not self.should_show_help(self.__args_list):
             self.help()
             return
-        if not self.__args_list:
-            self.help()
-            return
-        if self.__args_list[0] in self.option_dic.keys():
-            self.option_dic[self.__args_list[0]](self.__args_list[1:])
-        else:
-            self.option_dic[""](self.__args_list[0:])
+        return self.dispatch(self.__args_list, default=self.option_dic[""])
 
 
 

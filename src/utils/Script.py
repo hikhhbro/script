@@ -22,13 +22,13 @@ class Script(Base):
     ]
 
     def __init__(self, args_list=None):
-        super().__init__()
-        self.option_dic = {
+        super().__init__(args_list)
+        self.set_commands({
             'readme' : self.__readme,
             'build' : self.__build,
             'rm' : self.__rm,
             'add' : self.__add,
-        }
+        })
         self.shell_dir = self.tool_dir + '/shell'
         self.company_shell_dir = self.tool_dir + '/shell/company'
     def __readme(self,text = None):
