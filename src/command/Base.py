@@ -242,7 +242,11 @@ class Opt:
         self.opt = {"long": ["--help"], "short": [], "sub": []}
         self.file_opt = file_opt
         self.retreat = ""
+        self.display_root = None
         if opt:
+            # 自动继承数据源的 display_root（如 CurFile 返回的 FileList）
+            if hasattr(opt, 'display_root'):
+                self.display_root = opt.display_root
             if isinstance(opt, list):
                 for item in opt:
                     self.add(item)

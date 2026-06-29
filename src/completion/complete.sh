@@ -61,15 +61,19 @@ _hikrun_print_display_list() {
     local count=$#
     local names=()
     local paths=()
-    local pair name source_path
+    local widths=()
+    local pair name rest source_path disp_width
     local max_len=0
 
     for pair in "$@"; do
         name="${pair%%=*}"
-        source_path="${pair#*=}"
+        rest="${pair#*=}"
+        source_path="${rest%:*}"
+        disp_width="${rest##*:}"
         names+=("$name")
         paths+=("$source_path")
-        (( ${#name} > max_len )) && max_len=${#name}
+        widths+=("$disp_width")
+        (( disp_width > max_len )) && max_len=$disp_width
     done
 
     local col_width=$((max_len + 2))
@@ -89,7 +93,7 @@ _hikrun_print_display_list() {
             colored="$(_hikrun_colored_text "$name" "${paths[idx]}")"
             out+="$colored"
             if (( col < cols - 1 )); then
-                pad=$((col_width - ${#name}))
+                pad=$((col_width - ${widths[idx]}))
                 printf -v spaces '%*s' "$pad" ''
                 out+="$spaces"
             fi

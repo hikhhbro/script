@@ -8,6 +8,15 @@ import CompTemp
 import types
 
 
+def _display_width(s):
+    """计算字符串的终端显示宽度（CJK 字符占 2 列）。"""
+    try:
+        import unicodedata
+        return sum(2 if unicodedata.east_asian_width(c) in ('W', 'F') else 1 for c in s)
+    except Exception:
+        return len(s)
+
+
 def get_python_tool_path(name):
     if not name:
         return None
@@ -46,7 +55,7 @@ def order_completion_items(out_list, app_list):
     return py_tools + dirs + shell_tools
 
 
-def print_display_meta(out_list, shell_prefix='', app_list=None):
+def print_display_meta(out_list, shell_prefix='', app_list=None, file_root=None):
     app_set = set(app_list or [])
     meta = []
     for item in out_list:
@@ -54,10 +63,24 @@ def print_display_meta(out_list, shell_prefix='', app_list=None):
             continue
         shell_item = item if '/' in item else shell_prefix + item
         path = get_shell_tool_path(shell_item)
-        if (not path or not os.path.exists(path)) and item in app_set:
+        if path and os.path.exists(path) and (
+            os.path.isdir(path) or CompTemp.CompTemp().get(item.rstrip('/')) is not False
+        ):
+            # 已确认的 shell 工具（目录或注册脚本）
+            pass  # path 已确定
+        elif item in app_set:
             path = get_python_tool_path(item)
-        if path and os.path.exists(path):
-            meta.append('%s=%s' % (item, path))
+            if not (path and os.path.exists(path)):
+                continue
+        elif file_root:
+            # 文件补全回退：用实际路径查找 ls 颜色（如 /ws/note/README.md）
+            path = os.path.join(file_root, item.rstrip('/'))
+            if not os.path.exists(path):
+                continue
+        else:
+            continue
+        # 附带终端显示宽度，bash 端用于正确对齐中英文混排
+        meta.append('%s=%s:%d' % (item, path, _display_width(item)))
     if meta:
         print(' '.join('_display_:' + item for item in meta))
 
@@ -181,7 +204,8 @@ if __name__ == '__main__':
         complete.out_list = out_list
     complete.set_out(out_list)
     if not opt.file_opt:
-        print_display_meta(out_list, get_shell_prefix(complete.asgs_list, complete.isend), app_list)
+        print_display_meta(out_list, get_shell_prefix(complete.asgs_list, complete.isend), app_list,
+                           file_root=getattr(opt, 'display_root', None))
     # 输出 Python 工具名作为颜色显示元数据。
     # 仅在真正顶层补全时输出，避免子命令路径被误判。
     asgs = sys.argv[1:-1]

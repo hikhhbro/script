@@ -1,6 +1,13 @@
 import os
 
 
+class FileList(list):
+    """带 display_root 的列表，Opt 初始化时可据此自动配置 ls 颜色显示。"""
+    def __init__(self, items, display_root):
+        super().__init__(items)
+        self.display_root = display_root
+
+
 class CurFile():
     def __init__(self, init_dir=None):
         self.__file_opt = []
@@ -25,6 +32,9 @@ class CurFile():
             for item in is_:
                 self.__file_opt = self.__file_opt + self.__dic_opt[item](root, dirs, files)
             break
+        # 统一排序：目录在前文件在后，各组内 locale 序
+        key = self._sort_key or (lambda x: x)
+        self.__file_opt.sort(key=lambda x: (not x.endswith('/'), key(x)))
 
     def __get_dir(self, postfix):
         index = postfix.rfind('/')
@@ -42,10 +52,22 @@ class CurFile():
         for item in exclude:
             if item in self.__file_opt:
                 self.__file_opt.remove(item)
-        return self.__file_opt
+        # display_root 指向实际搜索目录以便 bash 端查找 ls 颜色
+        target_dir = os.path.normpath(self.__cur_dir + postfix) if postfix else self.__cur_dir.rstrip('/')
+        return FileList(self.__file_opt, target_dir)
+
+    # 模块加载时初始化 locale 排序 key，与 ls 行为一致
+    try:
+        import locale
+        locale.setlocale(locale.LC_COLLATE, '')
+        _sort_key = locale.strxfrm
+    except Exception:
+        _sort_key = None
 
     def __all(self, root, dirs, files):
-        return files + self.__dir(root, dirs, files)
+        out = [f for f in files if not f.startswith('.')]
+        out += self.__dir(root, dirs, files)
+        return out
 
     def __looks_like_script(self, path, file):
         _, ext = os.path.splitext(file)
@@ -60,6 +82,8 @@ class CurFile():
     def __isexecutable(self, root, dirs, files):
         out = []
         for file in files:
+            if file.startswith('.'):
+                continue
             path = os.path.join(root, file)
             if (
                 os.path.isfile(path)

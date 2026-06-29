@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import os
+import re
 import shlex
 import Log
 from command.Shell import Shell
@@ -52,13 +53,28 @@ class Note(Base):
 
     # ---- Subcommand handlers ----
 
+    @staticmethod
+    def _next_number(parent_dir):
+        """返回 parent_dir 下可用的下一个 NN 序号（两位数）。"""
+        max_num = 0
+        if os.path.isdir(parent_dir):
+            try:
+                for item in os.listdir(parent_dir):
+                    m = re.match(r'^(\d+)-', item)
+                    if m:
+                        max_num = max(max_num, int(m.group(1)))
+            except OSError:
+                pass
+        return max_num + 1
+
     def _code(self, args):
-        """在笔记根目录创建或打开文件/目录。
+        """在笔记根目录创建或打开文件/目录，自动添加 NN- 序号前缀。
 
         路径直接写在参数里：
-          hikrun note code 公司/test     -> 创建 公司/test.md（自动补 .md）
-          hikrun note code 公司/test.md  -> 创建 公司/test.md（显式扩展名）
-          hikrun note code 公司/         -> 创建目录 公司/
+          hikrun note code 公司/test     -> 创建 公司/02-test.md（自动补 .md 和序号）
+          hikrun note code 公司/03-test  -> 直接使用已有序号，创建 公司/03-test.md
+          hikrun note code 公司/         -> 创建目录 公司/02-新目录/
+          hikrun note code newdir/       -> 创建顶层目录 15-newdir/
         """
         Log.debug('_code args=%s' % args)
 
@@ -72,6 +88,14 @@ class Note(Base):
         # 目录创建：路径以 / 结尾
         if target.endswith('/'):
             full_path = os.path.join(self.note_root, target)
+            full_path_norm = os.path.normpath(full_path)
+            parent_dir = os.path.dirname(full_path_norm)
+            basename = os.path.basename(full_path_norm)
+            # 自动补序号
+            if not re.match(r'^\d+-', basename):
+                num = self._next_number(parent_dir)
+                basename = '%02d-%s' % (num, basename)
+                full_path = os.path.join(parent_dir, basename) + '/'
             Log.debug('creating directory: %s' % full_path)
             Shell('mkdir -p ' + shlex.quote(full_path)).exec_system()
             Log.tips('Created directory: %s' % full_path)
@@ -79,13 +103,22 @@ class Note(Base):
 
         # 文件创建：文件名没有扩展名时自动补 .md
         if '/' in target:
-            basename = target.split('/')[-1]
+            dirname, basename = target.rsplit('/', 1)
         else:
-            basename = target
+            dirname, basename = '', target
         if '.' not in basename:
-            target = target + '.md'
-            Log.debug('auto .md: %s' % target)
+            basename = basename + '.md'
+            Log.debug('auto .md: %s' % basename)
 
+        # 自动补序号
+        name, ext = os.path.splitext(basename)
+        if not re.match(r'^\d+-', name):
+            parent_dir = os.path.join(self.note_root, dirname) if dirname else self.note_root
+            num = self._next_number(parent_dir)
+            basename = '%02d-%s%s' % (num, name, ext)
+            Log.debug('auto num: %s' % basename)
+
+        target = os.path.join(dirname, basename) if dirname else basename
         full_path = os.path.join(self.note_root, target)
         Log.debug('full_path=%s' % full_path)
 
@@ -208,7 +241,7 @@ class Note(Base):
         return super()._opt()
 
     def code_opt(self):
-        """code 后的路径补全：返回目录和文件用于导航。"""
+        """code 后的路径补全：返回目录和文件用于导航，自动带 ls 颜色效果。"""
         return Opt(CurFile(self.note_root).get_file_opt(self.cur))
 
     def sync_opt(self):
