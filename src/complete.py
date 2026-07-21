@@ -107,6 +107,11 @@ class Complete():
     def __matches(self, item, arg):
         return item.startswith(self.get_arg_prefix + arg)
 
+    def __with_prefix(self, item):
+        if not self.get_arg_prefix or item.startswith(self.get_arg_prefix):
+            return item
+        return self.get_arg_prefix + item
+
     def get_default_opt(self):
         if self.opt.get_sub_opt():
             if self.opt.file_opt:
@@ -120,7 +125,7 @@ class Complete():
         if not arg or arg[-1] =='/':
             r = self.get_default_opt()
             if len(r) == 1:
-                r[0] = self.get_arg_prefix + r[0] 
+                r[0] = self.__with_prefix(r[0])
             return r
 
         for item in self.opt.opt_type(arg):
@@ -129,7 +134,7 @@ class Complete():
                 self.out_list.append(item)
         if self.default_opt:
             self.out_list += [
-                self.get_arg_prefix + item for item in self.get_default_opt()
+                self.__with_prefix(item) for item in self.get_default_opt()
                 if item.startswith(arg)
             ]
         return self.out_list

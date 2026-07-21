@@ -37,10 +37,8 @@ class CurFile():
         self.__file_opt.sort(key=lambda x: (not x.endswith('/'), key(x)))
 
     def __get_dir(self, postfix):
-        index = postfix.rfind('/')
-        if index < 0:
-            return ''
-        return postfix[0:index + 1]
+        prefix, sep, _ = postfix.rpartition('/')
+        return prefix + sep
 
     def get_file_opt(self, postfix='', is_=None, exclude=None):
         exclude = exclude or []
@@ -49,11 +47,13 @@ class CurFile():
         else:
             postfix = self.__get_dir(postfix)
         self.__find_files(postfix, is_)
+        if postfix:
+            self.__file_opt = [postfix + item for item in self.__file_opt]
         for item in exclude:
             if item in self.__file_opt:
                 self.__file_opt.remove(item)
         # display_root 指向实际搜索目录以便 bash 端查找 ls 颜色
-        target_dir = os.path.normpath(self.__cur_dir + postfix) if postfix else self.__cur_dir.rstrip('/')
+        target_dir = self.__cur_dir.rstrip('/')
         return FileList(self.__file_opt, target_dir)
 
     @classmethod
