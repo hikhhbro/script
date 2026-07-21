@@ -19,6 +19,7 @@ class Note(Base):
         "--help": "显示当前帮助",
     }
     help_examples = [
+        "hikrun note code d03-工具-软件/f01-xxx.md",
         "hikrun note code 公司/test",
         "hikrun note sync github 更新笔记",
         "hikrun note init git@github.com:user/notes.git /ws/note",
@@ -54,13 +55,16 @@ class Note(Base):
     # ---- Subcommand handlers ----
 
     @staticmethod
-    def _next_number(parent_dir):
-        """返回 parent_dir 下可用的下一个 NN 序号（两位数）。"""
+    def _next_number(parent_dir, prefix):
+        """返回 parent_dir 下可用的下一个序号（两位数）。
+        prefix: 'd' 目录, 'f' 文件。
+        """
         max_num = 0
         if os.path.isdir(parent_dir):
             try:
+                pat = re.compile(r'^' + prefix + r'(\d+)-')
                 for item in os.listdir(parent_dir):
-                    m = re.match(r'^(\d+)-', item)
+                    m = pat.match(item)
                     if m:
                         max_num = max(max_num, int(m.group(1)))
             except OSError:
@@ -68,13 +72,15 @@ class Note(Base):
         return max_num + 1
 
     def _code(self, args):
-        """在笔记根目录创建或打开文件/目录，自动添加 NN- 序号前缀。
+        """在笔记根目录创建或打开文件/目录，自动添加 dNN-/fNN- 序号前缀。
+        d=目录(directory), f=文件(file)。
 
         路径直接写在参数里：
-          hikrun note code 公司/test     -> 创建 公司/02-test.md（自动补 .md 和序号）
-          hikrun note code 公司/03-test  -> 直接使用已有序号，创建 公司/03-test.md
-          hikrun note code 公司/         -> 创建目录 公司/02-新目录/
-          hikrun note code newdir/       -> 创建顶层目录 15-newdir/
+          hikrun note code 公司/test.md      -> 创建 公司/f02-test.md（自动补序号）
+          hikrun note code 公司/f03-test.md  -> 已有 fNN- 前缀，直接打开
+          hikrun note code 公司/             -> 创建目录 公司/d02-新目录/
+          hikrun note code newdir/           -> 创建顶层目录 d15-newdir/
+          hikrun note code d03-工具-软件/f01-xxx.md  -> 已有前后缀，直接打开
         """
         Log.debug('_code args=%s' % args)
 
@@ -91,10 +97,16 @@ class Note(Base):
             full_path_norm = os.path.normpath(full_path)
             parent_dir = os.path.dirname(full_path_norm)
             basename = os.path.basename(full_path_norm)
-            # 自动补序号
-            if not re.match(r'^\d+-', basename):
-                num = self._next_number(parent_dir)
-                basename = '%02d-%s' % (num, basename)
+            # 手动指定了 dNN- 或旧格式 NN- 则不再自动补
+            if not re.match(r'^d\d+-|^\d+-', basename):
+                num = self._next_number(parent_dir, 'd')
+                basename = 'd%02d-%s' % (num, basename)
+                full_path = os.path.join(parent_dir, basename) + '/'
+            elif re.match(r'^\d+-', basename):
+                # 旧格式 NN- → 新格式 dNN-
+                num = int(re.match(r'^(\d+)-', basename).group(1))
+                rest = re.sub(r'^\d+-', '', basename)
+                basename = 'd%02d-%s' % (num, rest)
                 full_path = os.path.join(parent_dir, basename) + '/'
             Log.debug('creating directory: %s' % full_path)
             Shell('mkdir -p ' + shlex.quote(full_path)).exec_system()
@@ -110,12 +122,19 @@ class Note(Base):
             basename = basename + '.md'
             Log.debug('auto .md: %s' % basename)
 
-        # 自动补序号
+        # 自动补文件序号（fNN-）或兼容旧格式（NN-）
         name, ext = os.path.splitext(basename)
-        if not re.match(r'^\d+-', name):
-            parent_dir = os.path.join(self.note_root, dirname) if dirname else self.note_root
-            num = self._next_number(parent_dir)
-            basename = '%02d-%s%s' % (num, name, ext)
+        parent_dir = os.path.join(self.note_root, dirname) if dirname else self.note_root
+        if not re.match(r'^f\d+-', name):
+            if re.match(r'^\d+-', name):
+                # 旧格式 NN- → 新格式 fNN-
+                num = int(re.match(r'^(\d+)-', name).group(1))
+                rest = re.sub(r'^\d+-', '', name)
+                basename = 'f%02d-%s%s' % (num, rest, ext)
+            else:
+                # 无序号 → 自动分配
+                num = self._next_number(parent_dir, 'f')
+                basename = 'f%02d-%s%s' % (num, name, ext)
             Log.debug('auto num: %s' % basename)
 
         target = os.path.join(dirname, basename) if dirname else basename
@@ -256,6 +275,34 @@ class Note(Base):
     def init_opt(self):
         """init 不做固定补全，URL 和路径自由输入。"""
         return Opt([])
+
+    def __sync_remotes(self):
+        try:
+            remotes = Shell('git -C %s remote' % shlex.quote(self.note_root)).exe().strip().split('\n')
+            return [r for r in remotes if r]
+        except Exception:
+            return []
+
+    def completion_spec(self):
+        def note_files(ctx):
+            prefix = ctx.current
+            if not prefix and ctx.prev() and ctx.prev() not in self.option_dic:
+                prefix = ctx.prev()
+            return CurFile(self.note_root).get_file_opt(prefix)
+
+        return {
+            'code': {
+                '_values': note_files,
+            },
+            'sync': {
+                '_values': self.__sync_remotes,
+                '_options': {
+                    '--default': self.__sync_remotes,
+                    '-d': self.__sync_remotes,
+                },
+            },
+            'init': {},
+        }
 
     def __getattr__(self, name):
         """动态路径补全：处理类似 公司/_opt 的查询。

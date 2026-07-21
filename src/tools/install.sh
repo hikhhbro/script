@@ -39,6 +39,26 @@ echo "卸载完成"
 fi
 echo "正在安装"
 
+init_tool_configs() {
+  local template_dir="${SCRIPT_TOP_DIR}/src/template/config"
+  if [[ ! -d "${template_dir}" ]]; then
+    return
+  fi
+  local template name data_dir target
+  for template in "${template_dir}"/*.json; do
+    [[ -f "${template}" ]] || continue
+    name="$(basename "${template}" .json)"
+    data_dir="${SCRIPT_TOP_DIR}/data/${name}"
+    target="${data_dir}/config.json"
+    mkdir -p "${data_dir}"
+    if [[ ! -s "${target}" ]] || [[ "$(tr -d '[:space:]' < "${target}")" == "{}" ]]; then
+      cp "${template}" "${target}"
+    fi
+  done
+}
+
+init_tool_configs
+
 
 sed -i '/SCRIPT_TOP_DIR/d'  ~/.bashrc
 sed -i '/SCRIPT_TOOL_NAME/d'  ~/.bashrc

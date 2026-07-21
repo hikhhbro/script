@@ -216,7 +216,7 @@ def run():
         # 顶层帮助只处理第一个参数，模块级 --help 交给对应模块。
         main(tmp_arg.arg_list[1:]).help()
         return
-    if CompTemp().get(tmp_arg.arg_list[0]):
+    if CompTemp().get(tmp_arg.arg_list[0]) is not False:
         exr_file = os.getenv('SCRIPT_TOP_DIR') + "/shell/" + tmp_arg.arg_list[0]
         if os.path.exists(exr_file):
             Shell().exec_script(exr_file, tmp_arg.arg_list[1:])

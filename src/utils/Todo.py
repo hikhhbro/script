@@ -156,6 +156,17 @@ class Todo(Base):
       
     def show_opt(self):
         return Opt(['done'])
+
+    def completion_spec(self):
+        return {
+            'add': {
+                '_options': {'-c': None},
+            },
+            'rm': {},
+            'show': {
+                '_values': ['done'],
+            },
+        }
       
     def exec(self):
         return self.dispatch(self.__args_list)

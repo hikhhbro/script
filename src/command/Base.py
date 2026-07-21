@@ -1,10 +1,157 @@
 import os
 import sys
 import copy
+import inspect
 from command.Shell import Shell
 from command.Listdirs import CurFile
 import importlib
 from command.Json import Json
+
+
+class CompletionContext:
+    """补全上下文：把 bash 传入的光标状态解析成可复用判断接口。
+
+    约定:
+      - words 是当前模块后的已确认参数，不包含正在输入的 current。
+      - current 是正在输入的半截 token；光标在空格后时为空字符串。
+      - isend 表示光标前是空格。
+    """
+
+    def __init__(self, argv=None, module_name=None, tool_name=None):
+        argv = list(argv if argv is not None else sys.argv)
+        self.raw_argv = list(argv)
+        self.tool_name = tool_name or os.getenv("SCRIPT_TOOL_NAME") or "hikrun"
+        self.module_name = module_name
+        self.isend = False
+        self.current = ""
+
+        if argv and argv[-1] in ["n", "y"]:
+            self.isend = argv[-1] == "y"
+            argv = argv[:-1]
+
+        if argv and argv[0].endswith(".py"):
+            argv = argv[1:]
+        if argv and (argv[0] == self.tool_name or argv[0].endswith("/" + self.tool_name)):
+            argv = argv[1:]
+        if self.module_name and argv and argv[0] == self.module_name:
+            argv = argv[1:]
+
+        if not self.isend and argv:
+            self.current = argv[-1]
+            argv = argv[:-1]
+
+        self.words = argv
+
+    def prev(self, offset=1, default=None):
+        if len(self.words) >= offset:
+            return self.words[-offset]
+        return default
+
+    def current_is_option(self):
+        return self.current.startswith("-")
+
+    def option_name_from_current(self):
+        if self.current.startswith("--") and "=" in self.current:
+            return self.current.split("=", 1)[0]
+        return self.current if self.current.startswith("-") else None
+
+    def value_option(self, option_values):
+        """返回当前正在补值的 option 名。
+
+        option_values 是 {"--name": provider_or_values}。支持:
+          --name <value>
+          --name=<value>
+        """
+        if not option_values:
+            return None
+        current_name = self.option_name_from_current()
+        if current_name in option_values and "=" in self.current:
+            return current_name
+        prev = self.prev()
+        if prev in option_values:
+            return prev
+        return None
+
+    def items(self, values=None, file_opt=False):
+        return Opt(values or [], file_opt)
+
+    def options(self, values=None):
+        opt = Opt([])
+        for item in values or []:
+            opt.add(item)
+        return opt
+
+    def values_for(self, option_values, option_name=None):
+        option_name = option_name or self.value_option(option_values)
+        provider = option_values.get(option_name) if option_name else None
+        values = self.call_provider(provider)
+        if self.current.startswith("--") and "=" in self.current and option_name:
+            opt = Opt([])
+            opt.set_long_opt([option_name + "=" + value for value in values])
+            return opt
+        return Opt(values)
+
+    def call_provider(self, provider):
+        if not callable(provider):
+            return provider or []
+        try:
+            if len(inspect.signature(provider).parameters) >= 1:
+                return provider(self) or []
+        except Exception:
+            pass
+        return provider() or []
+
+    def node_values(self, node):
+        values = node.get("_values")
+        if values is None:
+            return None
+        values = self.call_provider(values)
+        return Opt(values or [], node.get("_file_opt", False))
+
+    def complete_tree(self, tree, root_options=None):
+        """按声明式命令树补全。
+
+        tree 示例:
+        {
+          "usbipd": {
+            "_commands": {
+              "bind": {
+                "_options": {"--busid": busid_provider, "--force": None}
+              }
+            }
+          }
+        }
+        """
+        node = {"_commands": tree, "_options": root_options or {}}
+        index = 0
+        while index < len(self.words):
+            commands = node.get("_commands", {})
+            word = self.words[index]
+            if word.startswith("-"):
+                index += 1
+                continue
+            if word in commands:
+                node = commands[word] or {}
+                index += 1
+                continue
+            break
+
+        option_values = {
+            key: value for key, value in (node.get("_options", {}) or {}).items()
+            if value is not None
+        }
+        value_option = self.value_option(option_values)
+        if value_option:
+            return self.values_for(option_values, value_option)
+
+        if self.current_is_option():
+            return self.options(list((node.get("_options", {}) or {}).keys()))
+
+        values_opt = self.node_values(node)
+        if values_opt is not None:
+            return values_opt
+
+        return self.items(list((node.get("_commands", {}) or {}).keys()))
 
 class Arg:
     def __init__(self):
@@ -116,6 +263,23 @@ class Base(HelpMixin, Arg):
         
     def _opt(self):
         return Opt(self.command_names())
+
+    def completion_spec(self):
+        """声明式补全规格。
+
+        返回 None 时使用旧的 _opt/xxx_opt 机制；返回命令树时由框架统一处理
+        命令层级、option 名、option=value 和 option 后面的 value。
+        """
+        return None
+
+    def completion_root_options(self):
+        return {}
+
+    def complete(self, ctx):
+        spec = self.completion_spec()
+        if spec is None:
+            return None
+        return ctx.complete_tree(spec, root_options=self.completion_root_options())
 
     def set_commands(self, commands=None, help_options=None):
         """注册子命令表，并可同时补充 help 文案。

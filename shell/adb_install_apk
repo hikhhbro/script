@@ -1,0 +1,2 @@
+export ADB_SERVER_SOCKET=tcp:192.168.0.45:5038
+/home/hik/Android/Sdk/platform-tools/adb install -r /code/pt1001/android_h12/app/build/outputs/apk/debug/app-debug.apk

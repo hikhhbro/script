@@ -1,0 +1,36 @@
+{
+  "windows_cwd": "C:\\Windows\\System32",
+  "executables": {
+    "usbipd.exe": {
+      "candidates": [
+        "C:\\Program Files\\usbipd-win\\usbipd.exe",
+        "C:\\Program Files (x86)\\usbipd-win\\usbipd.exe"
+      ]
+    },
+    "gsudo.exe": {
+      "candidates": [
+        "C:\\Program Files\\gsudo\\Current\\gsudo.exe",
+        "C:\\Program Files\\gsudo\\*\\gsudo.exe",
+        "C:\\Program Files (x86)\\gsudo\\Current\\gsudo.exe",
+        "C:\\Program Files (x86)\\gsudo\\*\\gsudo.exe",
+        "C:\\Users\\*\\AppData\\Local\\Microsoft\\WinGet\\Links\\gsudo.exe",
+        "C:\\Users\\*\\AppData\\Local\\Programs\\gsudo\\Current\\gsudo.exe"
+      ]
+    },
+    "wsl.exe": {
+      "candidates": [
+        "C:\\Windows\\System32\\wsl.exe"
+      ]
+    },
+    "powershell.exe": {
+      "candidates": [
+        "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe"
+      ]
+    },
+    "pwsh.exe": {
+      "candidates": [
+        "C:\\Program Files\\PowerShell\\7\\pwsh.exe"
+      ]
+    }
+  }
+}

@@ -204,6 +204,19 @@ class Adb(Base):
 
     def screen_opt(self):
         return Opt(self.__screen_choices())
+
+    def completion_spec(self):
+        adb_files = self.__file
+        return {
+            'ls': {'_values': adb_files},
+            'cd': {'_values': adb_files},
+            'mv': {'_values': adb_files},
+            'code': {'_values': adb_files},
+            'screen': {'_values': self.__screen_choices},
+            'cp': {'_values': adb_files},
+            'pwd': {},
+            'push': {},
+        }
     
     def exec(self):
         # 空命令或未知命令默认进入 adb shell，保留原来的使用习惯。

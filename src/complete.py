@@ -2,7 +2,7 @@ import os
 import sys
 
 sys.path.append(os.getenv('SCRIPT_TOP_DIR')+"/src/command")
-from Base import Myclass , Opt
+from Base import Myclass , Opt, CompletionContext
 from Listdirs import CurFile
 import CompTemp
 import types
@@ -179,23 +179,25 @@ if __name__ == '__main__':
     myclass = Myclass()
     opt = Opt()
     module = myclass.get_class()
-    i = 1
     obj = module(myclass.arg.cur)
-    method = myclass.get_opname()
-    shield = ''
-    while method :
+    opt = obj.complete(CompletionContext(module_name=obj.module_name(), tool_name=os.getenv('SCRIPT_TOOL_NAME')))
+    if opt is None:
+        i = 1
+        method = myclass.get_opname()
+        shield = ''
+        while method :
+            f = getattr(obj, method + '_opt',None)
+            if not f:
+              shield = method
+              i = i+1
+              method = myclass.get_opname(i)
+            else :
+              break
         f = getattr(obj, method + '_opt',None)
-        if not f:
-          shield = method
-          i = i+1
-          method = myclass.get_opname(i)
-        else :
-          break
-    f = getattr(obj, method + '_opt',None)
-    opt = f()
-    if shield :
-      opt.retreat = shield
-      opt.shield_opt()
+        opt = f()
+        if shield :
+          opt.retreat = shield
+          opt.shield_opt()
     complete = Complete(opt)
     out_list = complete.get_opt(complete.get_last_input())
     app_list = obj._get_app() if hasattr(obj, '_get_app') else []
