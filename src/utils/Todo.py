@@ -4,13 +4,15 @@ import json
 import time
 import os
 from command.Shell import Shell
-from command.Base import Base, Opt
-import copy
+from command.Base import Base
+import Log
+
+
 class Todo(Base):
     help_summary = "记录、查看和完成待办事项。"
     help_usage = "{tool_name} todo <子命令> [参数]"
     help_options = {
-        "add": "新增待办；可用 -c 捕获命令输出",
+        "add": "新增待办；add 后面的所有参数会合并为一条文本",
         "rm": "按序号或序号范围完成待办",
         "show": "显示待办；show done 显示已完成",
         "--help": "显示当前帮助",
@@ -25,143 +27,144 @@ class Todo(Base):
         super().__init__(args_list)
         self.root_dir = os.getenv('SCRIPT_TOP_DIR')
         self.__args_list = self.args
-        self.todo_dic = { }
         self.set_commands({
-            'add' : self.add,
-            'rm' : self.rm,
-            'show' : self.show,
+            'add': self.add,
+            'rm': self.rm,
+            'show': self.show,
         })
-        self.todo_dir = self.root_dir + '/data/todo/'
-        self.todo_file = self.todo_dir + 'todo_list.json'
-        self.done_file = self.todo_dir + 'done_list.json'
-        if not os.path.exists(self.todo_file):
-            Shell('mkdir -p '+ self.todo_dir + "&& echo '{}'> %s" %(self.todo_file)).exec_system()
-        if not os.path.exists(self.done_file):
-            Shell('mkdir -p '+ self.todo_dir + "&& echo '{}'> %s" %(self.done_file)).exec_system()
-    def __write_json(self,text,w_file=None):
-        if not w_file:
-            w_file = self.todo_file
-        with open(w_file,encoding='utf-8') as rf:
-            json_data = json.load(rf)
-        if not json_data.__contains__(time.strftime("%Y/%m/%d")):
-            json_data[time.strftime("%Y/%m/%d")] = [text]
-        else :
-            json_data[time.strftime("%Y/%m/%d")].append(text)
-        with open(w_file, "w+",encoding='utf-8') as wf:
-            js = json.dumps(json_data,indent=1,ensure_ascii=False)
-            wf.write(js)
-    def __read_json(self):    
-        with open(self.todo_file,'r',encoding='utf-8') as rf:
-            json_data = json.load(rf)
-        return json_data
+        self.todo_dir = os.path.join(self.root_dir, 'data', 'todo')
+        self.todo_file = os.path.join(self.todo_dir, 'todo_list.json')
+        self.done_file = os.path.join(self.todo_dir, 'done_list.json')
+        self.__ensure_store()
+
+    def __today(self):
+        return time.strftime("%Y/%m/%d")
+
+    def __ensure_store(self):
+        os.makedirs(self.todo_dir, exist_ok=True)
+        for path in [self.todo_file, self.done_file]:
+            if not os.path.exists(path):
+                self.__save(path, {})
+
+    def __load(self, path):
+        with open(path, encoding='utf-8') as rf:
+            return json.load(rf)
+
+    def __save(self, path, data):
+        with open(path, "w+", encoding='utf-8') as wf:
+            json.dump(data, wf, indent=1, ensure_ascii=False)
+
+    def __todos(self):
+        return self.__load(self.todo_file)
+
+    def __done(self):
+        return self.__load(self.done_file)
+
+    def __append_item(self, path, text):
+        data = self.__load(path)
+        data.setdefault(self.__today(), []).append(text)
+        self.__save(path, data)
+
     def __init_git(self):
         git_remote = input("请输出远程仓库地址: ")
-        Shell('cd %s && git init  &&git remote add orgin %s' %(self.todo_dir,git_remote) ).exe()
-    def __add_gitlab(self,commit):
-        if not os.path.exists(self.todo_dir + '.git'):
-            print("此目录任不是git仓库，请初始化")
+        Shell.chain(cwd=self.todo_dir).git("init").git("remote", "add", "origin", git_remote).status()
+
+    def __commit_store(self, commit):
+        if not os.path.exists(os.path.join(self.todo_dir, '.git')):
+            Log.tips("此目录任不是git仓库，请初始化")
             self.__init_git()
             return
-        Shell('cd %s && git add . && git commit -m %s' %(self.todo_dir,commit) ).exe()
-        
-    def __text(self,text:list):
-        return ' '.join(text)
-    
-    def add(self,text):
-        if text:
-            if '-c' in text:
-              start = text.index('-c')
-              if start >= 0:
-                  c = Shell(' '.join(text[start + 1:])).exe().replace('\n', '')
-                  del text[start:]
-                  if c:
-                      text.append(c)
-            self.__write_json(self.__text(text))
-            self.__add_gitlab("add todo")
-    def show(self,serial:list):
-        print_serial = True
-        if serial and serial[0] == "done":
-            del serial[0]
-            print_serial = False
-            with open("%s" % (self.done_file)) as rf:
-                txt_dic = json.load(rf)
-        else:
-            txt_dic = self.__read_json()
-        prefix_i = 0
-        if not txt_dic.__contains__(' '.join(serial)):
-            for k,v in txt_dic.items():
-                print("\033[1;34m   %s\033[0m" % k)
-                for i in range(len(v)):
-                    print("%s%s" %((str(prefix_i)+": " if print_serial else ""),v[i]))
-                    prefix_i = prefix_i + 1
-        else :
-            print("\033[1;34m   %s\033[0m" % ' '.join(serial))
-            for i in range(len(txt_dic[' '.join(serial)])):
-                print("%s: %s" %(i,txt_dic[' '.join(serial)][i]))
-    def __get_rm_serial(self,serial:list):
-        r = {
-            "time" : [],
-            "serial":[]
+        Shell.chain(cwd=self.todo_dir).git("add", ".").git("commit", "-m", commit).status()
+
+    def __text(self, words):
+        return ' '.join(words).strip()
+
+    def __print_group(self, date, items, show_serial=True, start=0):
+        print("\033[1;34m   %s\033[0m" % date)
+        for offset, item in enumerate(items):
+            prefix = "%s: " % (start + offset) if show_serial else ""
+            print("%s%s" % (prefix, item))
+        return start + len(items)
+
+    def __parse_remove_targets(self, args):
+        targets = {
+            "dates": [],
+            "indexes": [],
         }
-        for item in serial:
+        for item in args:
             if '/' in item:
-                r["time"].append(item)
+                targets["dates"].append(item)
+            elif ':' in item:
+                start, end = item.split(':', 1)
+                targets["indexes"].extend(range(int(start), int(end) + 1))
             else:
-                if ':' in item:
-                    sp = item.find(':')
-                    start = int(item[0:sp])
-                    end = int(item[sp+1:])
-                    r["serial"] = r["serial"] + list(range(start,end+1))
-                else :
-                    r["serial"].append(int(item))
-        r["serial"] = list(set(r["serial"]))
-        r["serial"].sort()
-        return r
+                targets["indexes"].append(int(item))
+        targets["indexes"] = sorted(set(targets["indexes"]))
+        return targets
 
-    def remove_todo_item(self,txt_dic,index,range):
-        self.__write_json("["+index+"]: "+ txt_dic[index][range],self.done_file)
-        del txt_dic[index][range]
-    def rm(self,serial:list):
-        txt_dic = self.__read_json()
-        s = self.__get_rm_serial(serial)
-        prefix_i = 0
-        txt_dic_t = copy.deepcopy(txt_dic)
-        for k,v in txt_dic_t.items():
-            i_r=0
-            for i in range(len(v)):
-                if s["serial"]:
-                    if prefix_i in s["serial"]:
-                        self.remove_todo_item(txt_dic,k,i-i_r)
-                        i_r = i_r + 1
-                        if not txt_dic[k]:
-                            txt_dic.pop(k)
-                        s["serial"].remove(prefix_i)
-                        if not s["serial"]:
-                            break
-                    prefix_i = prefix_i + 1
+    def __take_removed(self, todos, targets):
+        removed = []
+        current = 0
+        dates = set(targets["dates"])
+        indexes = set(targets["indexes"])
+
+        for date, items in list(todos.items()):
+            kept = []
+            for item in items:
+                if date in dates or current in indexes:
+                    removed.append("[%s]: %s" % (date, item))
+                else:
+                    kept.append(item)
+                current += 1
+            if kept:
+                todos[date] = kept
             else:
-                continue
-            break
-        with open("%s" % (self.todo_file), "w+") as wf:
-            js = json.dumps(txt_dic,indent=1)
-            wf.write(js)
-            self.__add_gitlab("rm todo")
+                del todos[date]
+        return removed
 
-    def _opt(self):
-        return super()._opt()
-    def add_opt(self):
-        if self.cur and self.cur[0] == '-':
-            return Opt(['-c'])
-        return Opt([])
-      
-    def show_opt(self):
-        return Opt(['done'])
+    def __archive_removed(self, items):
+        for item in items:
+            self.__append_item(self.done_file, item)
+
+    def add(self, words):
+        text = self.__text(words)
+        if not text:
+            self.help('add')
+            return
+        self.__append_item(self.todo_file, text)
+        self.__commit_store("add todo")
+
+    def show(self, args):
+        show_done = bool(args and args[0] == "done")
+        query = self.__text(args[1:] if show_done else args)
+        data = self.__done() if show_done else self.__todos()
+        show_serial = not show_done
+
+        if query and query in data:
+            self.__print_group(query, data[query], show_serial)
+            return
+
+        index = 0
+        for date, items in data.items():
+            index = self.__print_group(date, items, show_serial, index)
+
+    def rm(self, args):
+        if not args:
+            self.help('rm')
+            return
+        todos = self.__todos()
+        targets = self.__parse_remove_targets(args)
+        removed = self.__take_removed(todos, targets)
+        if not removed:
+            Log.tips("没有匹配到需要完成的 todo")
+            return
+        self.__save(self.todo_file, todos)
+        self.__archive_removed(removed)
+        self.__commit_store("rm todo")
 
     def completion_spec(self):
         return {
-            'add': {
-                '_options': {'-c': None},
-            },
+            'add': {},
             'rm': {},
             'show': {
                 '_values': ['done'],

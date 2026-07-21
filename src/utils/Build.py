@@ -15,6 +15,7 @@ import time
 import itertools
 from datetime import datetime, timedelta
 import shutil 
+import shlex
 
 
 def components(path):
@@ -80,12 +81,12 @@ class Build(Base):
         self.__build_tpye_dir = self.tool_dir + '/src/template/build_tpye/'
         self.project_name = None
         if not os.path.exists(self.__history_project_file_dir):
-            Shell('mkdir -p ' + self.__history_project_file_dir).exec_system()
+            os.makedirs(self.__history_project_file_dir, exist_ok=True)
         self.__history_project_file_list = os.listdir(
             self.__history_project_file_dir)
         self.projects_list = []
         if not os.path.exists(self.tool_dir + '/data/build'):
-            Shell('mkdir -p ' + self.tool_dir + '/data/build').exec_system()
+            os.makedirs(self.tool_dir + '/data/build', exist_ok=True)
         if os.path.exists(self.projects_path):
             with open(self.projects_path) as f:
                 self.projects_list = json.load(f)
@@ -178,7 +179,7 @@ class Build(Base):
 # <---------- 自动探测 end ------->
 
     def __get_log_file(self,name,add_date=True) -> str:
-        Shell("mkdir -p %s" % (self.log_dir)).exec_system()
+        os.makedirs(self.log_dir, exist_ok=True)
         file_names = os.listdir(self.log_dir)
 
         # 删除10天前文件
@@ -235,8 +236,8 @@ class Build(Base):
         else:
             build_type = self.__probe_build_type()
             if not build_type:
-                print("无法探测编译类型,请使用 %s build init -t xxx 手动指定编译类型" %
-                      (self.tool_name))
+                Log.error("无法探测编译类型,请使用 %s build init -t xxx 手动指定编译类型" %
+                          (self.tool_name))
             else:
                 self.__init(["-t", build_type])
                 return build_type
@@ -308,41 +309,55 @@ class Build(Base):
 # <-----编译类型----->
 
     def monking(self, arg: list):
-        s = Shell()
-        s.input("cd %s" % (self.project_top_dir))
-        s.input("export MINACORE_TOP_DIR=%s/" % (self.project_top_dir))
+        s = Shell.session(cwd=self.project_top_dir)
+        s.bash("export MINACORE_TOP_DIR=%s/" % (self.project_top_dir))
         long_opt = self.__parsing_args(arg)
         if long_opt == "--toolchain" : 
             if not os.path.exists(self.project_top_dir + '/toolchain'):
-                Shell("mkdir -p %s" % (self.project_top_dir + '/toolchain')).exec_system()
-                Shell("%s toolchain --source_dir=%s --build_mode=debug --target_os=mi11 --install=%s/toolchain" %
-                    (self.build_dic["tool"][0],self.project_top_dir,self.project_top_dir)).exec_system()
+                Shell.mkdir(self.project_top_dir + '/toolchain').status()
+                Shell.cmd(
+                    self.build_dic["tool"][0],
+                    "toolchain",
+                    "--source_dir=%s" % self.project_top_dir,
+                    "--build_mode=debug",
+                    "--target_os=mi11",
+                    "--install=%s/toolchain" % self.project_top_dir,
+                ).status()
             if not os.path.exists(self.project_top_dir + '/.user-projects'):
-                user_projects_f_s = Shell()
-                user_projects_f_s.input("echo \"\"deps_download_dir: .depPackages\"\" >> %s/.user-projects " %(self.project_top_dir))
-                user_projects_f_s.input("echo \"\"default: sources\"\" >> %s/.user-projects " %(self.project_top_dir))
-                user_projects_f_s.exec_system()
+                with open(self.project_top_dir + '/.user-projects', 'a', encoding='utf-8') as f:
+                    f.write("deps_download_dir: .depPackages\n")
+                    f.write("default: sources\n")
             return 
         target,target_type = self.__get_build_targe(arg)
         if not os.path.exists(self.project_top_dir + '/out'):
-            s.input("%s init -C out --debug -p  %s --target-cpu=%s --sdk=%s/prebuilt/android-toolchain" %
-                    (self.build_dic["tool"][0],self.build_dic["project"], self.build_dic["cpu"], self.project_top_dir))
+            s.cmd(
+                self.build_dic["tool"][0],
+                "init",
+                "-C",
+                "out",
+                "--debug",
+                "-p",
+                self.build_dic["project"],
+                "--target-cpu=%s" % self.build_dic["cpu"],
+                "--sdk=%s/prebuilt/android-toolchain" % self.project_top_dir,
+            )
         
         if os.path.exists(self.project_top_dir + '/out/%s/internal/' %(self.build_dic['project']) + target + '/build.sh') and not self.force_buld:
-            s.input(self.project_top_dir + '/out/%s/internal/' %(self.build_dic['project']) + target + '/build.sh' )
+            s.cmd(self.project_top_dir + '/out/%s/internal/' %(self.build_dic['project']) + target + '/build.sh')
         else:
-            s.input("%s build -C out -p %s %s " %
-                    (self.build_dic["tool"][0],self.build_dic["project"], target))
-        s.exec_system()
+            cmd = [self.build_dic["tool"][0], "build", "-C", "out", "-p", self.build_dic["project"]]
+            if target:
+                cmd.append(target)
+            s.cmd(*cmd)
+        s.status()
 
 
     def aosp(self, arg: list):
         Log.debug("aosp")
-        Shell("mkdir -p %s" % (self.log_dir)).exec_system()
-        s = Shell()
-        s.input("cd %s" % (self.project_top_dir))
-        s.input("source build/envsetup.sh")
-        s.input("lunch %s-%s" %
+        os.makedirs(self.log_dir, exist_ok=True)
+        s = Shell.session(cwd=self.project_top_dir)
+        s.bash("source build/envsetup.sh")
+        s.bash("lunch %s-%s" %
                 (self.build_dic["project"], self.build_dic["mode"]))
         # Log.debug(matches)
         # Log.debug(file_names)
@@ -353,7 +368,7 @@ class Build(Base):
             times = time.time()
             local_time = time.localtime(times)
             Log.debug(self.log_dir)
-            s.input("%s dist -j16 | tee %s" %
+            s.bash("%s dist -j16 | tee %s" %
                     (self.build_dic["tool"][0], self.__get_log_file("full")))
         else:
             # if os.path.exists(self.cur_dir + '/' + 'Android.bp') or os.path.exists(self.cur_dir + '/' + 'Android.mk'):
@@ -361,17 +376,17 @@ class Build(Base):
             ninja_build_file = self.project_top_dir + \
                 "/out/combined-" + self.build_dic['project'] + ".ninja"
             if os.path.exists(ninja_bin) and os.path.exists(ninja_build_file) and not self.force_buld and target_type == 'module':
-                s.input("%s -f %s %s | tee %s" %
+                s.bash("%s -f %s %s | tee %s" %
                         (ninja_bin, ninja_build_file, target,self.__get_log_file("make",False)))
             elif target_type == 'module' or  self.force_buld :
-                s.input("make %s -j16  | tee %s " % (target,self.__get_log_file("make",False)))
+                s.bash("make %s -j16  | tee %s " % (target,self.__get_log_file("make",False)))
             elif target_type == 'dir' :
-                s.input("mmm %s | tee %s " % (target,self.__get_log_file("make",False)))
+                s.bash("mmm %s | tee %s " % (target,self.__get_log_file("make",False)))
             else:
                 Log.tips("编译类型不存在")
                     
 
-        s.exec_system()
+        s.status()
 
     def vela(self,arg: list):
         Log.debug("vela")
@@ -383,19 +398,17 @@ class Build(Base):
             ve=""
         build_opt_ = self.__parsing_args(arg)
         if build_opt_ == "--check" and self.build_dic_value("check_tool"):
-          s = Shell("cd %s " % (self.cur_dir))
-          s.input("git log --pretty=format:%h -n 2")
-          commits = s.exe('out')
+          commits = Shell.git(self.cur_dir, "log", "--pretty=format:%h", "-n", "2").stdout()
           commits = commits.splitlines()
           Log.debug(commits)
           check_tool =  self.project_top_dir + '/' + self.build_dic_value("check_tool")
-          Shell("%s -g %s %s" %(check_tool,commits[0],commits[1])).exec_system()
+          Shell.cmd(check_tool, "-g", commits[0], commits[1]).status()
           exit(1)  
         if build_opt_ == "pack":
           pack = build_opt_
           build_opt_ = ""
         
-        Shell("mkdir -p %s" % (self.log_dir)).exec_system()
+        os.makedirs(self.log_dir, exist_ok=True)
         Log.debug(arg)
         projects = list(set(arg) & set(self.build_dic["projects"]))
         Log.debug(projects)
@@ -408,20 +421,19 @@ class Build(Base):
           projects = projects[0]
 
         Log.debug(projects)
-        s = Shell()
-        s.input("cd %s" % (self.project_top_dir))
-        s.input(self.config_env())
+        s = Shell.session(cwd=self.project_top_dir)
+        s.bash(self.config_env())
         
         if projects == "all":
           for i in range(0,len(self.build_dic["projects"]) -1 ):
-            s.input("%s vendor/%s/boards/%s %s -j 20 %s" % (self.build_dic["tool"][0],self.build_dic["project"],self.build_dic_value("configs_path") + self.build_dic["projects"][i],build_opt_,ve))
+            s.bash("%s vendor/%s/boards/%s %s -j 20 %s" % (self.build_dic["tool"][0],self.build_dic["project"],self.build_dic_value("configs_path") + self.build_dic["projects"][i],build_opt_,ve))
         else:
-          s.input("%s vendor/%s/boards/%s %s -j 20 %s" % (self.build_dic["tool"][0],self.build_dic["project"],self.build_dic_value("configs_path") + projects,build_opt_,ve))
+          s.bash("%s vendor/%s/boards/%s %s -j 20 %s" % (self.build_dic["tool"][0],self.build_dic["project"],self.build_dic_value("configs_path") + projects,build_opt_,ve))
   
-        s.exec_system()
+        s.status()
         
         if self.build_dic_value("pack_tool") and pack == "pack" :
-            Shell("cd %s && %s" % (self.project_top_dir,self.build_dic["pack_tool"])).exec_system()
+            Shell.bash(self.build_dic["pack_tool"], cwd=self.project_top_dir).status()
         
         compile_commands = self.project_top_dir + '/' + "compile_commands/";
         if os.path.exists(compile_commands):  
@@ -552,7 +564,7 @@ class Build(Base):
 
     def __generate_project_file(self):
         tmp_dic = {}
-        print(self.project_top_dir)
+        Log.tips(self.project_top_dir)
         if os.path.exists(self.project_top_dir + '/.build.' + os.getenv("SCRIPT_TOOL_NAME")):
             with open(self.project_top_dir + '/.build.' + os.getenv("SCRIPT_TOOL_NAME")) as f:
                 tmp_dic = json.load(f)
@@ -564,20 +576,19 @@ class Build(Base):
             f.write(js)
 
     def __download(self):
-        s = Shell()
-        branch = ""
-        xml = ""
+        cmd = ["repo", "init", "-u", self.build_dic["url"]]
         if self.build_dic["branch"] :
-          branch = "-b " + self.build_dic["branch"]
+          cmd.extend(["-b", self.build_dic["branch"]])
         if self.build_dic["xml"]:
-          xml = "-m " + self.build_dic["xml"]
-        s.input_and_echo("repo init -u %s %s %s %s" %
-                         (self.build_dic["url"], branch, xml ,self.build_dic["repo_tool"]))
-        if s.exec_system() != 0:
+          cmd.extend(["-m", self.build_dic["xml"]])
+        if self.build_dic["repo_tool"]:
+          cmd.extend(shlex.split(self.build_dic["repo_tool"]))
+        Log.tips(Shell.format(cmd))
+        if Shell.cmd(*cmd).status() != 0:
             Log.tips("repo init 失败")
             exit()
-        s.input_and_echo("repo sync -j32 -d -c --no-tag")
-        if s.exec_system() != 0:
+        Log.tips("repo sync -j32 -d -c --no-tag")
+        if Shell.cmd("repo", "sync", "-j32", "-d", "-c", "--no-tag").status() != 0:
             Log.tips("repo sync 失败")
             exit()
 
@@ -661,7 +672,7 @@ class Build(Base):
       Log.debug(self.build_dic["project"])
       tmp_str = tmp_str[end+len("boards/")+1:]
       Log.debug(tmp_str)
-      
+
       end = tmp_str.rfind("/")
       self.build_dic["configs_path"] = tmp_str[:end+1]
       Log.debug(self.build_dic["configs_path"])
@@ -777,7 +788,7 @@ class Build(Base):
 
 
     def __get_history(self):
-        return ["com.android.wifi","com.android.tethering","services","framework-minus-apex"] 
+        return ["com.android.wifi","com.android.tethering","services","framework-minus-apex"]
 
     def _opt(self):
         if self.build_dic_value("type") == "vela":
@@ -785,4 +796,3 @@ class Build(Base):
         elif not self.build_dic:
             return Opt(['--init'],False)
         return Opt(self.__get_history(),True)
-      

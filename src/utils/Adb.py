@@ -1,6 +1,7 @@
 import os
 from command.Shell import Shell
 from command.Base import Base, Opt
+import Log
 
 class Adb(Base):
     help_summary = "在 adb shell 上执行常用文件、目录和屏幕操作。"
@@ -26,13 +27,12 @@ class Adb(Base):
         super().__init__(args_list)
         self.__args_list = self.args
         self.todo_dic = { }
-        self.pts = Shell('tty').exe().replace('\n','')
+        self.pts = Shell.cmd('tty').stdout().replace('\n','')
         self.rootdir = self.tool_dir + '/data/adb/'
         self.sign = ['@','*']
-        self.shell = 'adb shell '
         self.pst_root = self.rootdir + '.pst'
         if not os.path.exists(self.pst_root + self.pts[:self.pts.rfind('/')]):
-            Shell('mkdir -p '+ self.pst_root + self.pts[:self.pts.rfind('/')]).exec_system()
+            Shell.mkdir(self.pst_root + self.pts[:self.pts.rfind('/')]).status()
         if os.path.exists(self.pst_root + self.pts):
             with open(self.pst_root + self.pts, "r", encoding='UTF-8')as f:
                 self.cur_dir = f.readline()
@@ -41,7 +41,7 @@ class Adb(Base):
             with open(self.pst_root + self.pts, "w",encoding='UTF-8') as f:
                 f.write('/')
                 self.cur_dir = '/'
-                Shell('adb root && adb remount && adb disable-verity').exe()
+                self.__adb_root().status()
             f.close()
         self.set_commands({
             'ls' : self.__ls,
@@ -66,15 +66,25 @@ class Adb(Base):
                 out.append(file_list[i][:-1])
             else :
                 out.append(file_list[i])
-        print('\t'.join(out))
+        Log.tips('\t'.join(out))
+
+    def __adb_root(self):
+        return Shell.chain().cmd('adb', 'root').cmd('adb', 'remount').cmd('adb', 'disable-verity')
     
     def __adb_cmd(self,cmd:str):
-        status = Shell("adb root").exe("err")
-        if not status :
-            return Shell(self.shell + cmd)
-        else :
-            print(status)
-            return Shell()
+        status = Shell.cmd('adb', 'root').stderr()
+        if status:
+            Log.error(status.strip())
+            return None
+        return Shell.cmd('adb', 'shell', cmd)
+
+    def __adb_stdout(self, cmd):
+        adb = self.__adb_cmd(cmd)
+        return adb.stdout() if adb else ''
+
+    def __adb_status(self, cmd):
+        adb = self.__adb_cmd(cmd)
+        return adb.status() if adb else 1
     def __adb_dest_file(self, f):
         return f.replace('/', '#')
 
@@ -82,16 +92,16 @@ class Adb(Base):
         return f.replace('#', '/')
       
     def __pwd(self,arg:list):
-        print(self.cur_dir)
+        Log.tips(self.cur_dir)
     def __ls(self,arg:list):
         sub=''
         if not arg: 
             arg = ["/"]
         if arg[0][0] == '-':
             sub=arg[0]
-        self.__pase_out(self.__adb_cmd('ls -F %s %s' %(sub,self.cur_dir + arg[-1])).exe())
+        self.__pase_out(self.__adb_stdout('ls -F %s %s' %(sub,self.cur_dir + arg[-1])))
     def __cd(self,arg:list):
-        self.cur_dir = self.__adb_cmd('cd "%s && pwd"' %arg[-1]).exe().replace('\n','')
+        self.cur_dir = self.__adb_stdout('cd %s && pwd' % Shell.format([arg[-1]])).replace('\n','')
         with open(self.pst_root + self.pts, "w",encoding='UTF-8') as f:
             f.write(self.cur_dir)
         f.close()
@@ -104,7 +114,7 @@ class Adb(Base):
             src_prefix = ''
         elif arg[-2][0] != '/' :
               src_prefix  = self.cur_dir + '/'
-        self.__adb_cmd('cp %s %s' %(src_prefix + arg[-2],dest_prefix + arg[-1])).exe()
+        self.__adb_status('cp %s %s' %(src_prefix + arg[-2],dest_prefix + arg[-1]))
 
     def __mv(self,arg:list):
         if arg[-1][0] == '/':
@@ -115,7 +125,7 @@ class Adb(Base):
             src_prefix = ''
         elif arg[-2][0] != '/' :
               src_prefix  = self.cur_dir + '/'
-        self.__adb_cmd('mv %s %s' %(src_prefix + arg[-2],dest_prefix + arg[-1])).exe()
+        self.__adb_status('mv %s %s' %(src_prefix + arg[-2],dest_prefix + arg[-1]))
         pass
 
     def __code(self, arg:list):
@@ -125,23 +135,14 @@ class Adb(Base):
             srcfile = arg[-1]
         dire = self.rootdir  + srcfile
         if not os.path.exists(dire[:dire.rfind('/')]):
-            Shell('mkdir -p '+ dire[:dire.rfind('/')] ).exec_system()
-        s = Shell()
-        s.input('adb root')
-        s.input('adb remount')
-        s.input('adb disable-verity')
-        s.input('adb pull ' + srcfile + ' ' + dire)
-        s.input('code -w ' + dire)
-        s.exec_system()
-        s.input('adb push ' + dire + ' ' + srcfile )
-        s.exec_system()
+            Shell.mkdir(dire[:dire.rfind('/')]).status()
+        self.__adb_root() \
+            .cmd('adb', 'pull', srcfile, dire) \
+            .cmd('code', '-w', dire) \
+            .cmd('adb', 'push', dire, srcfile) \
+            .status()
     def __adb_shell(self, arg:list):
-        s = Shell()
-        s.input('adb root')
-        s.input('adb remount')
-        s.input('adb disable-verity')
-        s.input('adb shell')
-        s.exec_system()
+        self.__adb_root().cmd('adb', 'shell').status()
     def __push(self, arg:list):
         if arg[-1][0] == '/':
               cur_dir = arg[-1][0]
@@ -150,7 +151,7 @@ class Adb(Base):
         for parent, dirnames, filenames in os.walk(cur_dir):
             for dirname in dirnames:
                 dir_path = os.path.join(parent, dirname)
-                Shell()
+                Log.debug(dir_path)
 
 # 补全：adb 文件补全
     def __pase_file(self,out_file:str):
@@ -172,7 +173,7 @@ class Adb(Base):
         l = arg.rfind('/')
         if l == -1 :
             arg = '/'
-        files = Shell('adb shell ls -F ' + arg[0:l]).exe()
+        files = Shell.cmd('adb', 'shell', 'ls -F ' + arg[0:l]).stdout()
         return self.__pase_file(files)
     def __screen(self,arg:list):
         if not arg:
@@ -180,9 +181,9 @@ class Adb(Base):
             return
         choices = self.__screen_choices()
         if arg[0] == choices[0]:
-            self.__adb_cmd("echo  '1 > /sys/class/backlight/panel0-backlight/bl_power'").exe()
+            self.__adb_status("echo  '1 > /sys/class/backlight/panel0-backlight/bl_power'")
         elif  arg[0] == choices[1]:
-            self.__adb_cmd("echo  '0 > /sys/class/backlight/panel0-backlight/bl_power'").exe()
+            self.__adb_status("echo  '0 > /sys/class/backlight/panel0-backlight/bl_power'")
 # adb 子命令补全选项
     def _opt(self):
         return super()._opt()

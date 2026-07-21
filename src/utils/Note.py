@@ -2,7 +2,6 @@
 
 import os
 import re
-import shlex
 import Log
 from command.Shell import Shell
 from command.Base import Base, Opt
@@ -109,7 +108,7 @@ class Note(Base):
                 basename = 'd%02d-%s' % (num, rest)
                 full_path = os.path.join(parent_dir, basename) + '/'
             Log.debug('creating directory: %s' % full_path)
-            Shell('mkdir -p ' + shlex.quote(full_path)).exec_system()
+            Shell.mkdir(full_path).status()
             Log.tips('Created directory: %s' % full_path)
             return
 
@@ -144,9 +143,9 @@ class Note(Base):
         dir_part = os.path.dirname(full_path)
         if not os.path.exists(dir_part):
             Log.debug('mkdir -p %s' % dir_part)
-            Shell('mkdir -p ' + shlex.quote(dir_part)).exe()
+            Shell.mkdir(dir_part).status()
 
-        Shell('code ' + shlex.quote(full_path)).exec_system()
+        Shell.code(full_path).status()
 
     def _sync(self, args):
         """在笔记根目录执行 git add、commit、push。
@@ -166,7 +165,7 @@ class Note(Base):
 
         # 获取已配置的远端列表
         try:
-            known = Shell('git -C %s remote' % shlex.quote(self.note_root)).exe().strip().split('\n')
+            known = Shell.git(self.note_root, 'remote').stdout().strip().split('\n')
             known = [r for r in known if r]  # 过滤空行
         except Exception:
             known = []
@@ -210,10 +209,11 @@ class Note(Base):
             Log.debug('first sync, saving default_remote=%s' % remote)
             Log.tips('Default remote set to: %s' % remote)
 
-        Shell(
-            'cd %s && git add . && git commit -m %s && git push %s'
-            % (shlex.quote(self.note_root), shlex.quote(message), shlex.quote(remote))
-        ).exec_system()
+        Shell.chain(cwd=self.note_root) \
+            .git('add', '.') \
+            .git('commit', '-m', message) \
+            .git('push', remote) \
+            .status()
 
     def _init(self, args):
         """克隆远端笔记仓库，并设置为笔记根目录。
@@ -236,7 +236,7 @@ class Note(Base):
         if os.path.exists(target_path):
             if os.path.exists(os.path.join(target_path, '.git')):
                 Log.tips('Directory exists and is a git repo, pulling...')
-                Shell('cd %s && git pull' % shlex.quote(target_path)).exec_system()
+                Shell.git(target_path, 'pull').status()
             else:
                 Log.error('path exists but is not a git repository')
                 return
@@ -244,9 +244,9 @@ class Note(Base):
             parent_dir = os.path.dirname(target_path)
             if not os.path.exists(parent_dir):
                 Log.debug('mkdir -p %s' % parent_dir)
-                Shell('mkdir -p ' + shlex.quote(parent_dir)).exe()
+                Shell.mkdir(parent_dir).status()
             Log.tips('Cloning %s -> %s ...' % (remote_url, target_path))
-            Shell('git clone %s %s' % (shlex.quote(remote_url), shlex.quote(target_path))).exec_system()
+            Shell.cmd('git', 'clone', remote_url, target_path).status()
 
         self.note_root = target_path
         self.config.write({'note_root': target_path})
@@ -266,7 +266,7 @@ class Note(Base):
     def sync_opt(self):
         """sync 补全：已知远端和 --default/-d。"""
         try:
-            remotes = Shell('git -C %s remote' % shlex.quote(self.note_root)).exe().strip().split('\n')
+            remotes = Shell.git(self.note_root, 'remote').stdout().strip().split('\n')
             remotes = [r for r in remotes if r]
         except Exception:
             remotes = []
@@ -278,7 +278,7 @@ class Note(Base):
 
     def __sync_remotes(self):
         try:
-            remotes = Shell('git -C %s remote' % shlex.quote(self.note_root)).exe().strip().split('\n')
+            remotes = Shell.git(self.note_root, 'remote').stdout().strip().split('\n')
             return [r for r in remotes if r]
         except Exception:
             return []

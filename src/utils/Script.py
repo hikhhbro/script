@@ -1,5 +1,5 @@
 import os
-import shlex
+import Log
 from command.Shell import Shell
 from command.CompTemp import CompTemp
 from command.Listdirs import CurFile
@@ -32,8 +32,8 @@ class Script(Base):
         self.shell_dir = self.tool_dir + '/shell'
         self.company_shell_dir = self.tool_dir + '/shell/company'
     def __readme(self,text = None):
-        Shell('code -w %s' % shlex.quote(os.path.join(self.tool_dir, 'README.md'))).exe()
-        Shell('cd %s && git add README.md && git commit -m %s' % (shlex.quote(self.tool_dir), shlex.quote('更新READEME'))).exe()
+        Shell.code(os.path.join(self.tool_dir, 'README.md'), wait=True).status()
+        Shell.chain(cwd=self.tool_dir).git('add', 'README.md').git('commit', '-m', '更新READEME').status()
     
     def __build(self,text = None):
         dir_opt = CurFile(self.shell_dir).get_file_opt(is_ = ["exe_file"])
@@ -49,23 +49,16 @@ class Script(Base):
         dst = '%s/.resycle/%s' % (self.shell_dir, target)
 
         if not os.path.exists(src):
-            print("文件不存在: %s" % target)
+            Log.error("文件不存在: %s" % target)
             return
 
-        s = Shell()
-        s.input('mkdir -p %s' % shlex.quote(dst_dir))
-        s.input('mv %s %s' % (shlex.quote(src), shlex.quote(dst)))
-        if s.exe() == '':
+        if Shell.chain().mkdir(dst_dir).cmd('mv', src, dst).status() == 0:
             CompTemp().delete([target])
         else:
-            print("删除失败: %s" % target)
+            Log.error("删除失败: %s" % target)
     def __add(self,text = None):
-        s = Shell()
         target = os.path.join(self.shell_dir, text[-1])
-        s.input('touch %s' % shlex.quote(target))
-        s.input('code %s' % shlex.quote(target))
-        s.input('chmod 777 %s' % shlex.quote(target))
-        s.exe()
+        Shell.chain().cmd('touch', target).cmd('code', target).cmd('chmod', '777', target).status()
         CompTemp().set([text[-1]])
         
     def add_opt(self):
@@ -73,4 +66,3 @@ class Script(Base):
 
     def rm_opt(self):
         return self.add_opt()
-

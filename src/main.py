@@ -45,12 +45,10 @@ class Code():
 
     def __code_file(self, f):
         if os.path.isfile(f):
-            Shell('code ' + f).exe()
+            Shell.code(f).status()
+            return
 
-        s = Shell()
-        s.input('cp ' + root_dir + '/' + '.template ' + f)
-        s.input("code " + f)
-        s.exe()
+        Shell.chain().cmd('cp', os.path.join(root_dir, '.template'), f).cmd('code', f).status()
 
     def __company_file(self, args_list):
         f = root_dir + '/' + 'company/' + ''.join(args_list[-1])
@@ -82,15 +80,14 @@ class Code():
     def __adb_file(self, args_list):
         srcfile = ''.join(args_list[-1])
         dire = root_dir + '/adb_file/' + self.__adb_dest_file(srcfile)
-        s = Shell()
-        s.input('adb root')
-        s.input('adb remount')
-        s.input('adb disable-verity')
-        s.input('adb pull ' + srcfile + ' ' + dire)
-        s.input('code -w ' + dire)
-        s.exec_system()
-        s.input('adb push ' + dire + ' ' + srcfile )
-        s.exec_system()
+        Shell.chain() \
+            .cmd('adb', 'root') \
+            .cmd('adb', 'remount') \
+            .cmd('adb', 'disable-verity') \
+            .cmd('adb', 'pull', srcfile, dire) \
+            .cmd('code', '-w', dire) \
+            .cmd('adb', 'push', dire, srcfile) \
+            .status()
 
 
     def run(self):
@@ -113,21 +110,21 @@ class Rm():
         f = root_dir + '/' + dir_tmp + ''.join(self.__args_list[-1])
         resycle = root_dir + '/' + dir_tmp + \
             '.resycle/' + ''.join(self.__args_list[-1])
-        Shell('mv ' + f + ' ' + resycle).exe()
+        Shell.cmd('mv', f, resycle).status()
 
 class Git():
     def __init__(self, args_list=None):
         self.__args_list = args_list or []
         self.add_dic = { }
     def __find_git(self):
-        return  True if Shell('git rev-parse --is-inside-work-tree').exe() == 'true\n' else False
+        return Shell.cmd('git', 'rev-parse', '--is-inside-work-tree').stdout() == 'true\n'
     def __get_path(self):
-        return Shell('pwd').exe()[:-1]
+        return os.getcwd()
 
     def __get_remote(self):
-        return Shell('git remote -v').exe().split('\n')[0]
+        return Shell.cmd('git', 'remote', '-v').stdout().split('\n')[0]
     def __get_branch(self):
-        return Shell(r"git branch | sed -n '/\* /s///p'").exe()[:-1]
+        return Shell.bash(r"git branch | sed -n '/\* /s///p'").stdout()[:-1]
 
 
     def add(self):
@@ -219,7 +216,7 @@ def run():
     if CompTemp().get(tmp_arg.arg_list[0]) is not False:
         exr_file = os.getenv('SCRIPT_TOP_DIR') + "/shell/" + tmp_arg.arg_list[0]
         if os.path.exists(exr_file):
-            Shell().exec_script(exr_file, tmp_arg.arg_list[1:])
+            Shell.cmd(exr_file, *tmp_arg.arg_list[1:]).status()
     else:
         myclass = Myclass()
         module = myclass.get_sub_tool()
@@ -229,5 +226,3 @@ if __name__ == '__main__':
     run()
     # ds =  main()
     # ds.get_app()
-
-

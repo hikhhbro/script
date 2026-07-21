@@ -86,7 +86,7 @@ class Readcode(Base):
         file_list = self.__parse_file(arg[0])
         files = self.__get_files(file_list)
         if files:
-            Shell("code %s" % (' '.join(files))).exec_system()
+            Shell.code(*files).status()
             
         
     
@@ -96,6 +96,5 @@ class Readcode(Base):
             self.help()
             return
         return self.dispatch(self.__args_list, default=self.option_dic[""])
-
 
 
