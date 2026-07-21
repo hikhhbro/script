@@ -29,14 +29,14 @@ class Script(Base):
             'rm' : self.__rm,
             'add' : self.__add,
         })
-        self.shell_dir = self.tool_dir + '/shell'
-        self.company_shell_dir = self.tool_dir + '/shell/company'
+        self.shell_dir = self.tool_path('shell')
+        self.company_shell_dir = self.tool_path('shell', 'company')
     def __readme(self,text = None):
         Shell.code(os.path.join(self.tool_dir, 'README.md'), wait=True).status()
         Shell.chain(cwd=self.tool_dir).git('add', 'README.md').git('commit', '-m', '更新READEME').status()
     
     def __build(self,text = None):
-        dir_opt = CurFile(self.shell_dir).get_file_opt(is_ = ["exe_file"])
+        dir_opt = self.files(self.shell_dir, is_=["exe_file"])
         CompTemp().set(dir_opt)
             
         # print(dir_opt)
@@ -62,7 +62,7 @@ class Script(Base):
         CompTemp().set([text[-1]])
         
     def add_opt(self):
-        return Opt(CurFile(self.shell_dir).get_file_opt(self.cur))
+        return self.file_opt(self.shell_dir, self.cur)
 
     def rm_opt(self):
         return self.add_opt()

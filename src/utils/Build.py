@@ -81,12 +81,12 @@ class Build(Base):
         self.__build_tpye_dir = self.tool_dir + '/src/template/build_tpye/'
         self.project_name = None
         if not os.path.exists(self.__history_project_file_dir):
-            os.makedirs(self.__history_project_file_dir, exist_ok=True)
+            self.ensure_dir(self.__history_project_file_dir)
         self.__history_project_file_list = os.listdir(
             self.__history_project_file_dir)
         self.projects_list = []
         if not os.path.exists(self.tool_dir + '/data/build'):
-            os.makedirs(self.tool_dir + '/data/build', exist_ok=True)
+            self.ensure_dir(self.tool_dir + '/data/build')
         if os.path.exists(self.projects_path):
             with open(self.projects_path) as f:
                 self.projects_list = json.load(f)
@@ -126,7 +126,7 @@ class Build(Base):
             sw = Log.getcmd("输入路径不存在,是否创建此目录(Y/N)", input_path)
             Log.debug("%s,%s" % (sw, input_path))
             if sw == "y" or sw == "Y" or sw == input_path:
-                os.makedirs(input_path)
+                self.ensure_dir(input_path)
             else:
                 Log.tips("退出初始化")
                 exit(0)
@@ -179,7 +179,7 @@ class Build(Base):
 # <---------- 自动探测 end ------->
 
     def __get_log_file(self,name,add_date=True) -> str:
-        os.makedirs(self.log_dir, exist_ok=True)
+        self.ensure_dir(self.log_dir)
         file_names = os.listdir(self.log_dir)
 
         # 删除10天前文件
@@ -354,7 +354,7 @@ class Build(Base):
 
     def aosp(self, arg: list):
         Log.debug("aosp")
-        os.makedirs(self.log_dir, exist_ok=True)
+        self.ensure_dir(self.log_dir)
         s = Shell.session(cwd=self.project_top_dir)
         s.bash("source build/envsetup.sh")
         s.bash("lunch %s-%s" %
@@ -408,7 +408,7 @@ class Build(Base):
           pack = build_opt_
           build_opt_ = ""
         
-        os.makedirs(self.log_dir, exist_ok=True)
+        self.ensure_dir(self.log_dir)
         Log.debug(arg)
         projects = list(set(arg) & set(self.build_dic["projects"]))
         Log.debug(projects)

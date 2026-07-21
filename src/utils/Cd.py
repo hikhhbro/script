@@ -41,4 +41,4 @@ class Cd(Base):
         
     def _opt(self):
         prefix = self.__args_list[-1] if self.__args_list else self.cur
-        return Opt(CurFile(prefix).get_file_opt())
+        return self.file_opt(prefix)

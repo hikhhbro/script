@@ -251,15 +251,14 @@ class Base(HelpMixin, Arg):
         self.args_list = self.normalize_args(args_list)
         # args 是推荐的新入口；保留 args_list 兼容历史代码。
         self.args = self.args_list
+        self.name = self.__class__.__name__.lower()
         self.tool_dir = os.getenv("SCRIPT_TOP_DIR") or os.getcwd()
         self.tool_name = os.getenv("SCRIPT_TOOL_NAME") or "hikrun"
         self.option_dic = {}
-        self.data_dir = os.path.join(self.tool_dir, "data", self.__class__.__name__.lower()) + "/"
+        self.data_dir = os.path.join(self.tool_dir, "data", self.name) + "/"
         self.config = Json(self.data_dir + config_name)
 
-        if not os.path.exists(self.config.path):
-            os.makedirs(self.data_dir, exist_ok=True)
-            self.config.write({})
+        self.config.ensure({})
         
     def _opt(self):
         return Opt(self.command_names())
@@ -293,6 +292,42 @@ class Base(HelpMixin, Arg):
             merged.update(help_options)
             self.help_options = merged
         return self.option_dic
+
+    def data_path(self, *parts):
+        return os.path.join(self.data_dir, *parts)
+
+    def tool_path(self, *parts):
+        return os.path.join(self.tool_dir, *parts)
+
+    def ensure_dir(self, *parts):
+        path = os.path.join(*parts) if len(parts) > 1 else parts[0]
+        os.makedirs(path, exist_ok=True)
+        return path
+
+    def config_read(self, default=None, merge=False):
+        return self.config.read(default or {}, merge=merge)
+
+    def config_write(self, data):
+        self.config.write(data)
+        return data
+
+    def config_update(self, data=None, **kwargs):
+        return self.config.update(data, **kwargs)
+
+    def config_get(self, key, default=None):
+        return self.config.get(key, default)
+
+    def config_set(self, key, value):
+        return self.config.set(key, value)
+
+    def files(self, root=None, postfix='', is_=None, exclude=None):
+        return CurFile(root).get_file_opt(postfix, is_, exclude)
+
+    def file_opt(self, root=None, postfix='', is_=None, exclude=None):
+        return Opt(self.files(root, postfix, is_, exclude))
+
+    def empty_opt(self):
+        return Opt.empty()
 
     def command_names(self, include_empty=False):
         """返回可补全的子命令名；默认过滤空命令。"""
@@ -417,6 +452,31 @@ class Opt:
             else:
                 self.add(opt)
 
+    @classmethod
+    def empty(cls):
+        return cls([])
+
+    @classmethod
+    def files(cls, opt=None):
+        return cls(opt or [], True)
+
+    def extend(self, values):
+        for item in values or []:
+            self.add(item)
+        return self
+
+    def long(self, values):
+        self.set_long_opt(values)
+        return self
+
+    def short(self, values):
+        self.set_short_opt(values)
+        return self
+
+    def sub(self, values):
+        self.set_sub_opt(values)
+        return self
+
     def add(self, opt):
         """按选项类型添加补全项，并避免空项和重复项。"""
         if not opt:
@@ -424,6 +484,14 @@ class Opt:
         target = self.opt_type(opt)
         if opt not in target:
             target.append(opt)
+
+    def __add_to(self, key, values):
+        if isinstance(values, list):
+            for item in values:
+                self.__add_to(key, item)
+            return
+        if values and values not in self.opt[key]:
+            self.opt[key].append(values)
 
     def get_long_opt(self):
         return self.opt["long"]
@@ -435,22 +503,13 @@ class Opt:
         return self.opt["sub"]
 
     def set_long_opt(self, opt):
-        if isinstance(opt, list):
-            self.opt["long"] = self.opt["long"] + opt
-        else:
-            self.opt["long"].append(opt)
+        self.__add_to("long", opt)
 
     def set_short_opt(self, opt):
-        if isinstance(opt, list):
-            self.opt["short"] = self.opt["short"] + opt
-        else:
-            self.opt["short"].append(opt)
+        self.__add_to("short", opt)
 
     def set_sub_opt(self, opt):
-        if isinstance(opt, list):
-            self.opt["sub"] = self.opt["sub"] + opt
-        else:
-            self.opt["sub"].append(opt)
+        self.__add_to("sub", opt)
 
     def opt_type(self, arg):
         if not arg:

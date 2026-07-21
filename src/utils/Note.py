@@ -37,19 +37,12 @@ class Note(Base):
 
     def _load_note_root(self):
         """从配置读取 note_root，默认使用 /ws/note。"""
-        try:
-            cfg = self.config.read()
-            if 'note_root' in cfg:
-                self.note_root = cfg['note_root']
-                Log.debug('note_root loaded from config: %s' % self.note_root)
-            else:
-                self.note_root = '/ws/note'
-                self.config.write({'note_root': '/ws/note'})
-                Log.debug('note_root defaulted to: %s' % self.note_root)
-        except Exception:
-            self.note_root = '/ws/note'
-            self.config.write({'note_root': '/ws/note'})
-            Log.debug('note_root config read failed, defaulted to: %s' % self.note_root)
+        self.note_root = self.config_get('note_root', '/ws/note')
+        if self.config_get('note_root') is None:
+            self.config_set('note_root', self.note_root)
+            Log.debug('note_root defaulted to: %s' % self.note_root)
+        else:
+            Log.debug('note_root loaded from config: %s' % self.note_root)
 
     # ---- Subcommand handlers ----
 
@@ -159,7 +152,7 @@ class Note(Base):
         """
         Log.debug('_sync args=%s' % args)
 
-        cfg = self.config.read()
+        cfg = self.config_read()
         default_remote = cfg.get('default_remote', 'hik')
         Log.debug('_sync cfg=%s default_remote=%s' % (cfg, default_remote))
 
@@ -188,7 +181,7 @@ class Note(Base):
         if set_default:
             Log.debug('setting default remote to: %s' % set_default)
             cfg['default_remote'] = set_default
-            self.config.write(cfg)
+            self.config_write(cfg)
             default_remote = set_default
             Log.tips('Default remote set to: %s' % set_default)
 
@@ -205,7 +198,7 @@ class Note(Base):
         # 仅首次同步保存默认远端，本次临时远端不覆盖默认值
         if 'default_remote' not in cfg:
             cfg['default_remote'] = remote
-            self.config.write(cfg)
+            self.config_write(cfg)
             Log.debug('first sync, saving default_remote=%s' % remote)
             Log.tips('Default remote set to: %s' % remote)
 
@@ -249,7 +242,7 @@ class Note(Base):
             Shell.cmd('git', 'clone', remote_url, target_path).status()
 
         self.note_root = target_path
-        self.config.write({'note_root': target_path})
+        self.config_write({'note_root': target_path})
         Log.debug('note_root updated to: %s' % target_path)
         Log.tips('Note root set to: %s' % target_path)
 
@@ -261,7 +254,7 @@ class Note(Base):
 
     def code_opt(self):
         """code 后的路径补全：返回目录和文件用于导航，自动带 ls 颜色效果。"""
-        return Opt(CurFile(self.note_root).get_file_opt(self.cur))
+        return self.file_opt(self.note_root, self.cur)
 
     def sync_opt(self):
         """sync 补全：已知远端和 --default/-d。"""
@@ -274,7 +267,7 @@ class Note(Base):
 
     def init_opt(self):
         """init 不做固定补全，URL 和路径自由输入。"""
-        return Opt([])
+        return self.empty_opt()
 
     def __sync_remotes(self):
         try:
@@ -288,7 +281,7 @@ class Note(Base):
             prefix = ctx.current
             if not prefix and ctx.prev() and ctx.prev() not in self.option_dic:
                 prefix = ctx.prev()
-            return CurFile(self.note_root).get_file_opt(prefix)
+            return self.files(self.note_root, prefix)
 
         return {
             'code': {
@@ -312,7 +305,7 @@ class Note(Base):
         """
         if name.endswith('_opt') and '/' in name[:-4]:
             path = name[:-4]  # 去掉 _opt 后缀
-            return lambda: Opt(CurFile(self.note_root).get_file_opt(path))
+            return lambda: self.file_opt(self.note_root, path)
         raise AttributeError(name)
 
     # ---- 命令分发 ----

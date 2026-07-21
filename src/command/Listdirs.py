@@ -56,6 +56,18 @@ class CurFile():
         target_dir = os.path.normpath(self.__cur_dir + postfix) if postfix else self.__cur_dir.rstrip('/')
         return FileList(self.__file_opt, target_dir)
 
+    @classmethod
+    def options(cls, root=None, postfix='', is_=None, exclude=None):
+        return cls(root).get_file_opt(postfix, is_, exclude)
+
+    @classmethod
+    def scripts(cls, root=None, postfix='', exclude=None):
+        return cls(root).get_file_opt(postfix, ["exe_file"], exclude)
+
+    @classmethod
+    def dirs(cls, root=None, postfix='', exclude=None):
+        return cls(root).get_file_opt(postfix, ["dir"], exclude)
+
     # 模块加载时初始化 locale 排序 key，与 ls 行为一致
     try:
         import locale

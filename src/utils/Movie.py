@@ -2,9 +2,7 @@
 import time
 import os
 import sys
-import Shell
 from Base import Base, Opt
-from Json import Json
 import Log
 
 web={
@@ -41,7 +39,7 @@ class Movie(Base):
             "show": self.show,
         })
         
-        self.web_dic = self.config.read(web)
+        self.web_dic = self.config_read(web, merge=True)
         Log.debug(self.web_dic)
         
 
@@ -67,10 +65,10 @@ class Movie(Base):
         return super()._opt()
 
     def sync_opt(self):
-        return Opt([])
+        return self.empty_opt()
 
     def show_opt(self):
-        return Opt([])
+        return self.empty_opt()
 
     # 执行方法
     def exec(self):

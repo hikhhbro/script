@@ -32,16 +32,16 @@ class Todo(Base):
             'rm': self.rm,
             'show': self.show,
         })
-        self.todo_dir = os.path.join(self.root_dir, 'data', 'todo')
-        self.todo_file = os.path.join(self.todo_dir, 'todo_list.json')
-        self.done_file = os.path.join(self.todo_dir, 'done_list.json')
+        self.todo_dir = self.data_dir.rstrip('/')
+        self.todo_file = self.data_path('todo_list.json')
+        self.done_file = self.data_path('done_list.json')
         self.__ensure_store()
 
     def __today(self):
         return time.strftime("%Y/%m/%d")
 
     def __ensure_store(self):
-        os.makedirs(self.todo_dir, exist_ok=True)
+        self.ensure_dir(self.todo_dir)
         for path in [self.todo_file, self.done_file]:
             if not os.path.exists(path):
                 self.__save(path, {})

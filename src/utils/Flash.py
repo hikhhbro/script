@@ -70,7 +70,7 @@ class Flash(Base):
         self.projects_list = []
 
         if not os.path.exists(self.tool_dir + '/data/build'):
-            os.makedirs(self.tool_dir + '/data/build', exist_ok=True)
+            self.ensure_dir(self.tool_dir + '/data/build')
         if os.path.exists(self.projects_path):
             with open(self.projects_path) as f:
                 self.projects_list = json.load(f)
@@ -196,7 +196,7 @@ class Flash(Base):
         super().help(command)
 
     def _opt(self):
-        return Opt([])
+        return self.empty_opt()
 
 
 

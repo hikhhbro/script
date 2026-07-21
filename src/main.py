@@ -187,11 +187,11 @@ class main(Base):
     def __init__(self, args_list=None):
         super().__init__(args_list)
         self.comp = Json('/data/.complete.json')
-        self.shell_dir = self.tool_dir + '/shell'
-        self.app_dir = self.tool_dir + '/src/utils/'
+        self.shell_dir = self.tool_path('shell')
+        self.app_dir = self.tool_path('src', 'utils') + '/'
 
     def _get_app(self):
-      apps_list = CurFile(self.app_dir).get_file_opt(exclude=["__init__.py","__pycache__/","Completion.py"])
+      apps_list = self.files(self.app_dir, exclude=["__init__.py","__pycache__/","Completion.py"])
       for i in range(len(apps_list)):
         apps_list[i] = apps_list[i].split('.')[0].lower()
       return apps_list
@@ -199,9 +199,9 @@ class main(Base):
 
     def _opt(self):
         if '/' in self.cur:
-            return  Opt(CurFile(self.shell_dir).get_file_opt(self.cur,["exe_file","dir"],[]))
+            return self.file_opt(self.shell_dir, self.cur, ["exe_file","dir"], [])
         else:
-            return  Opt(CurFile(self.shell_dir).get_file_opt(self.cur,["exe_file","dir"],['data/']) + self._get_app())
+            return Opt(self.files(self.shell_dir, self.cur, ["exe_file","dir"], ['data/']) + self._get_app())
 
 
 def run():

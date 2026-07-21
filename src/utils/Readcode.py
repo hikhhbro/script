@@ -16,9 +16,8 @@ class Readcode(Base):
     def __init__(self, args_list=None):
         super().__init__(args_list)
         self.__args_list = self.args
-        self.work_root = self.data_dir + 'readcode/'
-        if not os.path.exists(self.work_root):
-            os.makedirs(self.work_root, exist_ok=True)
+        self.work_root = self.data_path('readcode') + '/'
+        self.ensure_dir(self.work_root)
         self.set_commands({
             '': self.__code
         })
@@ -96,5 +95,4 @@ class Readcode(Base):
             self.help()
             return
         return self.dispatch(self.__args_list, default=self.option_dic[""])
-
 
