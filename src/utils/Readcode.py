@@ -4,14 +4,9 @@ from command.Base import Base
 import Log
 
 class Readcode(Base):
-    help_summary = "根据记录的 import 列表在当前代码树中定位源码文件。"
-    help_usage = "{tool_name} readcode <工作名>"
-    help_examples = [
-        "hikrun readcode demo",
-    ]
-
     def __init__(self, args_list=None):
         super().__init__(args_list)
+        self.meta("根据记录的 import 列表在当前代码树中定位源码文件。", args="<工作名>")
         self.__args_list = self.args
         self.work_root = self.data_path('readcode') + '/'
         self.ensure_dir(self.work_root)

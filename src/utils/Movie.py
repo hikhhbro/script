@@ -15,17 +15,11 @@ web={
 }
 
 class Movie(Base):
-    help_summary = "影视搜索、同步和下载入口。"
-    help_usage = "{tool_name} movie <子命令> [参数]"
-    help_examples = [
-        "hikrun movie search 电影名",
-        "hikrun movie show",
-    ]
-
     def __init__(self, args_list=None):
         super().__init__(args_list)
+        self.meta("影视搜索、同步和下载入口。")
         self.__args_list = self.args
-        self.command("search", "搜索影视资源").run(self.search)
+        self.command("search", "搜索影视资源").run(self.search).args("<关键字>")
         self.command("sync", "同步影视数据").run(self.sync)
         self.command("download", "下载影视资源").run(self.download)
         self.command("show", "展示已记录资源").run(self.show)

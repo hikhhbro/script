@@ -52,14 +52,9 @@ def common_prefix_path(path0, path1):
     return os.path.join(*longest_prefix(components(path0), components(path1)))
 
 class Flash(Base):
-    help_summary = "根据工程配置选择设备和镜像并执行烧录命令。"
-    help_usage = "{tool_name} flash [选项]"
-    help_examples = [
-        "hikrun flash",
-    ]
-
     def __init__(self, args_list=None):
         super().__init__(args_list)
+        self.meta("根据工程配置选择设备和镜像并执行烧录命令。", args="[选项]")
         self.__args_list = self.args
         self.flash_dic = {}
         self.projects_path = self.tool_dir + '/data/build/projects_dir'

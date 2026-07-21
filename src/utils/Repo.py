@@ -7,15 +7,9 @@ from command.Shell import Shell
 from command.Base import Base
 
 class Repo(Base):
-    help_summary = "比较两个 repo manifest XML 的项目差异。"
-    help_usage = "{tool_name} repo <left.xml> <right.xml> [--same-name|--all]"
-    help_examples = [
-        "hikrun repo old.xml new.xml --all",
-        "hikrun repo old.xml new.xml --same-name",
-    ]
-
     def __init__(self, args_list=None):
         super().__init__(args_list)
+        self.meta("比较两个 repo manifest XML 的项目差异。", args="<left.xml> <right.xml> [--same-name|--all]")
         self.__args_list = self.args
         self.command_tree.long('--same-name', '比较同名项目的差异')
         self.command_tree.long('--all', '显示全部 revision 差异')
@@ -146,5 +140,3 @@ class Repo(Base):
             self.__all_diff_revision()
         else:
             self.help()
-
-

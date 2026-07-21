@@ -4,16 +4,9 @@ from command.Base import Base
 import Log
 
 class Adb(Base):
-    help_summary = "在 adb shell 上执行常用文件、目录和屏幕操作。"
-    help_usage = "{tool_name} adb <子命令> [参数]"
-    help_examples = [
-        "hikrun adb ls",
-        "hikrun adb cd /system",
-        "hikrun adb code /system/build.prop",
-    ]
-
     def __init__(self, args_list=None):
         super().__init__(args_list)
+        self.meta("在 adb shell 上执行常用文件、目录和屏幕操作。")
         self.__args_list = self.args
         self.todo_dic = { }
         self.pts = Shell.cmd('tty').stdout().replace('\n','')
@@ -32,14 +25,14 @@ class Adb(Base):
                 self.cur_dir = '/'
                 self.__adb_root().status()
             f.close()
-        self.command('ls', '列出设备当前目录文件').run(self.__ls).value(self.__file)
-        self.command('cd', '切换记录的设备当前目录').run(self.__cd).value(self.__file)
-        self.command('cp', '在设备内复制文件').run(self.__cp).value(self.__file)
-        self.command('mv', '在设备内移动文件').run(self.__mv).value(self.__file)
-        self.command('code', '拉取设备文件到本地编辑后推回').run(self.__code).value(self.__file)
+        self.command('ls', '列出设备当前目录文件').run(self.__ls).value(self.__file).args("[路径]")
+        self.command('cd', '切换记录的设备当前目录').run(self.__cd).value(self.__file).args("<路径>")
+        self.command('cp', '在设备内复制文件').run(self.__cp).value(self.__file).args("<源> <目标>")
+        self.command('mv', '在设备内移动文件').run(self.__mv).value(self.__file).args("<源> <目标>")
+        self.command('code', '拉取设备文件到本地编辑后推回').run(self.__code).value(self.__file).args("<设备文件>")
         self.command('pwd', '显示记录的设备当前目录').run(self.__pwd)
-        self.command('screen', '打开或关闭屏幕背光').run(self.__screen).value(self.__screen_choices)
-        self.command('push', '推送本地文件到设备').run(self.__push)
+        self.command('screen', '打开或关闭屏幕背光').run(self.__screen).value(self.__screen_choices).args("<open|close>")
+        self.command('push', '推送本地文件到设备').run(self.__push).args("<本地路径>")
         self.default(self.__adb_shell)
 
 

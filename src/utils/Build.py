@@ -53,16 +53,9 @@ def common_prefix_path(path0, path1):
     return os.path.join(*longest_prefix(components(path0), components(path1)))
 
 class Build(Base):
-    help_summary = "管理工程初始化、同步构建类型和常用编译动作。"
-    help_usage = "{tool_name} build [目标|选项]"
-    help_examples = [
-        "hikrun build --init",
-        "hikrun build services",
-        "hikrun build --force framework-minus-apex",
-    ]
-
     def __init__(self, args_list=None):
         super().__init__(args_list)
+        self.meta("管理工程初始化、同步构建类型和常用编译动作。", args="[目标|选项]")
         self.__args_list = self.args
         self.projects_path = self.tool_dir + '/data/build/projects_dir'
         self.__history_project_file_dir = self.tool_dir + '/data/build/history_project/'

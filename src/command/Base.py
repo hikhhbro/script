@@ -186,10 +186,6 @@ class HelpMixin:
     """中文帮助混入类：所有工具默认继承这一套 --help 行为。"""
 
     help_flags = {"--help", "-h", "help"}
-    help_summary = "终端工具模块"
-    help_usage = "{tool_name} {module_name} [选项]"
-    help_options = {}
-    help_examples = []
 
     def normalize_args(self, args):
         """把外部传入参数统一成列表，方便各模块复用。"""
@@ -209,11 +205,11 @@ class HelpMixin:
         return self.__class__.__name__.lower()
 
     def format_usage(self):
-        """渲染用法行，模块可通过 help_usage 自定义模板。"""
-        return self.help_usage.format(
-            tool_name=self.tool_name,
-            module_name=self.module_name(),
-        )
+        parts = [self.tool_name]
+        if self.module_name() != "main":
+            parts.append(self.module_name())
+        parts.append("[参数]")
+        return " ".join(parts)
 
     def help(self, command=None):
         """打印中文帮助；command 存在时优先打印子命令说明。"""
@@ -221,20 +217,8 @@ class HelpMixin:
         if self.help_summary:
             print("说明: %s" % self.help_summary)
 
-        options = getattr(self, "help_options", {}) or {}
-        if command and command in options:
-            print("\n子命令:")
-            print("  %-18s %s" % (command, options[command]))
-        elif options:
-            print("\n子命令/选项:")
-            for name, desc in options.items():
-                print("  %-18s %s" % (name, desc))
-
-        examples = getattr(self, "help_examples", []) or []
-        if examples:
-            print("\n示例:")
-            for item in examples:
-                print("  %s" % item)
+        print("\n子命令/选项:")
+        print("  %-18s %s" % ("--help", "显示当前帮助"))
 
 
 class CommandOption:
@@ -261,6 +245,7 @@ class CommandNode:
         self.options = {}
         self.value_provider = None
         self.file_opt = False
+        self.args_hint = ""
 
     def command(self, name, desc="", handler=None):
         if name in self.children:
@@ -298,6 +283,10 @@ class CommandNode:
         self.file_opt = file_opt
         return self
 
+    def args(self, hint):
+        self.args_hint = hint
+        return self
+
     def has_items(self):
         return bool(self.children or self.options or self.handler or self.value_provider is not None)
 
@@ -308,6 +297,22 @@ class CommandNode:
             out.append(node.name)
             node = node.parent
         return list(reversed(out))
+
+    def usage_parts(self):
+        parts = self.path()
+        if self.args_hint:
+            parts.append(self.args_hint)
+        return parts
+
+    def first_example_path(self):
+        if self.children:
+            for child in self.children.values():
+                path = child.first_example_path()
+                if path:
+                    return path
+        if self.name and (self.args_hint or self.handler or self.value_provider is not None):
+            return self.usage_parts()
+        return []
 
     def inherited_options(self):
         out = {}
@@ -406,7 +411,7 @@ class CommandNode:
         out = {}
         for name, child in self.children.items():
             out[name] = child.desc
-        for name, opt in self.options.items():
+        for name, opt in self.active_options().items():
             out[name] = opt.desc
         return out
 
@@ -430,65 +435,63 @@ class Base(HelpMixin, Arg):
         self.tool_name = os.getenv("SCRIPT_TOOL_NAME") or "hikrun"
         self.option_dic = {}
         self.command_tree = CommandNode()
+        self.help_summary = "终端工具模块"
+        self.usage_hint = ""
         self.data_dir = os.path.join(self.tool_dir, "data", self.name) + "/"
         self.config = Json(self.data_dir + config_name)
 
         self.config.ensure({})
         
-    def _opt(self):
-        return Opt(self.command_names())
-
-    def completion_spec(self):
-        """声明式补全规格。
-
-        返回 None 时使用旧的 _opt/xxx_opt 机制；返回命令树时由框架统一处理
-        命令层级、option 名、option=value 和 option 后面的 value。
-        """
-        return None
-
-    def completion_root_options(self):
-        return {}
-
     def complete(self, ctx):
         if self.command_tree.has_items():
             return self.command_tree.complete(ctx)
-        spec = self.completion_spec()
-        if spec is None:
-            return None
-        return ctx.complete_tree(spec, root_options=self.completion_root_options())
+        return Opt.empty()
 
     def command(self, name, desc="", handler=None):
         node = self.command_tree.command(name, desc, handler)
         if handler:
             self.option_dic[name] = handler
-        if desc:
-            merged = dict(getattr(self, "help_options", {}) or {})
-            merged[name] = desc
-            self.help_options = merged
         return node
+
+    def meta(self, summary=None, args=None):
+        if summary is not None:
+            self.help_summary = summary
+        if args is not None:
+            self.usage_hint = args
+        return self
+
+    def format_usage(self, node=None):
+        parts = [self.tool_name]
+        if self.module_name() != "main":
+            parts.append(self.module_name())
+        if node is not None and node is not self.command_tree:
+            parts += node.usage_parts()
+        elif self.usage_hint:
+            parts.append(self.usage_hint)
+        elif self.command_tree.children:
+            parts.append("<子命令>")
+        else:
+            parts.append("[参数]")
+        return " ".join(parts)
+
+    def examples(self, node=None):
+        target = node or self.command_tree
+        parts = target.first_example_path()
+        out = [self.tool_name]
+        if self.module_name() != "main":
+            out.append(self.module_name())
+        if not parts:
+            if target is self.command_tree and self.usage_hint:
+                return [" ".join(out + [self.usage_hint])]
+            if target is not self.command_tree:
+                return [" ".join(out + target.usage_parts())]
+            return []
+        out += parts
+        return [" ".join(out)]
 
     def default(self, handler):
         self.command_tree.run(handler)
         return self.command_tree
-
-    def set_commands(self, commands=None, help_options=None):
-        """注册子命令表，并可同时补充 help 文案。
-
-        commands: {"命令名": 回调函数}
-        help_options: {"命令名": "中文说明"}
-        """
-        self.option_dic = dict(commands or {})
-        for name, handler in self.option_dic.items():
-            desc = (help_options or getattr(self, "help_options", {}) or {}).get(name, "")
-            if name:
-                self.command(name, desc, handler)
-            else:
-                self.default(handler)
-        if help_options:
-            merged = dict(getattr(self, "help_options", {}) or {})
-            merged.update(help_options)
-            self.help_options = merged
-        return self.option_dic
 
     def data_path(self, *parts):
         return os.path.join(self.data_dir, *parts)
@@ -614,7 +617,7 @@ class Base(HelpMixin, Arg):
                 if part in node.children:
                     node = node.children[part]
 
-        print("用法: %s" % self.format_usage())
+        print("用法: %s" % self.format_usage(node))
         if self.help_summary:
             print("说明: %s" % self.help_summary)
 
@@ -634,7 +637,7 @@ class Base(HelpMixin, Arg):
             print("\n子命令/选项:")
             print("  %-18s %s" % ("--help", "显示当前帮助"))
 
-        examples = getattr(self, "help_examples", []) or []
+        examples = self.examples(node)
         if examples:
             print("\n示例:")
             for item in examples:

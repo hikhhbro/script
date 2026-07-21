@@ -5,20 +5,13 @@ from command.CompTemp import CompTemp
 from command.Base import Base
 
 class Script(Base):
-    help_summary = "管理 hikrun 的 shell 脚本。"
-    help_usage = "{tool_name} script <子命令> [参数]"
-    help_examples = [
-        "hikrun script add demo",
-        "hikrun script rm demo",
-        "hikrun script build",
-    ]
-
     def __init__(self, args_list=None):
         super().__init__(args_list)
+        self.meta("管理 hikrun 的 shell 脚本。")
         self.command('readme', '打开 README 并提交更新').run(self.__readme)
         self.command('build', '扫描 shell 目录并刷新脚本补全缓存').run(self.__build)
-        self.command('rm', '把脚本移动到回收目录').run(self.__rm).value(lambda ctx: self.files(self.shell_dir, ctx.current))
-        self.command('add', '新增脚本并打开编辑器').run(self.__add).value(lambda ctx: self.files(self.shell_dir, ctx.current))
+        self.command('rm', '把脚本移动到回收目录').run(self.__rm).value(lambda ctx: self.files(self.shell_dir, ctx.current)).args("<脚本>")
+        self.command('add', '新增脚本并打开编辑器').run(self.__add).value(lambda ctx: self.files(self.shell_dir, ctx.current)).args("<脚本>")
         self.shell_dir = self.tool_path('shell')
         self.company_shell_dir = self.tool_path('shell', 'company')
     def __readme(self,text = None):

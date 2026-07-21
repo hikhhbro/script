@@ -7,16 +7,9 @@ from command.Shell import Shell
 
 
 class Winsh(Base):
-    help_summary = "从 WSL 调用 Windows 侧命令，并提供常用工具的分层补全。"
-    help_usage = "{tool_name} winsh <windows工具> [子命令|参数]"
-    help_examples = [
-        "hikrun winsh usbipd list",
-        "hikrun winsh usbipd bind --busid 2-1",
-        "hikrun winsh usbipd attach --wsl --busid 2-1",
-    ]
-
     def __init__(self, args_list=None):
         super().__init__(args_list)
+        self.meta("从 WSL 调用 Windows 侧命令，并提供常用工具的分层补全。")
         self.__args_list = self.args
         self.win = Shell.win()
         self.windows_tools = {
@@ -27,16 +20,27 @@ class Winsh(Base):
         }
         self.command_tree.long('--sudo', '强制使用 gsudo.exe 提权执行后续 Windows 命令', inherit=True)
         usbipd = self.command("usbipd", "管理 Windows USB/IP 设备并连接到 WSL").run(self.__run_usbipd)
-        usbipd.command("list", "列出 USB 设备").long("--usbids").long("--parsable")
+        usbipd.command("list", "列出 USB 设备") \
+            .long("--usbids", "显示 USB ID") \
+            .long("--parsable", "输出机器可解析格式")
         usbipd.command("state", "显示 usbipd 服务状态")
-        usbipd.command("bind", "绑定 USB 设备").long("--busid", values=self.__usbipd_busids).long("--force")
-        usbipd.command("unbind", "解绑 USB 设备").long("--busid", values=self.__usbipd_busids).long("--force")
+        usbipd.command("bind", "绑定 USB 设备") \
+            .long("--busid", "指定设备 busid", values=self.__usbipd_busids) \
+            .long("--force", "强制执行") \
+            .args("--busid <busid>")
+        usbipd.command("unbind", "解绑 USB 设备") \
+            .long("--busid", "指定设备 busid", values=self.__usbipd_busids) \
+            .long("--force", "强制执行") \
+            .args("--busid <busid>")
         usbipd.command("attach", "连接 USB 设备到 WSL") \
-            .long("--busid", values=self.__usbipd_busids) \
-            .long("--wsl") \
-            .long("--distribution", values=self.__wsl_distros) \
-            .long("--auto-attach")
-        usbipd.command("detach", "断开 USB 设备").long("--busid", values=self.__usbipd_busids)
+            .long("--busid", "指定设备 busid", values=self.__usbipd_busids) \
+            .long("--wsl", "连接到默认 WSL") \
+            .long("--distribution", "指定 WSL 发行版", values=self.__wsl_distros) \
+            .long("--auto-attach", "启用自动连接") \
+            .args("--busid <busid> [--wsl]")
+        usbipd.command("detach", "断开 USB 设备") \
+            .long("--busid", "指定设备 busid", values=self.__usbipd_busids) \
+            .args("--busid <busid>")
         Log.debug("winsh args: %s" % self.__args_list)
         Log.debug("winsh tools: %s" % list(self.windows_tools.keys()))
 

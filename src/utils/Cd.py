@@ -1,15 +1,9 @@
 import os
 from command.Base import Base
 class Cd(Base):
-    help_summary = "把 cd 命令写回当前终端输入缓冲区，实现父 shell 跳转。"
-    help_usage = "{tool_name} cd <目录>"
-    help_examples = [
-        "hikrun cd shell",
-        "hikrun cd /tmp",
-    ]
-
     def __init__(self, args_list=None):
         super().__init__(args_list)
+        self.meta("把 cd 命令写回当前终端输入缓冲区，实现父 shell 跳转。", args="<目录>")
         self.__args_list = self.args
         self.add_dic = { }
         self.command_tree.value(self.__dir_values, file_opt=True)

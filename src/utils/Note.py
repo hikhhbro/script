@@ -8,24 +8,17 @@ from command.Base import Base
 
 
 class Note(Base):
-    help_summary = "在终端中创建、编辑、初始化和同步 Markdown 笔记。"
-    help_usage = "{tool_name} note <子命令> [参数]"
-    help_examples = [
-        "hikrun note code d03-工具-软件/f01-xxx.md",
-        "hikrun note code 公司/test",
-        "hikrun note sync github 更新笔记",
-        "hikrun note init git@github.com:user/notes.git /ws/note",
-    ]
-
     def __init__(self, args_list=None):
         super().__init__(args_list)
+        self.meta("在终端中创建、编辑、初始化和同步 Markdown 笔记。")
         self.__args_list = self.args
-        self.command('code', '创建或打开笔记文件/目录').run(self._code).value(self.__note_files)
+        self.command('code', '创建或打开笔记文件/目录').run(self._code).value(self.__note_files).args("<路径>")
         self.command('sync', '提交并推送笔记仓库').run(self._sync) \
             .value(self.__sync_remotes) \
             .long('--default', '修改默认远端', self.__sync_remotes) \
-            .short('-d', '修改默认远端', self.__sync_remotes)
-        self.command('init', '克隆并初始化笔记仓库').run(self._init)
+            .short('-d', '修改默认远端', self.__sync_remotes) \
+            .args("[远端] [提交信息]")
+        self.command('init', '克隆并初始化笔记仓库').run(self._init).args("<remote_url> <path>")
         self._load_note_root()
         Log.debug('Note init: args=%s note_root=%s' % (self.__args_list, self.note_root))
 

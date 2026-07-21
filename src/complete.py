@@ -181,23 +181,6 @@ if __name__ == '__main__':
     module = myclass.get_class()
     obj = module(myclass.arg.cur)
     opt = obj.complete(CompletionContext(module_name=obj.module_name(), tool_name=os.getenv('SCRIPT_TOOL_NAME')))
-    if opt is None:
-        i = 1
-        method = myclass.get_opname()
-        shield = ''
-        while method :
-            f = getattr(obj, method + '_opt',None)
-            if not f:
-              shield = method
-              i = i+1
-              method = myclass.get_opname(i)
-            else :
-              break
-        f = getattr(obj, method + '_opt',None)
-        opt = f()
-        if shield :
-          opt.retreat = shield
-          opt.shield_opt()
     complete = Complete(opt)
     out_list = complete.get_opt(complete.get_last_input())
     app_list = obj._get_app() if hasattr(obj, '_get_app') else []

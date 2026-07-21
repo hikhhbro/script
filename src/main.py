@@ -163,29 +163,20 @@ def get_compile_path(f):
 
 
 class main(Base):
-    help_summary = "hikrun 顶层入口：分发 Python 工具、shell 脚本和脚本目录。"
-    help_usage = "{tool_name} <工具|脚本> [参数]"
-    help_options = {
-        "build": "构建工程",
-        "repo": "比较 repo manifest",
-        "adb": "adb 常用操作",
-        "movie": "影视资源工具",
-        "flash": "工程烧录工具",
-        "cd": "终端目录跳转",
-        "script": "管理 shell 脚本",
-        "todo": "待办事项",
-        "readcode": "代码阅读辅助",
-        "note": "笔记管理",
-        "--help": "显示当前帮助",
-    }
-    help_examples = [
-        "hikrun --help",
-        "hikrun adb --help",
-        "hikrun note code 工作/记录",
-    ]
-
     def __init__(self, args_list=None):
         super().__init__(args_list)
+        self.meta("hikrun 顶层入口：分发 Python 工具、shell 脚本和脚本目录。", args="<工具|脚本> [参数]")
+        self.command("build", "构建工程")
+        self.command("repo", "比较 repo manifest")
+        self.command("adb", "adb 常用操作")
+        self.command("movie", "影视资源工具")
+        self.command("flash", "工程烧录工具")
+        self.command("cd", "终端目录跳转")
+        self.command("script", "管理 shell 脚本")
+        self.command("todo", "待办事项")
+        self.command("readcode", "代码阅读辅助")
+        self.command("note", "笔记管理")
+        self.command("winsh", "Windows 命令桥接")
         self.comp = Json('/data/.complete.json')
         self.shell_dir = self.tool_path('shell')
         self.app_dir = self.tool_path('src', 'utils') + '/'
