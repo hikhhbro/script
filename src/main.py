@@ -1,5 +1,6 @@
 import os
 import sys
+import ast
 
 sys.path.append(os.getenv('SCRIPT_TOP_DIR')+"/src")
 sys.path.append(os.getenv('SCRIPT_TOP_DIR')+"/src/command")
@@ -24,27 +25,53 @@ else:
 
 
 class main(Base):
+    EXCLUDE_UTILS = {"__init__.py", "__pycache__/", "Completion.py"}
+
     def __init__(self, args=None):
         super().__init__(args)
         self.meta("hikrun 顶层入口：分发 Python 工具、shell 脚本和脚本目录。", args="<工具|脚本> [参数]")
-        self.command("build", "构建工程")
-        self.command("repo", "比较 repo manifest")
-        self.command("adb", "adb 常用操作")
-        self.command("movie", "影视资源工具")
-        self.command("flash", "工程烧录工具")
-        self.command("cd", "终端目录跳转")
-        self.command("script", "管理 shell 脚本")
-        self.command("todo", "待办事项")
-        self.command("readcode", "代码阅读辅助")
-        self.command("note", "笔记管理")
-        self.command("winsh", "Windows 命令桥接")
+        for name, desc in self._python_tools().items():
+            self.command(name, desc)
+
+    def _utils_dir(self):
+        return self.tool_path('src', 'utils') + '/'
+
+    def _tool_summary(self, path):
+        try:
+            with open(path, encoding='utf-8') as f:
+                tree = ast.parse(f.read(), filename=path)
+        except Exception as e:
+            Log.debug("读取工具描述失败 %s: %s" % (path, e))
+            return "Python 工具"
+
+        for node in ast.walk(tree):
+            if not isinstance(node, ast.Call):
+                continue
+            func = node.func
+            if not (
+                isinstance(func, ast.Attribute)
+                and func.attr == "meta"
+                and isinstance(func.value, ast.Name)
+                and func.value.id == "self"
+                and node.args
+                and isinstance(node.args[0], ast.Constant)
+                and isinstance(node.args[0].value, str)
+            ):
+                continue
+            return node.args[0].value
+        return "Python 工具"
+
+    def _python_tools(self):
+        tools = {}
+        for filename in self.files(self._utils_dir(), exclude=list(self.EXCLUDE_UTILS)):
+            if not filename.endswith('.py'):
+                continue
+            name = filename[:-3].lower()
+            tools[name] = self._tool_summary(os.path.join(self._utils_dir(), filename))
+        return dict(sorted(tools.items()))
 
     def _get_app(self):
-      apps_list = self.files(self.tool_path('src', 'utils') + '/', exclude=["__init__.py","__pycache__/","Completion.py"])
-      for i in range(len(apps_list)):
-        apps_list[i] = apps_list[i].split('.')[0].lower()
-      return apps_list
-
+        return list(self._python_tools().keys())
 
     def complete(self, ctx):
         cur = ctx.current
