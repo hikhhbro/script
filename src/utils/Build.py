@@ -14,60 +14,18 @@ import shutil
 import shlex
 
 
-def components(path):
-    '''
-    返回路径的各级组成部分。
-
-    返回结果重新用 os.path.join 拼接后，仍指向原路径位置。
-    '''
-    components = []
-    # 循环保证拆出的路径片段重新拼接后仍指向同一位置。
-    # os.path.joined with the path separator and point to the same
-    # location:    
-    while True:
-        (new_path, tail) = os.path.split(path)  # 兼容不同平台
-        components.append(tail)        
-        if new_path == path:  # 已到达根目录
-            break
-        path = new_path
-    components.append(new_path)
-
-    components.reverse()  # 保持从根到叶子的顺序
-    return components
-
-def longest_prefix(iter0, iter1):
-    '''
-    返回两个可迭代对象的最长公共前缀。
-    '''
-    longest_prefix = []
-    for (elmt0, elmt1) in zip(iter0, iter1):
-        if elmt0 != elmt1:
-            break
-        longest_prefix.append(elmt0)
-    return longest_prefix
-
-def common_prefix_path(path0, path1):
-    return os.path.join(*longest_prefix(components(path0), components(path1)))
-
 class Build(Base):
     def __init__(self, args=None):
         super().__init__(args)
         self.meta("管理工程初始化、同步构建类型和常用编译动作。", args="[目标|选项]")
-        self.projects_path = self.tool_dir + '/data/build/projects_dir'
-        self.__history_project_file_dir = self.tool_dir + '/data/build/history_project/'
-        self.__build_tpye_dir = self.tool_dir + '/src/template/build_tpye/'
+        self.__history_project_file_dir = self.build_data_path('history_project') + '/'
+        self.__build_tpye_dir = self.tool_path('src', 'template', 'build_tpye') + '/'
         self.project_name = None
-        if not os.path.exists(self.__history_project_file_dir):
-            self.ensure_dir(self.__history_project_file_dir)
+        self.ensure_dir(self.__history_project_file_dir)
         self.__history_project_file_list = os.listdir(
             self.__history_project_file_dir)
-        self.projects_list = []
-        if not os.path.exists(self.tool_dir + '/data/build'):
-            self.ensure_dir(self.tool_dir + '/data/build')
-        if os.path.exists(self.projects_path):
-            with open(self.projects_path) as f:
-                self.projects_list = json.load(f)
-        self.cur_dir = os.getcwd() + '/'
+        self.projects_list = self.build_projects()
+        self.cur_dir = self.cwd_path()
         self.build_dic = {}
         self.project_top_dir = self.__get_project_top_dir() 
         self.__lock_file = None
@@ -123,9 +81,7 @@ class Build(Base):
             self.project_top_dir = input_path
             self.projects_list.append(self.project_top_dir)
             Log.debug("历史工程目录:%s" % (self.projects_list))
-            with open(self.projects_path, "w+") as f:
-                js = json.dumps(self.projects_list, indent=1)
-                f.write(js)
+            self.save_build_projects(self.projects_list)
 
     def __read_include_name_frome_xml(self):
         if xmltodict is None:
@@ -204,7 +160,7 @@ class Build(Base):
         Log.debug(self.projects_list)
         Log.debug(self.cur_dir)
         for item in self.projects_list:
-            prefix = common_prefix_path(self.cur_dir,item)
+            prefix = self.common_prefix_path(self.cur_dir,item)
             Log.debug(prefix)
             if prefix in self.projects_list :
                 if os.path.exists(prefix + "/.repo"):

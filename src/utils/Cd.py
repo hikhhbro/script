@@ -4,7 +4,6 @@ class Cd(Base):
     def __init__(self, args=None):
         super().__init__(args)
         self.meta("把 cd 命令写回当前终端输入缓冲区，实现父 shell 跳转。", args="<目录>")
-        self.add_dic = { }
         self.command_tree.value(self.__dir_values, file_opt=True)
 
     def __dir_values(self, ctx):

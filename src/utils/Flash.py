@@ -6,57 +6,12 @@ import os
 import json
 
 
-
-def components(path):
-    '''
-    返回路径的各级组成部分。
-
-    返回结果重新用 os.path.join 拼接后，仍指向原路径位置。
-    '''
-    components = []
-    # 循环保证拆出的路径片段重新拼接后仍指向同一位置。
-    # os.path.joined with the path separator and point to the same
-    # location:    
-    while True:
-        (new_path, tail) = os.path.split(path)  # 兼容不同平台
-        components.append(tail)        
-        if new_path == path:  # 已到达根目录
-            break
-        path = new_path
-    components.append(new_path)
-
-    components.reverse()  # 保持从根到叶子的顺序
-    return components
-
-def longest_prefix(iter0, iter1):
-    '''
-    返回两个可迭代对象的最长公共前缀。
-    '''
-    longest_prefix = []
-    for (elmt0, elmt1) in zip(iter0, iter1):
-        if elmt0 != elmt1:
-            break
-        longest_prefix.append(elmt0)
-    return longest_prefix
-
-def common_prefix_path(path0, path1):
-    return os.path.join(*longest_prefix(components(path0), components(path1)))
-
 class Flash(Base):
     def __init__(self, args=None):
         super().__init__(args)
         self.meta("根据工程配置选择设备和镜像并执行烧录命令。", args="[选项]")
         self.flash_dic = {}
-        self.projects_path = self.tool_dir + '/data/build/projects_dir'
-        self.projects_list = []
-
-        if not os.path.exists(self.tool_dir + '/data/build'):
-            self.ensure_dir(self.tool_dir + '/data/build')
-        if os.path.exists(self.projects_path):
-            with open(self.projects_path) as f:
-                self.projects_list = json.load(f)
-        self.cur_dir = os.getcwd() + '/'
-        self.project_top_dir = self.__get_project_top_dir()
+        self.project_top_dir = self.find_project_top_dir()
           
         if self.project_top_dir:
             build_dic = {}
@@ -70,23 +25,6 @@ class Flash(Base):
         self.devices_cmd = {
             "uart": self.find_uart_devices,
         }
-
-
-
-
-    def __get_project_top_dir(self):
-      Log.debug("获取工程顶级目录")
-      # max_len = 0
-      # top_dir = ""
-      Log.debug(self.projects_list)
-      Log.debug(self.cur_dir)
-      for item in self.projects_list:
-          prefix = common_prefix_path(self.cur_dir,item)
-          Log.debug(prefix)
-          if prefix in self.projects_list :
-              return prefix
-      return None
-
 
     def is_devices(self, key):
       if self.devices_cmd.__contains__(key):

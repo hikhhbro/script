@@ -8,13 +8,13 @@ class Compile:
         self.other = "other"
         self.main = "main"
         self.root_dir = os.getenv('HIK_SCRIPT_TOP_DIR') or os.getenv('SCRIPT_TOP_DIR') or os.getcwd()
-        self.root_dir_len = len(self.root_dir)
         self.filepath = filepath
         self.filedir,self.filename = os.path.split(filepath)
-        self.outfilepath = self.root_dir +  "/.compile/"+ filepath[self.root_dir_len+1:] +'/'+ self.filename
-        self.args_path = self.root_dir +  "/.compile/"+ filepath[self.root_dir_len+1:] +'/args.json'
-        if not os.path.isdir(self.root_dir +  "/.compile/"+ filepath[self.root_dir_len+1:]):
-            os.makedirs(self.root_dir +  "/.compile/"+ filepath[self.root_dir_len+1:])
+        self.compile_dir = os.path.join(self.root_dir, ".compile", os.path.relpath(filepath, self.root_dir))
+        self.outfilepath = os.path.join(self.compile_dir, self.filename)
+        self.args_path = os.path.join(self.compile_dir, 'args.json')
+        if not os.path.isdir(self.compile_dir):
+            os.makedirs(self.compile_dir)
         self.action = ''
         self.writelines=[]
         self.switch = {

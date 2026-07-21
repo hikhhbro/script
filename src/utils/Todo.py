@@ -9,24 +9,23 @@ import Log
 
 
 class Todo(Base):
+    TODO_FILE = 'todo_list.json'
+    DONE_FILE = 'done_list.json'
+
     def __init__(self, args=None):
         super().__init__(args)
         self.meta("记录、查看和完成待办事项。")
-        self.root_dir = os.getenv('SCRIPT_TOP_DIR')
         self.command('add', '新增待办；add 后面的所有参数会合并为一条文本').run(self.add).args("<文本>")
         self.command('rm', '按序号或序号范围完成待办').run(self.rm).args("<序号|范围|日期>")
         self.command('show', '显示待办；show done 显示已完成').run(self.show).value(['done']).args("[done|日期]")
-        self.todo_dir = self.data_dir.rstrip('/')
-        self.todo_file = self.data_path('todo_list.json')
-        self.done_file = self.data_path('done_list.json')
         self.__ensure_store()
 
     def __today(self):
         return time.strftime("%Y/%m/%d")
 
     def __ensure_store(self):
-        self.ensure_dir(self.todo_dir)
-        for path in [self.todo_file, self.done_file]:
+        self.ensure_dir(self.data_dir)
+        for path in [self.data_path(self.TODO_FILE), self.data_path(self.DONE_FILE)]:
             if not os.path.exists(path):
                 self.__save(path, {})
 
@@ -39,10 +38,10 @@ class Todo(Base):
             json.dump(data, wf, indent=1, ensure_ascii=False)
 
     def __todos(self):
-        return self.__load(self.todo_file)
+        return self.__load(self.data_path(self.TODO_FILE))
 
     def __done(self):
-        return self.__load(self.done_file)
+        return self.__load(self.data_path(self.DONE_FILE))
 
     def __append_item(self, path, text):
         data = self.__load(path)
@@ -51,14 +50,14 @@ class Todo(Base):
 
     def __init_git(self):
         git_remote = input("请输出远程仓库地址: ")
-        Shell.chain(cwd=self.todo_dir).git("init").git("remote", "add", "origin", git_remote).status()
+        Shell.chain(cwd=self.data_dir).git("init").git("remote", "add", "origin", git_remote).status()
 
     def __commit_store(self, commit):
-        if not os.path.exists(os.path.join(self.todo_dir, '.git')):
+        if not os.path.exists(self.data_path('.git')):
             Log.tips("此目录任不是git仓库，请初始化")
             self.__init_git()
             return
-        Shell.chain(cwd=self.todo_dir).git("add", ".").git("commit", "-m", commit).status()
+        Shell.chain(cwd=self.data_dir).git("add", ".").git("commit", "-m", commit).status()
 
     def __text(self, words):
         return ' '.join(words).strip()
@@ -108,14 +107,14 @@ class Todo(Base):
 
     def __archive_removed(self, items):
         for item in items:
-            self.__append_item(self.done_file, item)
+            self.__append_item(self.data_path(self.DONE_FILE), item)
 
     def add(self, words):
         text = self.__text(words)
         if not text:
             self.help('add')
             return
-        self.__append_item(self.todo_file, text)
+        self.__append_item(self.data_path(self.TODO_FILE), text)
         self.__commit_store("add todo")
 
     def show(self, args):
@@ -142,6 +141,6 @@ class Todo(Base):
         if not removed:
             Log.tips("没有匹配到需要完成的 todo")
             return
-        self.__save(self.todo_file, todos)
+        self.__save(self.data_path(self.TODO_FILE), todos)
         self.__archive_removed(removed)
         self.__commit_store("rm todo")

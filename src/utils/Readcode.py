@@ -7,17 +7,10 @@ class Readcode(Base):
     def __init__(self, args=None):
         super().__init__(args)
         self.meta("根据记录的 import 列表在当前代码树中定位源码文件。", args="<工作名>")
-        self.work_root = self.data_path('readcode') + '/'
-        self.ensure_dir(self.work_root)
+        self.ensure_dir(self.data_dir)
         self.default(self.__code)
         self.file_suffix = '.java'
-    def __get_language_file_suffix(self,line):
-        tmp_list = list(line)
-        Log.debug(tmp_list)
-        if not tmp_list:
-            return None
-        if tmp_list[0] == "import" and tmp_list[-1][-1] == ';' :
-            return 'java'
+
     def __parse_java_file(self,line):
         Log.debug(line)
         split_string = line.split()
@@ -34,8 +27,6 @@ class Readcode(Base):
         file_set = set()
         if os.path.exists(self.user_file(work)):
             with open(self.user_file(work)) as f:
-                # language =  self.__get_language_file_suffix(f.readlines()[0])
-                # Log.debug(language)
                 for line in f.readlines():
                     img_file = line.strip()
                     Log.debug(img_file)
@@ -44,13 +35,9 @@ class Readcode(Base):
             return [dict([item]) for item in file_set]
             
     def user_file(self,work):
-        if os.path.exists(self.work_root + work):
-            return self.work_root + work + '/user_file'
-        return None
-            
-    def default_file(self,work):
-        if os.path.exists(self.work_root + work):
-            return self.work_root + work + '/default_file'
+        work_dir = self.data_path(work)
+        if os.path.exists(work_dir):
+            return os.path.join(work_dir, 'user_file')
         return None
         
     def __get_files(self, file_list):

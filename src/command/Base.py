@@ -2,10 +2,12 @@ import os
 import sys
 import copy
 import inspect
+import json
 from command.Shell import Shell
 from command.Listdirs import CurFile
 import importlib
 from command.Json import Json
+import Log
 
 
 class CompletionContext:
@@ -418,6 +420,72 @@ class Base(HelpMixin, Arg):
     def tool_path(self, *parts):
         return os.path.join(self.tool_dir, *parts)
 
+    def shell_path(self, *parts):
+        return self.tool_path("shell", *parts)
+
+    def shared_data_path(self, name, *parts):
+        return self.tool_path("data", name, *parts)
+
+    def build_data_path(self, *parts):
+        return self.shared_data_path("build", *parts)
+
+    def cwd_path(self, *parts):
+        return os.path.join(os.getcwd(), *parts) + ("/" if not parts else "")
+
+    def read_json_file(self, path, default=None):
+        if not os.path.exists(path):
+            return default
+        with open(path) as f:
+            return json.load(f)
+
+    def write_json_file(self, path, data):
+        self.ensure_dir(os.path.dirname(path))
+        with open(path, "w+") as f:
+            json.dump(data, f, indent=1)
+        return data
+
+    def build_projects_path(self):
+        return self.build_data_path("projects_dir")
+
+    def build_projects(self):
+        self.ensure_dir(self.build_data_path())
+        return self.read_json_file(self.build_projects_path(), [])
+
+    def save_build_projects(self, projects):
+        return self.write_json_file(self.build_projects_path(), projects)
+
+    def path_components(self, path):
+        parts = []
+        while True:
+            next_path, tail = os.path.split(path)
+            parts.append(tail)
+            if next_path == path:
+                break
+            path = next_path
+        parts.append(next_path)
+        return list(reversed(parts))
+
+    def common_prefix_path(self, path0, path1):
+        parts = []
+        for left, right in zip(self.path_components(path0), self.path_components(path1)):
+            if left != right:
+                break
+            parts.append(left)
+        return os.path.join(*parts)
+
+    def find_project_top_dir(self, projects=None, cwd=None):
+        projects = projects if projects is not None else self.build_projects()
+        cwd = cwd or self.cwd_path()
+        Log.debug("获取工程顶级目录")
+        Log.debug(projects)
+        Log.debug(cwd)
+        for item in projects:
+            prefix = self.common_prefix_path(cwd, item)
+            Log.debug(prefix)
+            if prefix in projects:
+                return prefix
+        return None
+
     def ensure_dir(self, *parts):
         path = os.path.join(*parts) if len(parts) > 1 else parts[0]
         os.makedirs(path, exist_ok=True)
@@ -447,9 +515,6 @@ class Base(HelpMixin, Arg):
 
     def completion(self, values=None, file_opt=False):
         return Opt(values or [], file_opt)
-
-    def empty_opt(self):
-        return Opt.empty()
 
     def dispatch(self, args=None, default=None, search_anywhere=False, show_help=True):
         """公共命令分发入口。

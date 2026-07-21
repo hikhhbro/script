@@ -4,7 +4,6 @@ import sys
 sys.path.append(os.getenv('SCRIPT_TOP_DIR')+"/src")
 sys.path.append(os.getenv('SCRIPT_TOP_DIR')+"/src/command")
 from Base import Base,Myclass,Arg
-from Json import Json
 from CompTemp import CompTemp
 from Shell import Shell
 
@@ -39,12 +38,9 @@ class main(Base):
         self.command("readcode", "代码阅读辅助")
         self.command("note", "笔记管理")
         self.command("winsh", "Windows 命令桥接")
-        self.comp = Json('/data/.complete.json')
-        self.shell_dir = self.tool_path('shell')
-        self.app_dir = self.tool_path('src', 'utils') + '/'
 
     def _get_app(self):
-      apps_list = self.files(self.app_dir, exclude=["__init__.py","__pycache__/","Completion.py"])
+      apps_list = self.files(self.tool_path('src', 'utils') + '/', exclude=["__init__.py","__pycache__/","Completion.py"])
       for i in range(len(apps_list)):
         apps_list[i] = apps_list[i].split('.')[0].lower()
       return apps_list
@@ -53,8 +49,8 @@ class main(Base):
     def complete(self, ctx):
         cur = ctx.current
         if '/' in cur:
-            return self.file_opt(self.shell_dir, cur, ["exe_file","dir"], [])
-        return self.completion(self.files(self.shell_dir, cur, ["exe_file","dir"], ['data/']) + self._get_app())
+            return self.file_opt(self.shell_path(), cur, ["exe_file","dir"], [])
+        return self.completion(self.files(self.shell_path(), cur, ["exe_file","dir"], ['data/']) + self._get_app())
 
 
 def run():

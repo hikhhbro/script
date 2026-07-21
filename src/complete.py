@@ -197,11 +197,10 @@ if __name__ == '__main__':
     if len(asgs) == 2 and hasattr(obj, '_get_app'):
         import CompTemp
         known_py = set(obj._get_app())
-        shell_dir = os.getenv('SCRIPT_TOP_DIR') + '/shell'
         if not (
             CompTemp.CompTemp().get(asgs[1])
             or asgs[1] in known_py
-            or os.path.exists(os.path.join(shell_dir, asgs[1]))
+            or os.path.exists(get_shell_tool_path(asgs[1]))
         ):
             top_level = True
     if top_level and hasattr(obj, '_get_app'):

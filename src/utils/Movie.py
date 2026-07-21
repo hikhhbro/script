@@ -20,8 +20,7 @@ class Movie(Base):
         self.command("download", "下载影视资源").run(self.download)
         self.command("show", "展示已记录资源").run(self.show)
         
-        self.web_dic = self.config_read(web, merge=True)
-        Log.debug(self.web_dic)
+        Log.debug(self.config_read(web, merge=True))
         
 
     # 子命令方法
