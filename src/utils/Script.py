@@ -5,8 +5,8 @@ from command.CompTemp import CompTemp
 from command.Base import Base
 
 class Script(Base):
-    def __init__(self, args_list=None):
-        super().__init__(args_list)
+    def __init__(self, args=None):
+        super().__init__(args)
         self.meta("管理 hikrun 的 shell 脚本。")
         self.command('readme', '打开 README 并提交更新').run(self.__readme)
         self.command('build', '扫描 shell 目录并刷新脚本补全缓存').run(self.__build)

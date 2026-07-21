@@ -3,16 +3,7 @@ from Base import Base
 import Log
 
 import os
-import re
-import pathlib
 import json
-try:
-    import xmltodict
-except ImportError:
-    xmltodict = None
-import time
-import itertools
-from datetime import datetime, timedelta
 
 
 
@@ -52,10 +43,9 @@ def common_prefix_path(path0, path1):
     return os.path.join(*longest_prefix(components(path0), components(path1)))
 
 class Flash(Base):
-    def __init__(self, args_list=None):
-        super().__init__(args_list)
+    def __init__(self, args=None):
+        super().__init__(args)
         self.meta("根据工程配置选择设备和镜像并执行烧录命令。", args="[选项]")
-        self.__args_list = self.args
         self.flash_dic = {}
         self.projects_path = self.tool_dir + '/data/build/projects_dir'
         self.projects_list = []
@@ -96,24 +86,6 @@ class Flash(Base):
           if prefix in self.projects_list :
               return prefix
       return None
-
-
-    # def handle_cmd(self):
-    #   Log.debug(self.__args_list)
-    #   if len(self.__args_list) > 1 and  "-p" in self.__args_list[0]:
-    #     if "port" in self.flash_dic.keys():
-    #       self.flash_dic["port"] = "/dev/ttyUSB%s" %(self.__args_list[1])
-    #   else :
-    #     self.flash_dic["port"] = self.find_devices(self.flash_dic["port"])
-    #   str = ""
-    #   for key,value in self.flash_dic.items():
-    #     # if key == "tool": 
-    #     #     str = "sudo " + value + " "
-    #     Log.debug(value)
-    #     Log.debug(key)
-    #     str += ("sudo " + value + " ") if key == "tool"  else  (" --" + key + "=" + value + " ")
-    #   Log.debug(str)
-    #   return str
 
 
     def is_devices(self, key):
@@ -173,7 +145,7 @@ class Flash(Base):
       Log.debug(cmd_list)
 
     def exec(self):
-        if self.should_show_help(self.__args_list):
+        if self.should_show_help(self.args):
             self.help()
             return
         try:
@@ -182,6 +154,3 @@ class Flash(Base):
                 Shell.bash(cmd).status()
         except Exception as e:
             Log.error(e)
-
-    def help(self, command=None):
-        super().help(command)

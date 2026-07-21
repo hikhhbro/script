@@ -7,18 +7,17 @@ from command.Shell import Shell
 from command.Base import Base
 
 class Repo(Base):
-    def __init__(self, args_list=None):
-        super().__init__(args_list)
+    def __init__(self, args=None):
+        super().__init__(args)
         self.meta("比较两个 repo manifest XML 的项目差异。", args="<left.xml> <right.xml> [--same-name|--all]")
-        self.__args_list = self.args
         self.command_tree.long('--same-name', '比较同名项目的差异')
         self.command_tree.long('--all', '显示全部 revision 差异')
-        self.short_options = self.__args_list[2] if len(self.__args_list) > 2 else ''
+        self.short_options = self.args[2] if len(self.args) > 2 else ''
         self.xml_project = []
-        if len(self.__args_list) >= 2:
+        if len(self.args) >= 2:
             self.xml_project = [
-                self.__read_project_frome_xml(self.__args_list[0]),
-                self.__read_project_frome_xml(self.__args_list[1]),
+                self.__read_project_frome_xml(self.args[0]),
+                self.__read_project_frome_xml(self.args[1]),
             ]
     def __read_project_frome_xml(self, xml_path):
         if xmltodict is None:
@@ -84,7 +83,7 @@ class Repo(Base):
                 if len(i[1]) > max_revision_len:
                     max_revision_len = len(i[1])
         tile = "name"    
-        print(f"name : {self.__args_list[0]} <---> {self.__args_list[1]}")
+        print(f"name : {self.args[0]} <---> {self.args[1]}")
         for i in out_list:
             if len(i) > 2 :
                 times = times +1
@@ -112,7 +111,7 @@ class Repo(Base):
                 if len(i[1]) > max_revision_len:
                     max_revision_len = len(i[1])
         tile = "name"    
-        print(f"name : {self.__args_list[0]} <---> {self.__args_list[1]}")
+        print(f"name : {self.args[0]} <---> {self.args[1]}")
         times = 0
         for i in out_list:
             times = times +1
@@ -126,13 +125,10 @@ class Repo(Base):
                     l = " " if __map[i[1]][1] else i[1]
                     r = i[1] if __map[i[1]][1] else " "
                     print(f"{times}: {i[0]:{max_name_len}} : {l:{max_revision_len}} <---> {r:{max_revision_len}}")   
-    def help(self, command=None):
-        super().help(command)
-
     def exec(self):
-        if self.should_show_help(self.__args_list):
+        if self.should_show_help(self.args):
             self.help()
-        elif len(self.__args_list) < 3 or not self.xml_project:
+        elif len(self.args) < 3 or not self.xml_project:
             self.help()
         elif self.short_options == "--same-name":
             self.__same_name_diff_revision()

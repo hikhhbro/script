@@ -4,10 +4,9 @@ from command.Base import Base
 import Log
 
 class Readcode(Base):
-    def __init__(self, args_list=None):
-        super().__init__(args_list)
+    def __init__(self, args=None):
+        super().__init__(args)
         self.meta("根据记录的 import 列表在当前代码树中定位源码文件。", args="<工作名>")
-        self.__args_list = self.args
         self.work_root = self.data_path('readcode') + '/'
         self.ensure_dir(self.work_root)
         self.default(self.__code)
@@ -81,7 +80,7 @@ class Readcode(Base):
     
 
     def exec(self):
-        if not self.__args_list and not self.should_show_help(self.__args_list):
+        if not self.args and not self.should_show_help(self.args):
             self.help()
             return
-        return self.dispatch(self.__args_list, default=self.option_dic[""])
+        return self.dispatch(default=self.__code)

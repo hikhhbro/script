@@ -5,7 +5,6 @@ sys.path.append(os.getenv('SCRIPT_TOP_DIR')+"/src/command")
 from Base import Myclass , Opt, CompletionContext
 from Listdirs import CurFile
 import CompTemp
-import types
 
 
 def _display_width(s):
@@ -34,10 +33,10 @@ def get_shell_tool_path(name):
     return os.path.join(os.getenv('SCRIPT_TOP_DIR'), 'shell', name)
 
 
-def get_shell_prefix(args_list, isend):
-    if isend or not args_list:
+def get_shell_prefix(words, isend):
+    if isend or not words:
         return ''
-    arg = args_list[-1]
+    arg = words[-1]
     index = arg.rfind('/')
     if index < 0:
         return ''

@@ -3,7 +3,6 @@ from Base import Base
 import Log
 
 import os
-import re
 import pathlib
 import json
 try:
@@ -11,8 +10,6 @@ try:
 except ImportError:
     xmltodict = None
 import time
-import itertools
-from datetime import datetime, timedelta
 import shutil 
 import shlex
 
@@ -53,10 +50,9 @@ def common_prefix_path(path0, path1):
     return os.path.join(*longest_prefix(components(path0), components(path1)))
 
 class Build(Base):
-    def __init__(self, args_list=None):
-        super().__init__(args_list)
+    def __init__(self, args=None):
+        super().__init__(args)
         self.meta("管理工程初始化、同步构建类型和常用编译动作。", args="[目标|选项]")
-        self.__args_list = self.args
         self.projects_path = self.tool_dir + '/data/build/projects_dir'
         self.__history_project_file_dir = self.tool_dir + '/data/build/history_project/'
         self.__build_tpye_dir = self.tool_dir + '/src/template/build_tpye/'
@@ -764,14 +760,10 @@ class Build(Base):
             self.build_cmd[self.__get_type()](arg)
 
     def exec(self):
-        if not self.__args_list and not self.should_show_help(self.__args_list):
+        if not self.args and not self.should_show_help(self.args):
             self.help()
             return
-        return self.dispatch(self.__args_list, default=self.__start_build)
-
-    def help(self, command=None):
-        super().help(command)
-
+        return self.dispatch(default=self.__start_build)
 
     def __get_history(self):
         return ["com.android.wifi","com.android.tethering","services","framework-minus-apex"]

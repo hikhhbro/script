@@ -72,86 +72,11 @@ class CompletionContext:
             return prev
         return None
 
-    def items(self, values=None, file_opt=False):
-        return Opt(values or [], file_opt)
-
     def options(self, values=None):
         opt = Opt([])
         for item in values or []:
             opt.add(item)
         return opt
-
-    def values_for(self, option_values, option_name=None):
-        option_name = option_name or self.value_option(option_values)
-        provider = option_values.get(option_name) if option_name else None
-        values = self.call_provider(provider)
-        if self.current.startswith("--") and "=" in self.current and option_name:
-            opt = Opt([])
-            opt.set_long_opt([option_name + "=" + value for value in values])
-            return opt
-        return Opt(values)
-
-    def call_provider(self, provider):
-        if not callable(provider):
-            return provider or []
-        try:
-            if len(inspect.signature(provider).parameters) >= 1:
-                return provider(self) or []
-        except Exception:
-            pass
-        return provider() or []
-
-    def node_values(self, node):
-        values = node.get("_values")
-        if values is None:
-            return None
-        values = self.call_provider(values)
-        return Opt(values or [], node.get("_file_opt", False))
-
-    def complete_tree(self, tree, root_options=None):
-        """按声明式命令树补全。
-
-        tree 示例:
-        {
-          "usbipd": {
-            "_commands": {
-              "bind": {
-                "_options": {"--busid": busid_provider, "--force": None}
-              }
-            }
-          }
-        }
-        """
-        node = {"_commands": tree, "_options": root_options or {}}
-        index = 0
-        while index < len(self.words):
-            commands = node.get("_commands", {})
-            word = self.words[index]
-            if word.startswith("-"):
-                index += 1
-                continue
-            if word in commands:
-                node = commands[word] or {}
-                index += 1
-                continue
-            break
-
-        option_values = {
-            key: value for key, value in (node.get("_options", {}) or {}).items()
-            if value is not None
-        }
-        value_option = self.value_option(option_values)
-        if value_option:
-            return self.values_for(option_values, value_option)
-
-        if self.current_is_option():
-            return self.options(list((node.get("_options", {}) or {}).keys()))
-
-        values_opt = self.node_values(node)
-        if values_opt is not None:
-            return values_opt
-
-        return self.items(list((node.get("_commands", {}) or {}).keys()))
 
 class Arg:
     def __init__(self):
@@ -310,7 +235,7 @@ class CommandNode:
                 path = child.first_example_path()
                 if path:
                     return path
-        if self.name and (self.args_hint or self.handler or self.value_provider is not None):
+        if self.name:
             return self.usage_parts()
         return []
 
@@ -420,20 +345,17 @@ class Base(HelpMixin, Arg):
     """所有 Python 工具的公共基类。
 
     新增工具时优先复用:
-      1. __init__ 里 super().__init__(args_list)
+      1. __init__ 里 super().__init__(args)
       2. self.command("子命令", "说明").run(self.xxx)
       3. 不需要特殊逻辑时直接继承 exec()
     """
 
-    def __init__(self, args_list: list = None, config_name="config.json"):
+    def __init__(self, args: list = None, config_name="config.json"):
         super().__init__()
-        self.args_list = self.normalize_args(args_list)
-        # args 是推荐的新入口；保留 args_list 兼容历史代码。
-        self.args = self.args_list
+        self.args = self.normalize_args(args)
         self.name = self.__class__.__name__.lower()
         self.tool_dir = os.getenv("SCRIPT_TOP_DIR") or os.getcwd()
         self.tool_name = os.getenv("SCRIPT_TOOL_NAME") or "hikrun"
-        self.option_dic = {}
         self.command_tree = CommandNode()
         self.help_summary = "终端工具模块"
         self.usage_hint = ""
@@ -448,10 +370,7 @@ class Base(HelpMixin, Arg):
         return Opt.empty()
 
     def command(self, name, desc="", handler=None):
-        node = self.command_tree.command(name, desc, handler)
-        if handler:
-            self.option_dic[name] = handler
-        return node
+        return self.command_tree.command(name, desc, handler)
 
     def meta(self, summary=None, args=None):
         if summary is not None:
@@ -532,32 +451,6 @@ class Base(HelpMixin, Arg):
     def empty_opt(self):
         return Opt.empty()
 
-    def command_names(self, include_empty=False):
-        """返回可补全的子命令名；默认过滤空命令。"""
-        if self.command_tree.children:
-            return list(self.command_tree.children.keys())
-        return [
-            name for name in self.option_dic.keys()
-            if include_empty or name
-        ]
-
-    def find_command(self, args=None):
-        """在参数中查找第一个已注册子命令。
-
-        默认只需第一个参数是子命令；Note 这类允许路径前缀的工具
-        可以用它复用同一套查找逻辑。
-        """
-        args = self.normalize_args(self.args if args is None else args)
-        if self.command_tree.has_items():
-            node, _, index, _ = self.command_tree.parse(args)
-            if index >= 0:
-                return node.name, index
-            return None, -1
-        for index, item in enumerate(args):
-            if item in self.option_dic:
-                return item, index
-        return None, -1
-
     def dispatch(self, args=None, default=None, search_anywhere=False, show_help=True):
         """公共命令分发入口。
 
@@ -566,33 +459,13 @@ class Base(HelpMixin, Arg):
         """
         args = self.normalize_args(self.args if args is None else args)
         if self.should_show_help(args):
-            if self.command_tree.has_items():
-                node, _, _, _ = self.command_tree.parse(args, search_anywhere=search_anywhere)
-                self.help(node.path())
-            else:
-                command, _ = self.find_command(args)
-                self.help(command)
+            node, _, _, _ = self.command_tree.parse(args, search_anywhere=search_anywhere)
+            self.help(node.path())
             return None
 
-        if self.command_tree.has_items():
-            _, handler_node, handler_index, prefix_args = self.command_tree.parse(args, search_anywhere=search_anywhere)
-            if handler_node is not None:
-                return handler_node.handler(prefix_args + args[handler_index + 1:])
-            if default is not None:
-                return default(args)
-            if show_help:
-                self.help()
-            return None
-
-        command = None
-        index = -1
-        if search_anywhere:
-            command, index = self.find_command(args)
-        elif args and args[0] in self.option_dic:
-            command, index = args[0], 0
-
-        if command is not None:
-            return self.option_dic[command](args[index + 1:])
+        _, handler_node, handler_index, prefix_args = self.command_tree.parse(args, search_anywhere=search_anywhere)
+        if handler_node is not None:
+            return handler_node.handler(prefix_args + args[handler_index + 1:])
 
         if default is not None:
             return default(args)
@@ -603,8 +476,7 @@ class Base(HelpMixin, Arg):
 
     def exec(self):
         """默认执行入口：先处理公共帮助，再分发到子命令。"""
-        args = self.args if self.args else self.arg_list[1:]
-        return self.dispatch(args)
+        return self.dispatch()
 
     def help(self, command=None):
         if not self.command_tree.has_items():

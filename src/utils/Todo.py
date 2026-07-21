@@ -9,11 +9,10 @@ import Log
 
 
 class Todo(Base):
-    def __init__(self, args_list=None):
-        super().__init__(args_list)
+    def __init__(self, args=None):
+        super().__init__(args)
         self.meta("记录、查看和完成待办事项。")
         self.root_dir = os.getenv('SCRIPT_TOP_DIR')
-        self.__args_list = self.args
         self.command('add', '新增待办；add 后面的所有参数会合并为一条文本').run(self.add).args("<文本>")
         self.command('rm', '按序号或序号范围完成待办').run(self.rm).args("<序号|范围|日期>")
         self.command('show', '显示待办；show done 显示已完成').run(self.show).value(['done']).args("[done|日期]")
@@ -146,6 +145,3 @@ class Todo(Base):
         self.__save(self.todo_file, todos)
         self.__archive_removed(removed)
         self.__commit_store("rm todo")
-
-    def exec(self):
-        return self.dispatch(self.__args_list)

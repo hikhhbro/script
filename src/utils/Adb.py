@@ -4,10 +4,9 @@ from command.Base import Base
 import Log
 
 class Adb(Base):
-    def __init__(self, args_list=None):
-        super().__init__(args_list)
+    def __init__(self, args=None):
+        super().__init__(args)
         self.meta("在 adb shell 上执行常用文件、目录和屏幕操作。")
-        self.__args_list = self.args
         self.todo_dic = { }
         self.pts = Shell.cmd('tty').stdout().replace('\n','')
         self.rootdir = self.tool_dir + '/data/adb/'
@@ -146,8 +145,8 @@ class Adb(Base):
         return out
     def __file(self):
         arg = ''
-        if  self.__args_list : 
-            arg = ''.join(self.__args_list)
+        if self.args:
+            arg = ''.join(self.args)
         if not arg or arg[0] != '/':
             arg = self.cur_dir + '/' + arg
         l = arg.rfind('/')
@@ -169,4 +168,4 @@ class Adb(Base):
     
     def exec(self):
         # 空命令或未知命令默认进入 adb shell，保留原来的使用习惯。
-        return self.dispatch(self.__args_list, default=self.__adb_shell)
+        return self.dispatch(default=self.__adb_shell)

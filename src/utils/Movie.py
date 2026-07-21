@@ -1,7 +1,4 @@
 
-import time
-import os
-import sys
 from Base import Base
 import Log
 
@@ -15,10 +12,9 @@ web={
 }
 
 class Movie(Base):
-    def __init__(self, args_list=None):
-        super().__init__(args_list)
+    def __init__(self, args=None):
+        super().__init__(args)
         self.meta("影视搜索、同步和下载入口。")
-        self.__args_list = self.args
         self.command("search", "搜索影视资源").run(self.search).args("<关键字>")
         self.command("sync", "同步影视数据").run(self.sync)
         self.command("download", "下载影视资源").run(self.download)
@@ -41,10 +37,3 @@ class Movie(Base):
 
     def show(self, arg: list):
         Log.todo()
-
-    def help(self, command=None):
-        super().help(command)
-
-    # 执行方法
-    def exec(self):
-        return self.dispatch(self.__args_list)

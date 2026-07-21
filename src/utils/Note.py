@@ -8,10 +8,9 @@ from command.Base import Base
 
 
 class Note(Base):
-    def __init__(self, args_list=None):
-        super().__init__(args_list)
+    def __init__(self, args=None):
+        super().__init__(args)
         self.meta("在终端中创建、编辑、初始化和同步 Markdown 笔记。")
-        self.__args_list = self.args
         self.command('code', '创建或打开笔记文件/目录').run(self._code).value(self.__note_files).args("<路径>")
         self.command('sync', '提交并推送笔记仓库').run(self._sync) \
             .value(self.__sync_remotes) \
@@ -20,11 +19,11 @@ class Note(Base):
             .args("[远端] [提交信息]")
         self.command('init', '克隆并初始化笔记仓库').run(self._init).args("<remote_url> <path>")
         self._load_note_root()
-        Log.debug('Note init: args=%s note_root=%s' % (self.__args_list, self.note_root))
+        Log.debug('Note init: args=%s note_root=%s' % (self.args, self.note_root))
 
     def __note_files(self, ctx):
         prefix = ctx.current
-        if not prefix and ctx.prev() and ctx.prev() not in self.option_dic:
+        if not prefix and ctx.prev() and ctx.prev() not in self.command_tree.children:
             prefix = ctx.prev()
         return self.files(self.note_root, prefix)
 
@@ -250,5 +249,5 @@ class Note(Base):
 
     def exec(self):
         """分发 note 子命令，优先处理公共帮助。"""
-        Log.debug('exec args=%s' % self.__args_list)
-        return self.dispatch(self.__args_list, search_anywhere=True)
+        Log.debug('exec args=%s' % self.args)
+        return self.dispatch(search_anywhere=True)

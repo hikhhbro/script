@@ -3,12 +3,12 @@ from command.Trie import Trie
 
 
 class CompTemp():
-    def __init__(self, args_list=None):
+    def __init__(self, args=None):
         self.file = 'data/.complete.json'
         self.store = Json(self.file).ensure({})
         root = self.store.read({})
         self.trie = Trie(root)
-        self.args = args_list[1:] if args_list else []
+        self.args = args[1:] if args else []
 
     def __save(self):
         self.store.write(self.trie.root)

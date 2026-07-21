@@ -1,5 +1,4 @@
 import re
-import shlex
 
 import Log
 from command.Base import Base
@@ -7,10 +6,9 @@ from command.Shell import Shell
 
 
 class Winsh(Base):
-    def __init__(self, args_list=None):
-        super().__init__(args_list)
+    def __init__(self, args=None):
+        super().__init__(args)
         self.meta("从 WSL 调用 Windows 侧命令，并提供常用工具的分层补全。")
-        self.__args_list = self.args
         self.win = Shell.win()
         self.windows_tools = {
             "usbipd": {
@@ -41,7 +39,7 @@ class Winsh(Base):
         usbipd.command("detach", "断开 USB 设备") \
             .long("--busid", "指定设备 busid", values=self.__usbipd_busids) \
             .args("--busid <busid>")
-        Log.debug("winsh args: %s" % self.__args_list)
+        Log.debug("winsh args: %s" % self.args)
         Log.debug("winsh tools: %s" % list(self.windows_tools.keys()))
 
     def __run(self, cmd):
@@ -103,29 +101,5 @@ class Winsh(Base):
         return self.__run_windows_tool("usbipd", args)
 
     def exec(self):
-        args = self.__args_list if self.__args_list else self.arg_list[1:]
-        Log.debug("winsh exec args: %s" % args)
-        if self.should_show_help(args):
-            self.help(args[0] if args else None)
-            return
-        if not args:
-            self.help()
-            return
-        use_sudo = False
-        if args and args[0] == "--sudo":
-            use_sudo = True
-            args = args[1:]
-        Log.debug("winsh global sudo=%s args=%s" % (use_sudo, args))
-        if not args:
-            self.help()
-            return
-        command = args[0]
-        if command not in self.option_dic:
-            Log.error("未知 Windows 工具: %s" % shlex.quote(command))
-            self.help()
-            return
-        tool_args = args[1:]
-        if use_sudo:
-            tool_args = ["--sudo"] + tool_args
-        Log.debug("winsh dispatch command=%s tool_args=%s" % (command, tool_args))
-        return self.option_dic[command](tool_args)
+        Log.debug("winsh exec args: %s" % self.args)
+        return self.dispatch()
