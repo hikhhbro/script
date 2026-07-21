@@ -490,6 +490,8 @@ class Base(HelpMixin, Arg):
 
     def ensure_dir(self, *parts):
         path = os.path.join(*parts) if len(parts) > 1 else parts[0]
+        if not path:
+            return path
         os.makedirs(path, exist_ok=True)
         return path
 

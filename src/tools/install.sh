@@ -25,6 +25,16 @@ if [[ "$2" == "" ]];then
 else 
   SCRIPT_TOP_DIR=$2
 fi
+
+if [[ "${SCRIPT_TOP_DIR}" != /* ]]; then
+  SCRIPT_TOP_DIR="$(pwd)/${SCRIPT_TOP_DIR}"
+fi
+if command -v realpath >/dev/null 2>&1; then
+  SCRIPT_TOP_DIR="$(realpath -m "${SCRIPT_TOP_DIR}")"
+else
+  SCRIPT_TOP_DIR="$(cd "$(dirname "${SCRIPT_TOP_DIR}")" && pwd)/$(basename "${SCRIPT_TOP_DIR}")"
+fi
+
 . src/tools/base.sh
 
 if [ -f "/usr/local/bin/${SCRIPT_TOOL_NAME}" ];then
@@ -63,11 +73,11 @@ init_tool_configs
 sed -i '/SCRIPT_TOP_DIR/d'  ~/.bashrc
 sed -i '/SCRIPT_TOOL_NAME/d'  ~/.bashrc
 
-sed -i "/shopt -oq posix/iexport SCRIPT_TOP_DIR=\"`pwd`\"" ~/.bashrc
+sed -i "/shopt -oq posix/iexport SCRIPT_TOP_DIR=\"${SCRIPT_TOP_DIR}\"" ~/.bashrc
 sed -i "/shopt -oq posix/iexport SCRIPT_TOOL_NAME=\"${SCRIPT_TOOL_NAME}\"" ~/.bashrc
 _task source ~/.bashrc
 
-cat > ${SCRIPT_TOP_DIR}/${SCRIPT_TOOL_NAME} <<EOF
+cat > "${SCRIPT_TOP_DIR}/${SCRIPT_TOOL_NAME}" <<EOF
 #!/usr/bin/python3
 import os
 import sys
@@ -81,12 +91,12 @@ EOF
 _task sudo mv ${SCRIPT_TOP_DIR}/${SCRIPT_TOOL_NAME} /usr/local/bin/${SCRIPT_TOOL_NAME}
 _task sudo chmod 755 /usr/local/bin/${SCRIPT_TOOL_NAME}
 
-cat  >  ${SCRIPT_TOOL_NAME}_prompt <<EOF
+cat  >  "${SCRIPT_TOP_DIR}/${SCRIPT_TOOL_NAME}_prompt" <<EOF
 if [[ -e ${SCRIPT_TOP_DIR}/src/completion/complete.sh ]]; then
 	. ${SCRIPT_TOP_DIR}/src/completion/complete.sh
 fi
 EOF
-_task sudo mv ${SCRIPT_TOOL_NAME}_prompt /etc/bash_completion.d/${SCRIPT_TOOL_NAME}_prompt
+_task sudo mv ${SCRIPT_TOP_DIR}/${SCRIPT_TOOL_NAME}_prompt /etc/bash_completion.d/${SCRIPT_TOOL_NAME}_prompt
 _task sudo chmod 755 /etc/bash_completion.d/${SCRIPT_TOOL_NAME}_prompt
 _task source ~/.bashrc
 echo -n "---安装完成---输入任意键结束------"
