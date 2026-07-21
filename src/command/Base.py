@@ -332,9 +332,14 @@ class CommandNode:
             return ctx.options(options)
 
         values = list(node.children)
+        provider_values = []
         if node.value_provider is not None:
-            values += list(self.__call_provider(node.value_provider, ctx))
-        return Opt(values, node.file_opt)
+            provider_values = self.__call_provider(node.value_provider, ctx)
+            values += list(provider_values)
+        out = Opt(values, node.file_opt)
+        if hasattr(provider_values, 'display_root'):
+            out.display_root = provider_values.display_root
+        return out
 
     def help_items(self):
         out = {}

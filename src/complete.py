@@ -75,8 +75,9 @@ def print_display_meta(out_list, shell_prefix='', app_list=None, file_root=None)
                 continue
         else:
             continue
-        # 附带终端显示宽度，bash 端用于正确对齐中英文混排
-        meta.append('%s=%s:%d' % (item, path, _display_width(item)))
+        # 插入值仍由 COMPREPLY 使用完整 item；展示列表只显示最后一级路径。
+        display = os.path.basename(item.rstrip('/')) + ('/' if item.endswith('/') else '')
+        meta.append('%s=%s:%d' % (display, path, _display_width(display)))
     if meta:
         print(' '.join('_display_:' + item for item in meta))
 
