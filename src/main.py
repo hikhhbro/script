@@ -7,7 +7,7 @@ import subprocess
 
 sys.path.append(os.getenv('SCRIPT_TOP_DIR')+"/src")
 sys.path.append(os.getenv('SCRIPT_TOP_DIR')+"/src/command")
-from Base import Base,Myclass,Arg,Opt
+from Base import Base,Myclass,Arg
 from Json import Json
 from CompTemp import CompTemp
 from Shell import Shell
@@ -197,11 +197,11 @@ class main(Base):
       return apps_list
 
 
-    def _opt(self):
-        if '/' in self.cur:
-            return self.file_opt(self.shell_dir, self.cur, ["exe_file","dir"], [])
-        else:
-            return Opt(self.files(self.shell_dir, self.cur, ["exe_file","dir"], ['data/']) + self._get_app())
+    def complete(self, ctx):
+        cur = ctx.current
+        if '/' in cur:
+            return self.file_opt(self.shell_dir, cur, ["exe_file","dir"], [])
+        return self.completion(self.files(self.shell_dir, cur, ["exe_file","dir"], ['data/']) + self._get_app())
 
 
 def run():

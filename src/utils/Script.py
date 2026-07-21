@@ -2,19 +2,11 @@ import os
 import Log
 from command.Shell import Shell
 from command.CompTemp import CompTemp
-from command.Listdirs import CurFile
 from command.Base import Base
-from command.Base import Opt
 
 class Script(Base):
     help_summary = "管理 hikrun 的 shell 脚本。"
     help_usage = "{tool_name} script <子命令> [参数]"
-    help_options = {
-        "readme": "打开 README 并提交更新",
-        "build": "扫描 shell 目录并刷新脚本补全缓存",
-        "rm": "把脚本移动到回收目录",
-        "add": "新增脚本并打开编辑器",
-    }
     help_examples = [
         "hikrun script add demo",
         "hikrun script rm demo",
@@ -23,12 +15,10 @@ class Script(Base):
 
     def __init__(self, args_list=None):
         super().__init__(args_list)
-        self.set_commands({
-            'readme' : self.__readme,
-            'build' : self.__build,
-            'rm' : self.__rm,
-            'add' : self.__add,
-        })
+        self.command('readme', '打开 README 并提交更新').run(self.__readme)
+        self.command('build', '扫描 shell 目录并刷新脚本补全缓存').run(self.__build)
+        self.command('rm', '把脚本移动到回收目录').run(self.__rm).value(lambda ctx: self.files(self.shell_dir, ctx.current))
+        self.command('add', '新增脚本并打开编辑器').run(self.__add).value(lambda ctx: self.files(self.shell_dir, ctx.current))
         self.shell_dir = self.tool_path('shell')
         self.company_shell_dir = self.tool_path('shell', 'company')
     def __readme(self,text = None):
@@ -60,9 +50,3 @@ class Script(Base):
         target = os.path.join(self.shell_dir, text[-1])
         Shell.chain().cmd('touch', target).cmd('code', target).cmd('chmod', '777', target).status()
         CompTemp().set([text[-1]])
-        
-    def add_opt(self):
-        return self.file_opt(self.shell_dir, self.cur)
-
-    def rm_opt(self):
-        return self.add_opt()

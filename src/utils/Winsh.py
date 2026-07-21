@@ -2,18 +2,13 @@ import re
 import shlex
 
 import Log
-from command.Base import Base, Opt
+from command.Base import Base
 from command.Shell import Shell
 
 
 class Winsh(Base):
     help_summary = "从 WSL 调用 Windows 侧命令，并提供常用工具的分层补全。"
     help_usage = "{tool_name} winsh <windows工具> [子命令|参数]"
-    help_options = {
-        "usbipd": "管理 Windows USB/IP 设备并连接到 WSL",
-        "--sudo": "强制使用 gsudo.exe 提权执行后续 Windows 命令",
-        "--help": "显示当前帮助",
-    }
     help_examples = [
         "hikrun winsh usbipd list",
         "hikrun winsh usbipd bind --busid 2-1",
@@ -27,24 +22,21 @@ class Winsh(Base):
         self.windows_tools = {
             "usbipd": {
                 "exe": "usbipd.exe",
-                "subcommands": {
-                    "list": ["--usbids", "--parsable"],
-                    "state": [],
-                    "bind": ["--busid", "--force"],
-                    "unbind": ["--busid", "--force"],
-                    "attach": ["--busid", "--wsl", "--distribution", "--auto-attach"],
-                    "detach": ["--busid"],
-                },
                 "admin_subcommands": {"bind", "unbind"},
-                "value_options": {
-                    "--busid": self.__usbipd_busids,
-                    "--distribution": self.__wsl_distros,
-                },
             },
         }
-        self.set_commands({
-            "usbipd": self.__run_usbipd,
-        })
+        self.command_tree.long('--sudo', '强制使用 gsudo.exe 提权执行后续 Windows 命令', inherit=True)
+        usbipd = self.command("usbipd", "管理 Windows USB/IP 设备并连接到 WSL").run(self.__run_usbipd)
+        usbipd.command("list", "列出 USB 设备").long("--usbids").long("--parsable")
+        usbipd.command("state", "显示 usbipd 服务状态")
+        usbipd.command("bind", "绑定 USB 设备").long("--busid", values=self.__usbipd_busids).long("--force")
+        usbipd.command("unbind", "解绑 USB 设备").long("--busid", values=self.__usbipd_busids).long("--force")
+        usbipd.command("attach", "连接 USB 设备到 WSL") \
+            .long("--busid", values=self.__usbipd_busids) \
+            .long("--wsl") \
+            .long("--distribution", values=self.__wsl_distros) \
+            .long("--auto-attach")
+        usbipd.command("detach", "断开 USB 设备").long("--busid", values=self.__usbipd_busids)
         Log.debug("winsh args: %s" % self.__args_list)
         Log.debug("winsh tools: %s" % list(self.windows_tools.keys()))
 
@@ -77,28 +69,6 @@ class Winsh(Base):
         Log.debug("winsh wsl distros: %s" % distros)
         return distros
 
-    def completion_root_options(self):
-        return {"--sudo": None}
-
-    def completion_spec(self):
-        return {
-            "usbipd": {
-                "_commands": {
-                    "list": {"_options": {"--usbids": None, "--parsable": None}},
-                    "state": {},
-                    "bind": {"_options": {"--busid": self.__usbipd_busids, "--force": None}},
-                    "unbind": {"_options": {"--busid": self.__usbipd_busids, "--force": None}},
-                    "attach": {"_options": {
-                        "--busid": self.__usbipd_busids,
-                        "--wsl": None,
-                        "--distribution": self.__wsl_distros,
-                        "--auto-attach": None,
-                    }},
-                    "detach": {"_options": {"--busid": self.__usbipd_busids}},
-                }
-            }
-        }
-
     def __run_windows_tool(self, tool_name, args):
         tool = self.windows_tools.get(tool_name)
         if not tool:
@@ -106,10 +76,8 @@ class Winsh(Base):
             return 1
 
         Log.debug("winsh run tool=%s raw_args=%s" % (tool_name, args))
-        use_sudo = False
-        if args and args[0] == "--sudo":
-            use_sudo = True
-            args = args[1:]
+        use_sudo = "--sudo" in args
+        args = [item for item in args if item != "--sudo"]
         if args and args[0] in tool.get("admin_subcommands", set()):
             use_sudo = True
         Log.debug("winsh sudo=%s args=%s" % (use_sudo, args))

@@ -11,12 +11,6 @@ import Log
 class Todo(Base):
     help_summary = "记录、查看和完成待办事项。"
     help_usage = "{tool_name} todo <子命令> [参数]"
-    help_options = {
-        "add": "新增待办；add 后面的所有参数会合并为一条文本",
-        "rm": "按序号或序号范围完成待办",
-        "show": "显示待办；show done 显示已完成",
-        "--help": "显示当前帮助",
-    }
     help_examples = [
         "hikrun todo add 修复补全",
         "hikrun todo show",
@@ -27,11 +21,9 @@ class Todo(Base):
         super().__init__(args_list)
         self.root_dir = os.getenv('SCRIPT_TOP_DIR')
         self.__args_list = self.args
-        self.set_commands({
-            'add': self.add,
-            'rm': self.rm,
-            'show': self.show,
-        })
+        self.command('add', '新增待办；add 后面的所有参数会合并为一条文本').run(self.add)
+        self.command('rm', '按序号或序号范围完成待办').run(self.rm)
+        self.command('show', '显示待办；show done 显示已完成').run(self.show).value(['done'])
         self.todo_dir = self.data_dir.rstrip('/')
         self.todo_file = self.data_path('todo_list.json')
         self.done_file = self.data_path('done_list.json')
@@ -162,14 +154,5 @@ class Todo(Base):
         self.__archive_removed(removed)
         self.__commit_store("rm todo")
 
-    def completion_spec(self):
-        return {
-            'add': {},
-            'rm': {},
-            'show': {
-                '_values': ['done'],
-            },
-        }
-      
     def exec(self):
         return self.dispatch(self.__args_list)

@@ -4,16 +4,11 @@ except ImportError:
     xmltodict = None
 import os
 from command.Shell import Shell
-from command.Base import Base, Opt
+from command.Base import Base
 
 class Repo(Base):
     help_summary = "比较两个 repo manifest XML 的项目差异。"
     help_usage = "{tool_name} repo <left.xml> <right.xml> [--same-name|--all]"
-    help_options = {
-        "--same-name": "比较同名项目的差异",
-        "--all": "显示全部 revision 差异",
-        "--help": "显示当前帮助",
-    }
     help_examples = [
         "hikrun repo old.xml new.xml --all",
         "hikrun repo old.xml new.xml --same-name",
@@ -22,6 +17,8 @@ class Repo(Base):
     def __init__(self, args_list=None):
         super().__init__(args_list)
         self.__args_list = self.args
+        self.command_tree.long('--same-name', '比较同名项目的差异')
+        self.command_tree.long('--all', '显示全部 revision 差异')
         self.short_options = self.__args_list[2] if len(self.__args_list) > 2 else ''
         self.xml_project = []
         if len(self.__args_list) >= 2:
@@ -138,9 +135,6 @@ class Repo(Base):
     def help(self, command=None):
         super().help(command)
 
-    def _opt(self):
-        return Opt(['--same-name', '--all'], True)
-
     def exec(self):
         if self.should_show_help(self.__args_list):
             self.help()
@@ -152,6 +146,5 @@ class Repo(Base):
             self.__all_diff_revision()
         else:
             self.help()
-
 
 

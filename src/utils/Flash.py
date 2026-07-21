@@ -1,6 +1,5 @@
-from turtle import update
 from Shell import Shell
-from Base import Base, Opt
+from Base import Base
 import Log
 
 import os
@@ -55,9 +54,6 @@ def common_prefix_path(path0, path1):
 class Flash(Base):
     help_summary = "根据工程配置选择设备和镜像并执行烧录命令。"
     help_usage = "{tool_name} flash [选项]"
-    help_options = {
-        "--help": "显示当前帮助",
-    }
     help_examples = [
         "hikrun flash",
     ]
@@ -194,14 +190,3 @@ class Flash(Base):
 
     def help(self, command=None):
         super().help(command)
-
-    def _opt(self):
-        return self.empty_opt()
-
-
-
-
-    # def _opt(self):
-    #     if self.cur[0] == '-':
-    #         return list(self.option_dic.keys())
-    #     return ["get_file_opt"] + self.__get_history()

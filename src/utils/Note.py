@@ -4,19 +4,12 @@ import os
 import re
 import Log
 from command.Shell import Shell
-from command.Base import Base, Opt
-from command.Listdirs import CurFile
+from command.Base import Base
 
 
 class Note(Base):
     help_summary = "在终端中创建、编辑、初始化和同步 Markdown 笔记。"
     help_usage = "{tool_name} note <子命令> [参数]"
-    help_options = {
-        "code": "创建或打开笔记文件/目录",
-        "sync": "提交并推送笔记仓库",
-        "init": "克隆并初始化笔记仓库",
-        "--help": "显示当前帮助",
-    }
     help_examples = [
         "hikrun note code d03-工具-软件/f01-xxx.md",
         "hikrun note code 公司/test",
@@ -27,13 +20,20 @@ class Note(Base):
     def __init__(self, args_list=None):
         super().__init__(args_list)
         self.__args_list = self.args
-        self.set_commands({
-            'code': self._code,
-            'sync': self._sync,
-            'init': self._init,
-        })
+        self.command('code', '创建或打开笔记文件/目录').run(self._code).value(self.__note_files)
+        self.command('sync', '提交并推送笔记仓库').run(self._sync) \
+            .value(self.__sync_remotes) \
+            .long('--default', '修改默认远端', self.__sync_remotes) \
+            .short('-d', '修改默认远端', self.__sync_remotes)
+        self.command('init', '克隆并初始化笔记仓库').run(self._init)
         self._load_note_root()
         Log.debug('Note init: args=%s note_root=%s' % (self.__args_list, self.note_root))
+
+    def __note_files(self, ctx):
+        prefix = ctx.current
+        if not prefix and ctx.prev() and ctx.prev() not in self.option_dic:
+            prefix = ctx.prev()
+        return self.files(self.note_root, prefix)
 
     def _load_note_root(self):
         """从配置读取 note_root，默认使用 /ws/note。"""
@@ -246,67 +246,12 @@ class Note(Base):
         Log.debug('note_root updated to: %s' % target_path)
         Log.tips('Note root set to: %s' % target_path)
 
-    # ---- 补全方法 ----
-
-    def _opt(self):
-        """顶层补全：只返回 code、sync、init 等子命令。"""
-        return super()._opt()
-
-    def code_opt(self):
-        """code 后的路径补全：返回目录和文件用于导航，自动带 ls 颜色效果。"""
-        return self.file_opt(self.note_root, self.cur)
-
-    def sync_opt(self):
-        """sync 补全：已知远端和 --default/-d。"""
-        try:
-            remotes = Shell.git(self.note_root, 'remote').stdout().strip().split('\n')
-            remotes = [r for r in remotes if r]
-        except Exception:
-            remotes = []
-        return Opt(remotes + ['--default', '-d'])
-
-    def init_opt(self):
-        """init 不做固定补全，URL 和路径自由输入。"""
-        return self.empty_opt()
-
     def __sync_remotes(self):
         try:
             remotes = Shell.git(self.note_root, 'remote').stdout().strip().split('\n')
             return [r for r in remotes if r]
         except Exception:
             return []
-
-    def completion_spec(self):
-        def note_files(ctx):
-            prefix = ctx.current
-            if not prefix and ctx.prev() and ctx.prev() not in self.option_dic:
-                prefix = ctx.prev()
-            return self.files(self.note_root, prefix)
-
-        return {
-            'code': {
-                '_values': note_files,
-            },
-            'sync': {
-                '_values': self.__sync_remotes,
-                '_options': {
-                    '--default': self.__sync_remotes,
-                    '-d': self.__sync_remotes,
-                },
-            },
-            'init': {},
-        }
-
-    def __getattr__(self, name):
-        """动态路径补全：处理类似 公司/_opt 的查询。
-
-        complete.py 在路径参数后遇到空格时会查找对应的 _opt 方法，
-        这里返回一个 lambda 来列出该目录内容，避免补全回退逻辑清空选项。
-        """
-        if name.endswith('_opt') and '/' in name[:-4]:
-            path = name[:-4]  # 去掉 _opt 后缀
-            return lambda: self.file_opt(self.note_root, path)
-        raise AttributeError(name)
 
     # ---- 命令分发 ----
 

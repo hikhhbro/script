@@ -237,12 +237,186 @@ class HelpMixin:
                 print("  %s" % item)
 
 
+class CommandOption:
+    def __init__(self, name, desc="", values=None, inherit=False, file_opt=False):
+        self.name = name
+        self.desc = desc
+        self.values = values
+        self.inherit = inherit
+        self.file_opt = file_opt
+
+    def value(self, values, file_opt=False):
+        self.values = values
+        self.file_opt = file_opt
+        return self
+
+
+class CommandNode:
+    def __init__(self, name="", desc="", handler=None, parent=None):
+        self.name = name
+        self.desc = desc
+        self.handler = handler
+        self.parent = parent
+        self.children = {}
+        self.options = {}
+        self.value_provider = None
+        self.file_opt = False
+
+    def command(self, name, desc="", handler=None):
+        if name in self.children:
+            node = self.children[name]
+            if desc:
+                node.desc = desc
+            if handler:
+                node.handler = handler
+            return node
+        node = CommandNode(name, desc, handler, self)
+        self.children[name] = node
+        return node
+
+    def run(self, handler):
+        self.handler = handler
+        return self
+
+    def option(self, name, desc="", values=None, inherit=False, file_opt=False):
+        opt = CommandOption(name, desc, values, inherit, file_opt)
+        self.options[name] = opt
+        return self
+
+    def long(self, name, desc="", values=None, inherit=False, file_opt=False):
+        if not name.startswith("--"):
+            name = "--" + name
+        return self.option(name, desc, values, inherit, file_opt)
+
+    def short(self, name, desc="", values=None, inherit=False, file_opt=False):
+        if not name.startswith("-"):
+            name = "-" + name
+        return self.option(name, desc, values, inherit, file_opt)
+
+    def value(self, values, file_opt=False):
+        self.value_provider = values
+        self.file_opt = file_opt
+        return self
+
+    def has_items(self):
+        return bool(self.children or self.options or self.handler or self.value_provider is not None)
+
+    def path(self):
+        out = []
+        node = self
+        while node and node.name:
+            out.append(node.name)
+            node = node.parent
+        return list(reversed(out))
+
+    def inherited_options(self):
+        out = {}
+        lineage = []
+        node = self.parent
+        while node:
+            lineage.append(node)
+            node = node.parent
+        for item in reversed(lineage):
+            for name, opt in item.options.items():
+                if opt.inherit:
+                    out[name] = opt
+        return out
+
+    def active_options(self):
+        out = self.inherited_options()
+        out.update(self.options)
+        return out
+
+    def option_name(self, word):
+        if word.startswith("--") and "=" in word:
+            return word.split("=", 1)[0]
+        return word if word.startswith("-") else None
+
+    def parse(self, args, search_anywhere=False):
+        node = self
+        handler_node = self if self.handler else None
+        handler_index = -1
+        prefix_args = []
+        index = 0
+        while index < len(args):
+            word = args[index]
+            if word in node.children:
+                node = node.children[word]
+                if node.handler:
+                    handler_node = node
+                    handler_index = index
+                index += 1
+                continue
+
+            opt_name = self.option_name(word)
+            opt = node.active_options().get(opt_name)
+            if opt:
+                if handler_index < 0:
+                    prefix_args.append(word)
+                if opt.values is not None and "=" not in word and index + 1 < len(args):
+                    if handler_index < 0:
+                        prefix_args.append(args[index + 1])
+                    index += 2
+                else:
+                    index += 1
+                continue
+
+            if search_anywhere:
+                index += 1
+                continue
+            break
+        return node, handler_node, handler_index, prefix_args
+
+    def __call_provider(self, provider, ctx=None):
+        if not callable(provider):
+            return provider or []
+        if ctx is not None:
+            try:
+                if len(inspect.signature(provider).parameters) >= 1:
+                    return provider(ctx) or []
+            except Exception:
+                pass
+        return provider() or []
+
+    def complete(self, ctx):
+        node, _, _, _ = self.parse(ctx.words)
+        options = node.active_options()
+        value_opt_name = ctx.value_option({
+            name: opt.values for name, opt in options.items()
+            if opt.values is not None
+        })
+        if value_opt_name:
+            opt = options[value_opt_name]
+            values = self.__call_provider(opt.values, ctx)
+            if ctx.current.startswith("--") and "=" in ctx.current:
+                out = Opt.empty()
+                out.set_long_opt([value_opt_name + "=" + value for value in values])
+                return out
+            return Opt(values or [], opt.file_opt)
+
+        if ctx.current_is_option():
+            return ctx.options(list(options.keys()))
+
+        values = list(node.children.keys())
+        if node.value_provider is not None:
+            values += list(self.__call_provider(node.value_provider, ctx))
+        return Opt(values, node.file_opt)
+
+    def help_items(self):
+        out = {}
+        for name, child in self.children.items():
+            out[name] = child.desc
+        for name, opt in self.options.items():
+            out[name] = opt.desc
+        return out
+
+
 class Base(HelpMixin, Arg):
     """所有 Python 工具的公共基类。
 
     新增工具时优先复用:
       1. __init__ 里 super().__init__(args_list)
-      2. self.set_commands({"子命令": self.xxx})
+      2. self.command("子命令", "说明").run(self.xxx)
       3. 不需要特殊逻辑时直接继承 exec()
     """
 
@@ -255,6 +429,7 @@ class Base(HelpMixin, Arg):
         self.tool_dir = os.getenv("SCRIPT_TOP_DIR") or os.getcwd()
         self.tool_name = os.getenv("SCRIPT_TOOL_NAME") or "hikrun"
         self.option_dic = {}
+        self.command_tree = CommandNode()
         self.data_dir = os.path.join(self.tool_dir, "data", self.name) + "/"
         self.config = Json(self.data_dir + config_name)
 
@@ -275,10 +450,26 @@ class Base(HelpMixin, Arg):
         return {}
 
     def complete(self, ctx):
+        if self.command_tree.has_items():
+            return self.command_tree.complete(ctx)
         spec = self.completion_spec()
         if spec is None:
             return None
         return ctx.complete_tree(spec, root_options=self.completion_root_options())
+
+    def command(self, name, desc="", handler=None):
+        node = self.command_tree.command(name, desc, handler)
+        if handler:
+            self.option_dic[name] = handler
+        if desc:
+            merged = dict(getattr(self, "help_options", {}) or {})
+            merged[name] = desc
+            self.help_options = merged
+        return node
+
+    def default(self, handler):
+        self.command_tree.run(handler)
+        return self.command_tree
 
     def set_commands(self, commands=None, help_options=None):
         """注册子命令表，并可同时补充 help 文案。
@@ -287,6 +478,12 @@ class Base(HelpMixin, Arg):
         help_options: {"命令名": "中文说明"}
         """
         self.option_dic = dict(commands or {})
+        for name, handler in self.option_dic.items():
+            desc = (help_options or getattr(self, "help_options", {}) or {}).get(name, "")
+            if name:
+                self.command(name, desc, handler)
+            else:
+                self.default(handler)
         if help_options:
             merged = dict(getattr(self, "help_options", {}) or {})
             merged.update(help_options)
@@ -326,11 +523,16 @@ class Base(HelpMixin, Arg):
     def file_opt(self, root=None, postfix='', is_=None, exclude=None):
         return Opt(self.files(root, postfix, is_, exclude))
 
+    def completion(self, values=None, file_opt=False):
+        return Opt(values or [], file_opt)
+
     def empty_opt(self):
         return Opt.empty()
 
     def command_names(self, include_empty=False):
         """返回可补全的子命令名；默认过滤空命令。"""
+        if self.command_tree.children:
+            return list(self.command_tree.children.keys())
         return [
             name for name in self.option_dic.keys()
             if include_empty or name
@@ -343,6 +545,11 @@ class Base(HelpMixin, Arg):
         可以用它复用同一套查找逻辑。
         """
         args = self.normalize_args(self.args if args is None else args)
+        if self.command_tree.has_items():
+            node, _, index, _ = self.command_tree.parse(args)
+            if index >= 0:
+                return node.name, index
+            return None, -1
         for index, item in enumerate(args):
             if item in self.option_dic:
                 return item, index
@@ -356,8 +563,22 @@ class Base(HelpMixin, Arg):
         """
         args = self.normalize_args(self.args if args is None else args)
         if self.should_show_help(args):
-            command, _ = self.find_command(args)
-            self.help(command)
+            if self.command_tree.has_items():
+                node, _, _, _ = self.command_tree.parse(args, search_anywhere=search_anywhere)
+                self.help(node.path())
+            else:
+                command, _ = self.find_command(args)
+                self.help(command)
+            return None
+
+        if self.command_tree.has_items():
+            _, handler_node, handler_index, prefix_args = self.command_tree.parse(args, search_anywhere=search_anywhere)
+            if handler_node is not None:
+                return handler_node.handler(prefix_args + args[handler_index + 1:])
+            if default is not None:
+                return default(args)
+            if show_help:
+                self.help()
             return None
 
         command = None
@@ -381,6 +602,43 @@ class Base(HelpMixin, Arg):
         """默认执行入口：先处理公共帮助，再分发到子命令。"""
         args = self.args if self.args else self.arg_list[1:]
         return self.dispatch(args)
+
+    def help(self, command=None):
+        if not self.command_tree.has_items():
+            return super().help(command)
+
+        node = self.command_tree
+        if command:
+            parts = command if isinstance(command, list) else self.normalize_args(command)
+            for part in parts:
+                if part in node.children:
+                    node = node.children[part]
+
+        print("用法: %s" % self.format_usage())
+        if self.help_summary:
+            print("说明: %s" % self.help_summary)
+
+        if node is not self.command_tree and node.desc:
+            print("\n子命令:")
+            print("  %-18s %s" % (node.name, node.desc))
+
+        options = node.help_items()
+        if "--help" not in options:
+            options["--help"] = "显示当前帮助"
+        if options:
+            title = "子命令/选项:" if node is self.command_tree else "子命令/选项:"
+            print("\n%s" % title)
+            for name, desc in options.items():
+                print("  %-18s %s" % (name, desc))
+        else:
+            print("\n子命令/选项:")
+            print("  %-18s %s" % ("--help", "显示当前帮助"))
+
+        examples = getattr(self, "help_examples", []) or []
+        if examples:
+            print("\n示例:")
+            for item in examples:
+                print("  %s" % item)
 
 
 class Myclass:
@@ -423,6 +681,9 @@ class Myclass:
             from command.CompTemp import CompTemp
             if '/' in tool_name or CompTemp().get(tool_name):
                 out = "main"
+
+        if not out:
+            out = "main"
 
         model = importlib.import_module(out)
         return getattr(model, out)
@@ -514,6 +775,8 @@ class Opt:
     def opt_type(self, arg):
         if not arg:
             return self.get_sub_opt()
+        if arg == "-":
+            return self.get_short_opt() + self.get_long_opt()
         if "--" == arg[0:2]:
             opt = self.get_long_opt()
         elif "-" in arg[0]:

@@ -1,22 +1,11 @@
 import os
 from command.Shell import Shell
-from command.Base import Base, Opt
+from command.Base import Base
 import Log
 
 class Adb(Base):
     help_summary = "在 adb shell 上执行常用文件、目录和屏幕操作。"
     help_usage = "{tool_name} adb <子命令> [参数]"
-    help_options = {
-        "ls": "列出设备当前目录文件",
-        "cd": "切换记录的设备当前目录",
-        "cp": "在设备内复制文件",
-        "mv": "在设备内移动文件",
-        "code": "拉取设备文件到本地编辑后推回",
-        "pwd": "显示记录的设备当前目录",
-        "screen": "打开或关闭屏幕背光",
-        "push": "推送本地文件到设备",
-        "--help": "显示当前帮助",
-    }
     help_examples = [
         "hikrun adb ls",
         "hikrun adb cd /system",
@@ -43,17 +32,15 @@ class Adb(Base):
                 self.cur_dir = '/'
                 self.__adb_root().status()
             f.close()
-        self.set_commands({
-            'ls' : self.__ls,
-            'cd' : self.__cd,
-            'cp' : self.__cp,
-            'mv' : self.__mv,
-            'code' : self.__code,
-            'pwd' : self.__pwd,
-            'screen' : self.__screen,
-            'push':self.__push,
-            '' : self.__adb_shell
-        })
+        self.command('ls', '列出设备当前目录文件').run(self.__ls).value(self.__file)
+        self.command('cd', '切换记录的设备当前目录').run(self.__cd).value(self.__file)
+        self.command('cp', '在设备内复制文件').run(self.__cp).value(self.__file)
+        self.command('mv', '在设备内移动文件').run(self.__mv).value(self.__file)
+        self.command('code', '拉取设备文件到本地编辑后推回').run(self.__code).value(self.__file)
+        self.command('pwd', '显示记录的设备当前目录').run(self.__pwd)
+        self.command('screen', '打开或关闭屏幕背光').run(self.__screen).value(self.__screen_choices)
+        self.command('push', '推送本地文件到设备').run(self.__push)
+        self.default(self.__adb_shell)
 
 
     
@@ -184,40 +171,8 @@ class Adb(Base):
             self.__adb_status("echo  '1 > /sys/class/backlight/panel0-backlight/bl_power'")
         elif  arg[0] == choices[1]:
             self.__adb_status("echo  '0 > /sys/class/backlight/panel0-backlight/bl_power'")
-# adb 子命令补全选项
-    def _opt(self):
-        return super()._opt()
-# adb ls 补全选项
-    def ls_opt(self):
-        return Opt(self.__file())
-# adb cd 补全选项
-    def cd_opt(self):
-        return Opt(self.__file())
-# adb mv 补全选项
-    def mv_opt(self):
-        return Opt(self.__file())
-# adb code 补全选项
-    def code_opt(self):
-        return Opt(self.__file())
-# adb screen 补全选项
     def __screen_choices(self):
         return ['close', 'open']
-
-    def screen_opt(self):
-        return Opt(self.__screen_choices())
-
-    def completion_spec(self):
-        adb_files = self.__file
-        return {
-            'ls': {'_values': adb_files},
-            'cd': {'_values': adb_files},
-            'mv': {'_values': adb_files},
-            'code': {'_values': adb_files},
-            'screen': {'_values': self.__screen_choices},
-            'cp': {'_values': adb_files},
-            'pwd': {},
-            'push': {},
-        }
     
     def exec(self):
         # 空命令或未知命令默认进入 adb shell，保留原来的使用习惯。

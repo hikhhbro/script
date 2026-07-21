@@ -1,6 +1,5 @@
-from turtle import update
 from Shell import Shell
-from Base import Base , Opt
+from Base import Base
 import Log
 
 import os
@@ -56,17 +55,6 @@ def common_prefix_path(path0, path1):
 class Build(Base):
     help_summary = "管理工程初始化、同步构建类型和常用编译动作。"
     help_usage = "{tool_name} build [目标|选项]"
-    help_options = {
-        "--init": "初始化当前工程的构建配置",
-        "--sync-build-type": "把当前工程配置同步回构建类型模板",
-        "--force": "强制走完整构建路径",
-        "--toolchain": "初始化或更新工具链",
-        "--check": "执行工程配置中的检查工具",
-        "--menuconfig": "进入配置菜单",
-        "--distclean": "清理构建产物",
-        "--pack": "构建后执行打包",
-        "--help": "显示当前帮助",
-    }
     help_examples = [
         "hikrun build --init",
         "hikrun build services",
@@ -103,10 +91,15 @@ class Build(Base):
         if self.build_dic:
             self.log_dir = "/home/hik/sub_ws/log/" + self.build_dic['project'] + '/'
         Log.debug(self.build_dic)
-        self.set_commands({
-            '--init': self.__init,
-            '--sync-build-type':self.__sync_build_type
-        })
+        self.command('--init', '初始化当前工程的构建配置').run(self.__init)
+        self.command('--sync-build-type', '把当前工程配置同步回构建类型模板').run(self.__sync_build_type)
+        self.command_tree.long('--force', '强制走完整构建路径', inherit=True)
+        self.command_tree.long('--toolchain', '初始化或更新工具链', inherit=True)
+        self.command_tree.long('--check', '执行工程配置中的检查工具', inherit=True)
+        self.command_tree.long('--menuconfig', '进入配置菜单', inherit=True)
+        self.command_tree.long('--distclean', '清理构建产物', inherit=True)
+        self.command_tree.long('--pack', '构建后执行打包', inherit=True)
+        self.command_tree.value(self.__completion_values)
         self.build_cmd = {''
             "monking": self.monking,
             "aosp": self.aosp,
@@ -790,9 +783,9 @@ class Build(Base):
     def __get_history(self):
         return ["com.android.wifi","com.android.tethering","services","framework-minus-apex"]
 
-    def _opt(self):
+    def __completion_values(self, ctx=None):
         if self.build_dic_value("type") == "vela":
-          return Opt(["--menuconfig","--distclean","--check","--pack"] + self.build_dic["projects"] + list(self.option_dic.keys()))
-        elif not self.build_dic:
-            return Opt(['--init'],False)
-        return Opt(self.__get_history(),True)
+            return self.build_dic["projects"]
+        if self.build_dic:
+            return self.__get_history()
+        return []

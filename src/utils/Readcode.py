@@ -6,9 +6,6 @@ import Log
 class Readcode(Base):
     help_summary = "根据记录的 import 列表在当前代码树中定位源码文件。"
     help_usage = "{tool_name} readcode <工作名>"
-    help_options = {
-        "--help": "显示当前帮助",
-    }
     help_examples = [
         "hikrun readcode demo",
     ]
@@ -18,9 +15,7 @@ class Readcode(Base):
         self.__args_list = self.args
         self.work_root = self.data_path('readcode') + '/'
         self.ensure_dir(self.work_root)
-        self.set_commands({
-            '': self.__code
-        })
+        self.default(self.__code)
         self.file_suffix = '.java'
     def __get_language_file_suffix(self,line):
         tmp_list = list(line)
@@ -95,4 +90,3 @@ class Readcode(Base):
             self.help()
             return
         return self.dispatch(self.__args_list, default=self.option_dic[""])
-
