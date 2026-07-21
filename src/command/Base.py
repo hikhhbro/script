@@ -329,9 +329,9 @@ class CommandNode:
             return Opt(values or [], opt.file_opt)
 
         if ctx.current_is_option():
-            return ctx.options(list(options.keys()))
+            return ctx.options(options)
 
-        values = list(node.children.keys())
+        values = list(node.children)
         if node.value_provider is not None:
             values += list(self.__call_provider(node.value_provider, ctx))
         return Opt(values, node.file_opt)
@@ -440,10 +440,10 @@ class Base(HelpMixin, Arg):
         with open(path) as f:
             return json.load(f)
 
-    def write_json_file(self, path, data):
+    def write_json_file(self, path, data, ensure_ascii=True):
         self.ensure_dir(os.path.dirname(path))
         with open(path, "w+") as f:
-            json.dump(data, f, indent=1)
+            json.dump(data, f, indent=1, ensure_ascii=ensure_ascii)
         return data
 
     def build_projects_path(self):

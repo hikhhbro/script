@@ -14,25 +14,16 @@ class Readcode(Base):
     def __parse_java_file(self,line):
         Log.debug(line)
         split_string = line.split()
-        
-        while "" in split_string:
-            split_string.remove("")
-        
         Log.debug(split_string)
-        tmp_s = split_string[-1][:-1]
-        file = tmp_s.replace('.', '/') + self.file_suffix
-        return {os.path.basename(file):file}
+        file = split_string[-1].rstrip(';').replace('.', '/') + self.file_suffix
+        return os.path.basename(file), file
             
     def __parse_file(self,work):
-        file_set = set()
-        if os.path.exists(self.user_file(work)):
-            with open(self.user_file(work)) as f:
-                for line in f.readlines():
-                    img_file = line.strip()
-                    Log.debug(img_file)
-                    file_dic = self.__parse_java_file(img_file)
-                    file_set.add(tuple(file_dic.items())[0])
-            return [dict([item]) for item in file_set]
+        path = self.user_file(work)
+        if not path:
+            return []
+        with open(path) as f:
+            return [dict([item]) for item in {self.__parse_java_file(line.strip()) for line in f if line.strip()}]
             
     def user_file(self,work):
         work_dir = self.data_path(work)
@@ -43,7 +34,7 @@ class Readcode(Base):
     def __get_files(self, file_list):
         if not file_list:
             return []
-        keywords = {key for item in file_list for key in item.keys()}
+        keywords = {key for item in file_list for key in item}
         out = []
         for root, dir_name, file_name in os.walk('./'):
             abs_path = os.path.abspath(root)

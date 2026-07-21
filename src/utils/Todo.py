@@ -1,6 +1,3 @@
-# -*- coding: utf-8 -*-
-
-import json
 import time
 import os
 from command.Shell import Shell
@@ -30,18 +27,19 @@ class Todo(Base):
                 self.__save(path, {})
 
     def __load(self, path):
-        with open(path, encoding='utf-8') as rf:
-            return json.load(rf)
+        return self.read_json_file(path, {})
 
     def __save(self, path, data):
-        with open(path, "w+", encoding='utf-8') as wf:
-            json.dump(data, wf, indent=1, ensure_ascii=False)
+        return self.write_json_file(path, data, ensure_ascii=False)
+
+    def __store_path(self, done=False):
+        return self.data_path(self.DONE_FILE if done else self.TODO_FILE)
 
     def __todos(self):
-        return self.__load(self.data_path(self.TODO_FILE))
+        return self.__load(self.__store_path())
 
     def __done(self):
-        return self.__load(self.data_path(self.DONE_FILE))
+        return self.__load(self.__store_path(done=True))
 
     def __append_item(self, path, text):
         data = self.__load(path)
@@ -70,26 +68,21 @@ class Todo(Base):
         return start + len(items)
 
     def __parse_remove_targets(self, args):
-        targets = {
-            "dates": [],
-            "indexes": [],
-        }
+        dates = set()
+        indexes = set()
         for item in args:
             if '/' in item:
-                targets["dates"].append(item)
+                dates.add(item)
             elif ':' in item:
                 start, end = item.split(':', 1)
-                targets["indexes"].extend(range(int(start), int(end) + 1))
+                indexes.update(range(int(start), int(end) + 1))
             else:
-                targets["indexes"].append(int(item))
-        targets["indexes"] = sorted(set(targets["indexes"]))
-        return targets
+                indexes.add(int(item))
+        return dates, indexes
 
-    def __take_removed(self, todos, targets):
+    def __take_removed(self, todos, dates, indexes):
         removed = []
         current = 0
-        dates = set(targets["dates"])
-        indexes = set(targets["indexes"])
 
         for date, items in list(todos.items()):
             kept = []
@@ -106,15 +99,16 @@ class Todo(Base):
         return removed
 
     def __archive_removed(self, items):
-        for item in items:
-            self.__append_item(self.data_path(self.DONE_FILE), item)
+        done = self.__done()
+        done.setdefault(self.__today(), []).extend(items)
+        self.__save(self.__store_path(done=True), done)
 
     def add(self, words):
         text = self.__text(words)
         if not text:
             self.help('add')
             return
-        self.__append_item(self.data_path(self.TODO_FILE), text)
+        self.__append_item(self.__store_path(), text)
         self.__commit_store("add todo")
 
     def show(self, args):
@@ -136,11 +130,11 @@ class Todo(Base):
             self.help('rm')
             return
         todos = self.__todos()
-        targets = self.__parse_remove_targets(args)
-        removed = self.__take_removed(todos, targets)
+        dates, indexes = self.__parse_remove_targets(args)
+        removed = self.__take_removed(todos, dates, indexes)
         if not removed:
             Log.tips("没有匹配到需要完成的 todo")
             return
-        self.__save(self.data_path(self.TODO_FILE), todos)
+        self.__save(self.__store_path(), todos)
         self.__archive_removed(removed)
         self.__commit_store("rm todo")

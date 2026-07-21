@@ -37,7 +37,9 @@ class Script(Base):
             CompTemp().delete([target])
         else:
             Log.error("删除失败: %s" % target)
+
     def __add(self,text = None):
-        target = self.shell_path(text[-1])
+        target_name = text[-1]
+        target = self.shell_path(target_name)
         Shell.chain().cmd('touch', target).cmd('code', target).cmd('chmod', '777', target).status()
-        CompTemp().set([text[-1]])
+        CompTemp().set([target_name])

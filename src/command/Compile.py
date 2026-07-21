@@ -13,8 +13,7 @@ class Compile:
         self.compile_dir = os.path.join(self.root_dir, ".compile", os.path.relpath(filepath, self.root_dir))
         self.outfilepath = os.path.join(self.compile_dir, self.filename)
         self.args_path = os.path.join(self.compile_dir, 'args.json')
-        if not os.path.isdir(self.compile_dir):
-            os.makedirs(self.compile_dir)
+        os.makedirs(self.compile_dir, exist_ok=True)
         self.action = ''
         self.writelines=[]
         self.switch = {
@@ -36,79 +35,33 @@ class Compile:
             out.append(s)
         out.append("}\n")
         return out
-    def get_options(self):
-        tmp = []
-        short_opt = ''
-        long_opt = ''
-        opt = ''
+
+    def __parse_options(self):
+        short_opt = []
+        long_opt = []
+        opt = []
         self.get_head(self.options)
         for line in  self.switch.get(self.options):
-            s_list = list(line)
-            i = 0 
-            while (i < len(s_list)):
-                if s_list[i] == '-':
-                    if s_list[i+1].isalpha() and s_list[i+2].isalpha() == False:
-                            short_opt = '-' + s_list[i+1] + ' ' + short_opt
-                            i = i+1
-                    else :
-                        if s_list[i+1] == '-' and s_list[i+2].isalpha() and s_list[i+3].isalpha():
-                            long_opt = long_opt + ' --' +  s_list[i+2]
-                            i = i+3
-                            try:
-                                while  s_list[i].isalpha():
-                                    long_opt = long_opt +  s_list[i]
-                                    i = i+1
-                            except:  
-                                break
-                else:
-                    tmp.append(s_list[i])
-                i = i+1
-            stmp = ''.join(tmp)
-            stmp = re.sub('[^a-zA-Z]', ' ', stmp)
-            if stmp.strip():
-                opt = stmp.strip() + opt
-            tmp.clear()
-        out = [self.filename + '_s_get_options () {\n db="" \n echo "' + short_opt +'" \n}\n', \
-               self.filename + '_l_get_options () {\n db="" \n echo "' + long_opt +'"  \n}\n', \
-               self.filename + '_o_get_options () {\n db="" \n echo "' + opt +'" \n}\n',      \
-               self.filename + '_get_options () {\n db="" \n echo "$(' + self.filename + '_s_get_options) $(' + self.filename  + '_l_get_options) $(' + self.filename + '_get_options)" \n}\n']
+            short_opt += ['-' + item for item in re.findall(r'(?<!-)-([A-Za-z])(?![A-Za-z])', line)]
+            long_opt += ['--' + item for item in re.findall(r'--([A-Za-z]{2,})', line)]
+            text = re.sub(r'-{1,2}[A-Za-z]+', ' ', line)
+            opt += re.findall(r'[A-Za-z]+', text)
+        return tuple(list(dict.fromkeys(values)) for values in (short_opt, long_opt, opt))
+
+    def get_options(self):
+        short_opt, long_opt, opt = self.__parse_options()
+        out = [self.filename + '_s_get_options () {\n db="" \n echo "' + ' '.join(short_opt) +'" \n}\n', \
+               self.filename + '_l_get_options () {\n db="" \n echo "' + ' '.join(long_opt) +'"  \n}\n', \
+               self.filename + '_o_get_options () {\n db="" \n echo "' + ' '.join(opt) +'" \n}\n',      \
+               self.filename + '_get_options () {\n db="" \n echo "$(' + self.filename + '_s_get_options) $(' + self.filename  + '_l_get_options) $(' + self.filename + '_o_get_options)" \n}\n']
 
         return out
+
     def get_options_args(self):
-        tmp = []
-        short_opt = ''
-        long_opt = ''
-        opt = ''
-        self.get_head(self.options)
-        for line in  self.switch.get(self.options):
-            s_list = list(line)
-            i = 0 
-            while (i < len(s_list)):
-                if s_list[i] == '-':
-                    if s_list[i+1].isalpha() and s_list[i+2].isalpha() == False:
-                            short_opt = '-' + s_list[i+1] + ' ' + short_opt
-                            i = i+1
-                    else :
-                        if s_list[i+1] == '-' and s_list[i+2].isalpha() and s_list[i+3].isalpha():
-                            long_opt = long_opt + ' --' +  s_list[i+2]
-                            i = i+3
-                            try:
-                                while  s_list[i].isalpha():
-                                    long_opt = long_opt +  s_list[i]
-                                    i = i+1
-                            except:  
-                                break
-                else:
-                    tmp.append(s_list[i])
-                i = i+1
-            stmp = ''.join(tmp)
-            stmp = re.sub('[^a-zA-Z]', ' ', stmp)
-            if stmp.strip():
-                opt = stmp.strip() + opt
-            tmp.clear()
-            out = list(set(short_opt.split(' ') + long_opt.split(' ') + opt.split(' ')))
-            out.remove("")
-        return out
+        out = []
+        for values in self.__parse_options():
+            out += values
+        return list(dict.fromkeys(out))
     def get_main(self):
         out = [] 
         del self.switch.get(self.main)[0]
@@ -134,23 +87,17 @@ class Compile:
         else :
             pass
     def handle(self):
-        file = open(self.filepath) 
-        for line in file:
-            self.get_action(line)
-            if self.action in self.switch.keys() :
-                self.switch.get(self.action).append(line)
-            else :
-                pass
-        file.close()
+        with open(self.filepath) as file:
+            for line in file:
+                self.get_action(line)
+                if self.action in self.switch:
+                    self.switch[self.action].append(line)
     def write_file(self):
-        fl=open(self.outfilepath, 'a')
-        fl.seek(0)
-        fl.truncate()
-        fl.writelines(['#!/bin/bash\n'])
-        fl.writelines(self.get_describe())
-        fl.writelines(self.get_options())
-        fl.writelines(self.get_main())
-        fl.close()
+        with open(self.outfilepath, 'w') as fl:
+            fl.writelines(['#!/bin/bash\n'])
+            fl.writelines(self.get_describe())
+            fl.writelines(self.get_options())
+            fl.writelines(self.get_main())
     def write_args(self):
       with open(self.args_path,'w',encoding='utf-8') as file :
         l = json.dumps(self.get_options_args(),ensure_ascii = False)

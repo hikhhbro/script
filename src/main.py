@@ -71,7 +71,7 @@ class main(Base):
         return dict(sorted(tools.items()))
 
     def _get_app(self):
-        return list(self._python_tools().keys())
+        return list(self._python_tools())
 
     def complete(self, ctx):
         cur = ctx.current

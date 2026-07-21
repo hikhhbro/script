@@ -158,17 +158,17 @@ class Note(Base):
 
         # 解析显式 --default/-d 参数
         set_default = None
-        i = 0
-        while i < len(args):
-            if args[i] in ('-d', '--default'):
-                if i + 1 < len(args):
-                    set_default = args[i + 1]
-                    del args[i:i + 2]
-                else:
-                    Log.error("-d/--default requires a remote name")
-                    return
-            else:
-                i += 1
+        cleaned_args = []
+        args_iter = iter(args)
+        for item in args_iter:
+            if item not in ('-d', '--default'):
+                cleaned_args.append(item)
+                continue
+            set_default = next(args_iter, None)
+            if set_default is None:
+                Log.error("-d/--default requires a remote name")
+                return
+        args = cleaned_args
 
         if set_default:
             Log.debug('setting default remote to: %s' % set_default)

@@ -40,7 +40,7 @@ class Winsh(Base):
             .long("--busid", "指定设备 busid", values=self.__usbipd_busids) \
             .args("--busid <busid>")
         Log.debug("winsh args: %s" % self.args)
-        Log.debug("winsh tools: %s" % list(self.windows_tools.keys()))
+        Log.debug("winsh tools: %s" % list(self.windows_tools))
 
     def __run(self, cmd):
         try:
@@ -53,21 +53,16 @@ class Winsh(Base):
 
     def __usbipd_busids(self):
         out = self.__run(["usbipd.exe", "list"])
-        busids = []
-        for line in out.splitlines():
-            match = re.match(r"^\s*([0-9]+-[0-9]+)\s+", line)
-            if match:
-                busids.append(match.group(1))
+        busids = [
+            match.group(1) for line in out.splitlines()
+            if (match := re.match(r"^\s*([0-9]+-[0-9]+)\s+", line))
+        ]
         Log.debug("winsh usbipd busids: %s" % busids)
         return busids
 
     def __wsl_distros(self):
         out = self.__run(["wsl.exe", "-l", "-q"])
-        distros = []
-        for line in out.splitlines():
-            name = line.replace("\x00", "").strip()
-            if name:
-                distros.append(name)
+        distros = [name for line in out.splitlines() if (name := line.replace("\x00", "").strip())]
         Log.debug("winsh wsl distros: %s" % distros)
         return distros
 

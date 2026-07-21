@@ -33,15 +33,11 @@ class Adb(Base):
 
     
     def __parse_file_list(self,out_file:str):
-        out = []
-        file_list = out_file.split('\n')
-        file_list = list(filter(None, file_list))
-        for i in range(len(file_list)):
-            if file_list[i][-1] in self.sign:
-                out.append(file_list[i][:-1])
-            else :
-                out.append(file_list[i])
-        return out
+        return [
+            item[:-1] if item[-1] in self.sign else item
+            for item in out_file.splitlines()
+            if item
+        ]
 
     def __print_file_list(self,out_file:str):
         Log.tips('\t'.join(self.__parse_file_list(out_file)))
@@ -65,52 +61,39 @@ class Adb(Base):
         return adb.status() if adb else 1
     def __state_path(self):
         return self.data_path('.pst', self.pts.lstrip('/'))
+
+    def __device_path(self, path):
+        return path if path.startswith('/') else self.cur_dir + '/' + path
       
     def __pwd(self,arg:list):
         Log.tips(self.cur_dir)
+
     def __ls(self,arg:list):
         sub=''
         if not arg: 
             arg = ["/"]
         if arg[0][0] == '-':
             sub=arg[0]
-        self.__print_file_list(self.__adb_stdout('ls -F %s %s' %(sub,self.cur_dir + arg[-1])))
+        self.__print_file_list(self.__adb_stdout('ls -F %s %s' %(sub, self.__device_path(arg[-1]))))
+
     def __cd(self,arg:list):
-        self.cur_dir = self.__adb_stdout('cd %s && pwd' % Shell.format([arg[-1]])).replace('\n','')
+        self.cur_dir = self.__adb_stdout('cd %s && pwd' % Shell.format([arg[-1]])).strip()
         with open(self.__state_path(), "w",encoding='UTF-8') as f:
             f.write(self.cur_dir)
         f.close()
+
     def __cp(self,arg:list):
-        if arg[-1][0] == '/':
-            dest_prefix = ''
-        elif arg[-1][0] != '/' :
-              dest_prefix  = self.cur_dir + '/'
-        if arg[-2][0] == '/':
-            src_prefix = ''
-        elif arg[-2][0] != '/' :
-              src_prefix  = self.cur_dir + '/'
-        self.__adb_status('cp %s %s' %(src_prefix + arg[-2],dest_prefix + arg[-1]))
+        src, dest = arg[-2:]
+        self.__adb_status('cp %s %s' % (self.__device_path(src), self.__device_path(dest)))
 
     def __mv(self,arg:list):
-        if arg[-1][0] == '/':
-            dest_prefix = ''
-        elif arg[-1][0] != '/' :
-              dest_prefix  = self.cur_dir + '/'
-        if arg[-2][0] == '/':
-            src_prefix = ''
-        elif arg[-2][0] != '/' :
-              src_prefix  = self.cur_dir + '/'
-        self.__adb_status('mv %s %s' %(src_prefix + arg[-2],dest_prefix + arg[-1]))
-        pass
+        src, dest = arg[-2:]
+        self.__adb_status('mv %s %s' % (self.__device_path(src), self.__device_path(dest)))
 
     def __code(self, arg:list):
-        if arg[-1][0] != '/':
-            srcfile = self.cur_dir + '/' + ''.join(arg[-1])
-        else:
-            srcfile = arg[-1]
+        srcfile = self.__device_path(arg[-1])
         dire = self.data_path(srcfile.lstrip('/'))
-        if not os.path.exists(dire[:dire.rfind('/')]):
-            Shell.mkdir(dire[:dire.rfind('/')]).status()
+        self.ensure_dir(os.path.dirname(dire))
         self.__adb_root() \
             .cmd('adb', 'pull', srcfile, dire) \
             .cmd('code', '-w', dire) \
@@ -119,10 +102,7 @@ class Adb(Base):
     def __adb_shell(self, arg:list):
         self.__adb_root().cmd('adb', 'shell').status()
     def __push(self, arg:list):
-        if arg[-1][0] == '/':
-              cur_dir = arg[-1][0]
-        else:
-            cur_dir = os.path.realpath(arg[-1])
+        cur_dir = arg[-1] if arg[-1].startswith('/') else os.path.realpath(arg[-1])
         for parent, dirnames, filenames in os.walk(cur_dir):
             for dirname in dirnames:
                 dir_path = os.path.join(parent, dirname)
@@ -132,12 +112,9 @@ class Adb(Base):
         arg = ''
         if self.args:
             arg = ''.join(self.args)
-        if not arg or arg[0] != '/':
-            arg = self.cur_dir + '/' + arg
-        l = arg.rfind('/')
-        if l == -1 :
-            arg = '/'
-        files = Shell.cmd('adb', 'shell', 'ls -F ' + arg[0:l]).stdout()
+        arg = self.__device_path(arg) if arg else self.cur_dir + '/'
+        parent = os.path.dirname(arg) or '/'
+        files = Shell.cmd('adb', 'shell', 'ls -F ' + parent).stdout()
         return self.__parse_file_list(files)
     def __screen(self,arg:list):
         if not arg:

@@ -26,8 +26,5 @@ class Cd(Base):
         if self.should_show_help(self.args) or not self.args:
             self.help()
             return
-        if self.args[-1].startswith('/'):
-            dir_prefix = ''
-        else:
-            dir_prefix = os.getcwd() + '/'
-        self.__change_parent_process_directory(dir_prefix + self.args[-1])
+        target = self.args[-1]
+        self.__change_parent_process_directory(target if os.path.isabs(target) else os.path.join(os.getcwd(), target))

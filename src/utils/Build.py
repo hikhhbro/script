@@ -12,6 +12,7 @@ except ImportError:
 import time
 import shutil 
 import shlex
+import itertools
 
 
 class Build(Base):
@@ -169,7 +170,7 @@ class Build(Base):
         return None
 
     def __get_type(self):
-        if "type" in self.build_dic.keys():
+        if "type" in self.build_dic:
             return self.build_dic["type"]
         else:
             build_type = self.__probe_build_type()
@@ -426,13 +427,11 @@ class Build(Base):
     def project_has_key(self, key, root=None):
         if not root:
             root = self.build_dic
-        return root.__contains__(key)
+        return key in root
 
 
     def build_dic_value(self, key):
-        if self.build_dic.__contains__(key):
-            return  self.build_dic[key]
-        return  ""
+        return self.build_dic.get(key, "")
 
 
     def __add_build_type_interaction(self):
@@ -442,8 +441,8 @@ class Build(Base):
     def __get_build_type_interaction(self, build_type_list, msg=None):
         if not build_type_list:
             self.__add_build_type_interaction()
-        for i in range(len(build_type_list)):
-            Log.tips("%d:%s" % (i, build_type_list[i]))
+        for i, item in enumerate(build_type_list):
+            Log.tips("%d:%s" % (i, item))
         build_type = Log.getcmd("请选择编译类型", build_type_list[0]+" or " + "0")
         if build_type == "y" or build_type == "Y":
             self.__add_build_type_interaction()
@@ -470,9 +469,9 @@ class Build(Base):
         return None
 
     def __get_xml_interaction(self):
-        if 'xml' in self.build_dic.keys() and isinstance(self.build_dic['xml'],list):
-            for i in range(len(self.build_dic['xml'])):
-                Log.tips("%d:%s" % (i, self.build_dic['xml'][i]))
+        if 'xml' in self.build_dic and isinstance(self.build_dic['xml'],list):
+            for i, item in enumerate(self.build_dic['xml']):
+                Log.tips("%d:%s" % (i, item))
             res = Log.getcmd("请选择xml", self.build_dic['xml'][0]+" or " + "0")
             Log.debug(res)
             xml = self.__get_input(self.build_dic['xml'],res)
@@ -480,9 +479,9 @@ class Build(Base):
             self.build_dic['xml'] = xml
             
     def __get_branch_interaction(self):
-        if 'branch' in self.build_dic.keys() and isinstance(self.build_dic['branch'],list):
-            for i in range(len(self.build_dic['branch'])):
-                Log.tips("%d:%s" % (i, self.build_dic['branch'][i]))
+        if 'branch' in self.build_dic and isinstance(self.build_dic['branch'],list):
+            for i, item in enumerate(self.build_dic['branch']):
+                Log.tips("%d:%s" % (i, item))
             res = Log.getcmd("请选择branch", self.build_dic['branch'][0]+" or " + "0")
             Log.debug(res)
             branch = self.__get_input(self.build_dic['branch'],res)
@@ -531,11 +530,9 @@ class Build(Base):
             exit()
 
     def __input_list(self,k):
-        i = 0;
         tmp_list = []
-        while True:
+        for i in itertools.count():
           s = "输入y退出，请输入第%d个%s" %(i,k)
-          i = i + 1
           ret = Log.getcmd(s)
           if ret == 'y' :
             break
@@ -549,58 +546,20 @@ class Build(Base):
       return bool(Log.getcmd("请输入%s" %(k)))
 
     def __parse_repo(self,cmd):
-      url = cmd[(cmd.find("init")+len("init")):]
-      Log.debug(url)
-      i = 0
-      while url[i] == ' ':
-        i = i+1
-        if url[i:i+2] == '-u':
-          i = i+2
-
-      url = url[i:]
-      Log.debug(url)
-      tmp = url.find(' ')
-      tmp_str = url[tmp:]
-      if "yourname" in url[:tmp] :
-        url = url[:tmp].replace("yourname","wangyingdong")
-      elif "your-name" in url[:tmp] :
-        url = url[:tmp].replace("your-name","wangyingdong")
-
-      self.build_dic["url"] = url
+      parts = shlex.split(cmd)
+      args = parts[parts.index("init") + 1:] if "init" in parts else parts
+      values = {}
+      args_iter = iter(args)
+      for item in args_iter:
+        if item in ("-u", "-b", "-m"):
+          values[item] = next(args_iter, "")
+      url = values.get("-u", "")
+      self.build_dic["url"] = url.replace("yourname", "wangyingdong").replace("your-name", "wangyingdong")
       Log.debug(self.build_dic["url"]) 
-      Log.debug(tmp_str)
-      i = 0
-      while tmp_str[0] == ' ':
-        tmp_str = tmp_str[1:]
-      b = True
-      while b:
-        if tmp_str[0] == ' ':
-          tmp_str = tmp_str[1:]
-          continue
-        ops = tmp_str[:2]
-        Log.debug(ops)
-        tmp_str = tmp_str[3:]
-        Log.debug(tmp_str)
-        while tmp_str[0] == ' ':
-          tmp_str = tmp_str[1:]
-          continue
-        end = tmp_str.find(' ')
-        if end < 0:
-          ret = tmp_str
-          Log.debug(ret)
-          b = False
-        else:
-          ret = tmp_str[:end]
-          Log.debug(ret)
-        tmp_str = tmp_str[end+1:]
-
-        Log.debug(ops)
-        if ops == '-b':
-          self.build_dic["branch"] = ret
-          Log.debug(self.build_dic["branch"])
-        elif ops == '-m':
-          self.build_dic["xml"] = ret
-          Log.debug(self.build_dic["xml"])
+      for option, key in {"-b": "branch", "-m": "xml"}.items():
+        if values.get(option):
+          self.build_dic[key] = values[option]
+          Log.debug(self.build_dic[key])
 
     def __parse_build(self,cmd):
       tmp_str = cmd[len("./build.sh vendor/"):]
@@ -712,7 +671,7 @@ class Build(Base):
         
 
     def __start_build(self, arg: list):
-        if self.__get_type() in self.build_cmd.keys():
+        if self.__get_type() in self.build_cmd:
             self.build_cmd[self.__get_type()](arg)
 
     def exec(self):

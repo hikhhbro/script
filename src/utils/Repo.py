@@ -30,11 +30,11 @@ class Repo(Base):
     def __get_map(self,xml_project):
         __dict = {}
         for i  in xml_project[0]:
-            if "@name" in i.keys() :
+            if "@name" in i:
                 __dict[i["@revision"]] = [i["@name"],0]
         for i  in xml_project[1]:
-            if "@name" in i.keys() :
-                if i["@revision"] in  __dict.keys() :
+            if "@name" in i:
+                if i["@revision"] in __dict:
                     del __dict[i["@revision"]]
                 else:
                     __dict[i["@revision"]] = [i["@name"],1]
@@ -43,28 +43,18 @@ class Repo(Base):
     
     
     def __get_set(self,xml_project):
-        project_set = set()
-        for i  in xml_project:
-            if "@name" in i.keys() :
-                # list1_revision.append(i["@revision"])
-                # list1_name.append(i["@name"])
-                # project_set.add((i["@name"],i["@revision"]))
-                project_set.add(i["@name"])
-                # print(i["@name"])
-        return project_set
+        return {item["@name"] for item in xml_project if "@name" in item}
 
     def __get_diff(self,set_1,set_2):
-        list_1_2 = list(set_1 ^ set_2)
         list_tmp = []
         out_list = []
-        list_1_2 = sorted(list_1_2,key=lambda x: x[0])
-        list_1_2.append(('',''))
-        for i in range(len(list_1_2)-1):
-            if list_1_2[i][0] == list_1_2[i+1][0] :
-                list_tmp = list_tmp +  list(list_1_2[i]+ list_1_2[i+1])
+        list_1_2 = sorted(set_1 ^ set_2,key=lambda x: x[0])
+        for left, right in zip(list_1_2, list_1_2[1:] + [('', '')]):
+            if left[0] == right[0]:
+                list_tmp += list(left + right)
             else:
                 if not list_tmp:
-                    out_list.append(list_1_2[i])
+                    out_list.append(left)
                 else:
                     tmp = list(set(list_tmp))
                     tmp.sort(key = list_tmp.index)
@@ -121,7 +111,7 @@ class Repo(Base):
                 print(f"{times}: {i[0]:{max_name_len}} : {l:{max_revision_len}} <---> {r:{max_revision_len}}")  
             else:
                 
-                if i[1] in __map.keys():
+                if i[1] in __map:
                     l = " " if __map[i[1]][1] else i[1]
                     r = i[1] if __map[i[1]][1] else " "
                     print(f"{times}: {i[0]:{max_name_len}} : {l:{max_revision_len}} <---> {r:{max_revision_len}}")   

@@ -27,9 +27,7 @@ class Flash(Base):
         }
 
     def is_devices(self, key):
-      if self.devices_cmd.__contains__(key):
-          return  self.devices_cmd[key]
-      return  ""
+      return self.devices_cmd.get(key, "")
 
     def find_uart_devices(self):
       devices = []
@@ -43,8 +41,8 @@ class Flash(Base):
           return ''
       ret = devices[0]
       if len(devices) > 1:
-          for i in range(len(devices)):
-            Log.tips("%d:%s" % (i, devices[i]))
+          for i, item in enumerate(devices):
+            Log.tips("%d:%s" % (i, item))
           ret = Log.getcmd("选择窗口设备", devices[0] +  " or 0")
           Log.debug(ret)
           if ret.isdigit():
@@ -59,28 +57,27 @@ class Flash(Base):
         if self.is_devices(self.flash_dic[arg]):
             return self.devices_cmd[self.flash_dic[arg]]()
       elif isinstance(self.flash_dic[arg],dict):
-        if len(list(self.flash_dic[arg].values())) == 1: 
-          return list(self.flash_dic[arg].values())[0]
+        values = list(self.flash_dic[arg].values())
+        if len(values) == 1:
+          return values[0]
       
-        key = Log.select("请选择烧录镜像",list(self.flash_dic[arg].keys()))
+        key = Log.select("请选择烧录镜像", list(self.flash_dic[arg]))
         Log.debug(key)
         return self.flash_dic[arg][key]
 
 
     def handle_cmd(self):
       cmd_list = self.flash_dic['cmd'].split(' ')
-      for i  in range(0,len(cmd_list)):
-        if '$' == cmd_list[i][0]:
-          cmd_list[i] = self.get_arg_value(cmd_list[i])
+      for i, item in enumerate(cmd_list):
+        if item.startswith('$'):
+          cmd_list[i] = self.get_arg_value(item)
           
-        elif '=$' in cmd_list[i]:
-          start = cmd_list[i].rfind('$')
-          cmd_list[i] = cmd_list[i][0:start] + self.get_arg_value(cmd_list[i][start:])
+        elif '=$' in item:
+          start = item.rfind('$')
+          cmd_list[i] = item[:start] + self.get_arg_value(item[start:])
 
       Log.debug(cmd_list)
       return ' '.join(cmd_list)
-          
-      Log.debug(cmd_list)
 
     def exec(self):
         if self.should_show_help(self.args):

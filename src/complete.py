@@ -20,7 +20,7 @@ def get_python_tool_path(name):
     if not name:
         return None
     app_dir = os.getenv('SCRIPT_TOP_DIR') + '/src/utils'
-    py_name = name[0].upper() + name[1:] + '.py'
+    py_name = name[:1].upper() + name[1:] + '.py'
     path = os.path.join(app_dir, py_name)
     if os.path.isfile(path):
         return path
@@ -36,11 +36,8 @@ def get_shell_tool_path(name):
 def get_shell_prefix(words, isend):
     if isend or not words:
         return ''
-    arg = words[-1]
-    index = arg.rfind('/')
-    if index < 0:
-        return ''
-    return arg[:index + 1]
+    prefix, sep, _ = words[-1].rpartition('/')
+    return prefix + sep
 
 
 def order_completion_items(out_list, app_list):
@@ -90,57 +87,52 @@ class Complete():
                          False: 'compopt -o nospace'}
         self.out_list = []
         self.default_opt = True
-        self.isend = True if sys.argv[-1] == 'y' else False
+        self.isend = sys.argv[-1] == 'y'
         self.asgs_list = sys.argv[1:-1] if "complete.py" in sys.argv[0] else sys.argv[:-1]
         self.get_arg_prefix = ''
-        
-    def get_dic_value(self,dic,key):
-        if dic.__contains__(key):
-            return  dic[key]
-        return  None
     
     def get_last_input(self,arg_full=False):
-        if arg_full :
-            if self.isend :
-                return None
-            return self.asgs_list[-1]
-        else :
-            if self.isend or self.asgs_list[-1] == '/':
-                return None
-            l = self.asgs_list[-1].rfind('/')
-            if l < 0:
-                return self.asgs_list[-1]
-            else:
-                self.get_arg_prefix = self.asgs_list[-1][0:l+1]
-                return self.asgs_list[-1][l+1:]
+        if self.isend:
+            return None
+        current = self.asgs_list[-1]
+        if arg_full:
+            return current
+        if current == '/':
+            return None
+        prefix, _, name = current.rpartition('/')
+        if prefix:
+            self.get_arg_prefix = prefix + '/'
+        return name or None
 
+    def __matches(self, item, arg):
+        return item.startswith(self.get_arg_prefix + arg)
 
     def get_default_opt(self):
-        if self.opt.get_sub_opt() :
-            if  self.opt.file_opt:
-                return self.opt.get_sub_opt() +  CurFile().get_file_opt(self.get_last_input(True))
+        if self.opt.get_sub_opt():
+            if self.opt.file_opt:
+                return self.opt.get_sub_opt() + CurFile().get_file_opt(self.get_last_input(True))
             return self.opt.get_sub_opt()
-        elif self.opt.file_opt :
+        if self.opt.file_opt:
             return CurFile().get_file_opt(self.get_last_input(True))
-        else :
-            return ['']
+        return ['']
+
     def get_opt(self, arg):
         if not arg or arg[-1] =='/':
             r = self.get_default_opt()
-            if len(r) ==1 :
+            if len(r) == 1:
                 r[0] = self.get_arg_prefix + r[0] 
             return r
-        else :
-            opt = self.opt.opt_type(arg)
-            for item in opt:
-                if len(arg) <= len(item) and (self.get_arg_prefix + arg) == item[0:len(self.get_arg_prefix + arg)]:
-                    self.default_opt = False
-                    self.out_list.append(item)
-            if self.default_opt :
-                for item in self.get_default_opt():
-                    if len(arg) <= len(item) and arg == item[0:len(arg)]:
-                        self.out_list.append(self.get_arg_prefix + item)
-            return self.out_list
+
+        for item in self.opt.opt_type(arg):
+            if self.__matches(item, arg):
+                self.default_opt = False
+                self.out_list.append(item)
+        if self.default_opt:
+            self.out_list += [
+                self.get_arg_prefix + item for item in self.get_default_opt()
+                if item.startswith(arg)
+            ]
+        return self.out_list
 
     def set_out(self, out_list):
         print(self.setspace[self.getlsspace()])
@@ -151,27 +143,9 @@ class Complete():
         print(' '.join(out_list))
         
     def getlsspace(self):
-        if len(self.out_list) == 0 or (len(self.out_list) == 1 and self.out_list[-1][-1] == '/' or self.out_list[-1][-1] == '='):
+        if not self.out_list:
             return False
-        else:
-            return True
-    def get_cur_arg(self):
-        if self.isend :
-            return asgs_list[-1]
-        else :
-            if len(asgs_list) > 1:
-                return asgs_list[-2]
-            else:
-                return None
-        
-    def get_cur(self):
-        if  len(sys.argv) == 3 or (len(sys.argv) == 4 and sys.argv[-1] == 'n') :
-            return  sys.argv[1]
-        elif  len(sys.argv) > 4 :
-            return sys.argv[2]
-
-    def run(self):
-        self.set_out( self.get_opt(self.get_last_input()))
+        return not (len(self.out_list) == 1 and self.out_list[-1].endswith(('/', '=')))
     
 
 if __name__ == '__main__':
