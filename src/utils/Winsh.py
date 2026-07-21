@@ -1,13 +1,9 @@
-import os
 import re
 import shlex
-import shutil
-import subprocess
-import sys
-import glob
 
 import Log
 from command.Base import Base, Opt
+from command.Shell import Shell
 
 
 class Winsh(Base):
@@ -27,7 +23,7 @@ class Winsh(Base):
     def __init__(self, args_list=None):
         super().__init__(args_list)
         self.__args_list = self.args
-        self.winsh_config = self.__load_winsh_config()
+        self.win = Shell.win()
         self.windows_tools = {
             "usbipd": {
                 "exe": "usbipd.exe",
@@ -52,95 +48,9 @@ class Winsh(Base):
         Log.debug("winsh args: %s" % self.__args_list)
         Log.debug("winsh tools: %s" % list(self.windows_tools.keys()))
 
-    def __load_winsh_config(self):
-        template_path = os.path.join(self.tool_dir, "src", "template", "config", "winsh.json")
-        template = {}
-        if os.path.exists(template_path):
-            try:
-                from command.Json import Json
-                template = Json(template_path).read()
-            except Exception as e:
-                Log.debug("winsh read template config failed: %s" % e)
-        try:
-            config = self.config.read(template)
-        except Exception:
-            config = template
-        if template and not config:
-            self.config.write(template)
-            config = template
-        Log.debug("winsh config: %s" % config)
-        return config or {}
-
-    def __windows_cwd(self):
-        cwd = self.__to_wsl_path(self.winsh_config.get("windows_cwd", ""))
-        if os.path.isdir(cwd):
-            return cwd
-        return None
-
-    def __exe_candidates(self, exe):
-        exe_config = self.winsh_config.get("executables", {}).get(exe, {})
-        out = []
-        for item in exe_config.get("candidates", []):
-            wsl_item = self.__to_wsl_path(item)
-            if glob.has_magic(wsl_item):
-                out.extend(sorted(glob.glob(wsl_item), reverse=True))
-            else:
-                out.append(wsl_item)
-        return out
-
-    def __to_wsl_path(self, path):
-        if not path:
-            return path
-        path = os.path.expanduser(os.path.expandvars(path))
-        match = re.match(r"^([a-zA-Z]):[\\/](.*)$", path)
-        if not match:
-            return path
-        drive = match.group(1).lower()
-        rest = match.group(2).replace("\\", "/")
-        return "/mnt/%s/%s" % (drive, rest)
-
-    def __resolve_exe(self, exe):
-        path = shutil.which(exe)
-        if path:
-            Log.debug("winsh resolve %s from PATH: %s" % (exe, path))
-            return path
-        for item in self.__exe_candidates(exe):
-            if os.path.exists(item):
-                Log.debug("winsh resolve %s from candidate: %s" % (exe, item))
-                return item
-        Log.debug("winsh resolve %s failed" % exe)
-        return exe
-
-    def __to_windows_path(self, path):
-        match = re.match(r"^/mnt/([a-zA-Z])/(.*)$", path)
-        if not match:
-            return path
-        drive = match.group(1).upper()
-        rest = match.group(2).replace("/", "\\")
-        win_path = "%s:\\%s" % (drive, rest)
-        Log.debug("winsh path to windows: %s -> %s" % (path, win_path))
-        return win_path
-
-    def __resolve_cmd(self, cmd):
-        if not cmd:
-            return cmd
-        resolved = [self.__resolve_exe(cmd[0])] + cmd[1:]
-        if os.path.basename(cmd[0]).lower() == "gsudo.exe" and len(cmd) > 1:
-            resolved[1] = self.__to_windows_path(self.__resolve_exe(cmd[1]))
-        Log.debug("winsh resolved cmd: %s" % " ".join(shlex.quote(item) for item in resolved))
-        return resolved
-
     def __run(self, cmd):
-        cmd = self.__resolve_cmd(cmd)
-        Log.debug("winsh probe cmd: %s" % " ".join(shlex.quote(item) for item in cmd))
-        Log.debug("winsh windows cwd: %s" % self.__windows_cwd())
         try:
-            out = subprocess.check_output(
-                cmd,
-                stderr=subprocess.DEVNULL,
-                text=True,
-                cwd=self.__windows_cwd(),
-            )
+            out = self.win.stdout(*cmd)
         except Exception as e:
             Log.debug("winsh probe failed: %s" % e)
             return ""
@@ -205,14 +115,10 @@ class Winsh(Base):
         Log.debug("winsh sudo=%s args=%s" % (use_sudo, args))
 
         cmd = [tool["exe"]] + args
-        if use_sudo:
-            cmd = ["gsudo.exe"] + cmd
-        cmd = self.__resolve_cmd(cmd)
-        Log.debug("winsh exec cmd: %s" % " ".join(shlex.quote(item) for item in cmd))
+        Log.debug("winsh exec cmd: %s" % Shell.format(cmd))
 
         try:
-            Log.debug("winsh windows cwd: %s" % self.__windows_cwd())
-            ret = subprocess.call(cmd, cwd=self.__windows_cwd())
+            ret = self.win.status(*cmd, sudo=use_sudo)
             Log.debug("winsh exec status: %s" % ret)
             return ret
         except FileNotFoundError as e:
