@@ -231,15 +231,17 @@ class CommandNode:
             parts.append(self.args_hint)
         return parts
 
-    def first_example_path(self):
+    def example_paths(self, limit=8):
+        out = []
         if self.children:
             for child in self.children.values():
-                path = child.first_example_path()
-                if path:
-                    return path
+                out += child.example_paths(limit - len(out))
+                if len(out) >= limit:
+                    return out[:limit]
+            return out
         if self.name:
-            return self.usage_parts()
-        return []
+            out.append(self.usage_parts())
+        return out[:limit]
 
     def inherited_options(self):
         out = {}
@@ -395,20 +397,20 @@ class Base(HelpMixin, Arg):
             parts.append("[参数]")
         return " ".join(parts)
 
-    def examples(self, node=None):
+    def examples(self, node=None, limit=8):
         target = node or self.command_tree
-        parts = target.first_example_path()
-        out = [self.tool_name]
+        base = [self.tool_name]
         if self.module_name() != "main":
-            out.append(self.module_name())
-        if not parts:
+            base.append(self.module_name())
+
+        paths = target.example_paths(limit)
+        if not paths:
             if target is self.command_tree and self.usage_hint:
-                return [" ".join(out + [self.usage_hint])]
+                return [" ".join(base + [self.usage_hint])]
             if target is not self.command_tree:
-                return [" ".join(out + target.usage_parts())]
+                return [" ".join(base + target.usage_parts())]
             return []
-        out += parts
-        return [" ".join(out)]
+        return [" ".join(base + parts) for parts in paths]
 
     def default(self, handler):
         self.command_tree.run(handler)
