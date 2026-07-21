@@ -2,6 +2,7 @@
 
 import os
 import re
+import shlex
 import Log
 from command.Shell import Shell
 from command.Base import Base
@@ -12,6 +13,7 @@ class Note(Base):
         super().__init__(args)
         self.meta("在终端中创建、编辑、初始化和同步 Markdown 笔记。")
         self.command('code', '创建或打开笔记文件/目录').run(self._code).value(self.__note_files).args("<路径>")
+        self.command('cd', '跳转到笔记目录').run(self._cd).value(self.__note_dirs).args("[目录]")
         self.command('sync', '提交并推送笔记仓库').run(self._sync) \
             .value(self.__sync_remotes) \
             .long('--default', '修改默认远端', self.__sync_remotes) \
@@ -26,6 +28,12 @@ class Note(Base):
         if not prefix and ctx.prev() and ctx.prev() not in self.command_tree.children:
             prefix = ctx.prev()
         return self.files(self.note_root, prefix)
+
+    def __note_dirs(self, ctx):
+        prefix = ctx.current
+        if not prefix and ctx.prev() and ctx.prev() not in self.command_tree.children:
+            prefix = ctx.prev()
+        return self.files(self.note_root, prefix, ["dir"])
 
     def _load_note_root(self):
         """从配置读取 note_root，默认使用 /ws/note。"""
@@ -54,6 +62,62 @@ class Note(Base):
             except OSError:
                 pass
         return max_num + 1
+
+    def __put_text_back_into_terminal_input_buffer(self, text):
+        import fcntl
+        import sys
+        import termios
+        errors = []
+        tty_fd = None
+        try:
+            fds = []
+            try:
+                tty_fd = os.open('/dev/tty', os.O_RDWR)
+                fds.append(tty_fd)
+            except OSError as e:
+                errors.append(e)
+            fds += [sys.stdin.fileno(), sys.stdout.fileno()]
+
+            for fd in fds:
+                try:
+                    for c in text:
+                        fcntl.ioctl(fd, termios.TIOCSTI, c)
+                    return True
+                except OSError as e:
+                    errors.append(e)
+            Log.error('terminal input injection failed: %s' % errors[-1])
+            print(text, end='')
+            return False
+        finally:
+            if tty_fd is not None:
+                os.close(tty_fd)
+
+    def __change_parent_process_directory(self, dest):
+        self.__put_text_back_into_terminal_input_buffer("cd " + shlex.quote(dest) + "\n")
+
+    def _cd(self, args):
+        """跳转到笔记根目录下的目录，作用到当前终端。"""
+        Log.debug('_cd args=%s' % args)
+
+        target = ' '.join(args) if args else ''
+        full_path = os.path.normpath(os.path.join(self.note_root, target))
+        Log.debug('_cd full_path=%s' % full_path)
+
+        note_root = os.path.abspath(self.note_root)
+        abs_path = os.path.abspath(full_path)
+        if abs_path != note_root and not abs_path.startswith(note_root + os.sep):
+            Log.error('path is outside note root: %s' % target)
+            return
+
+        if not os.path.isdir(abs_path):
+            Log.error('directory not found: %s' % abs_path)
+            return
+
+        if os.getenv('HIKRUN_PRINT_CD') == '1':
+            print("cd " + shlex.quote(abs_path))
+            return
+
+        self.__change_parent_process_directory(abs_path)
 
     def _code(self, args):
         """在笔记根目录创建或打开文件/目录，自动添加 dNN-/fNN- 序号前缀。

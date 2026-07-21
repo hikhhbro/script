@@ -95,6 +95,16 @@ cat  >  "${SCRIPT_TOP_DIR}/${SCRIPT_TOOL_NAME}_prompt" <<EOF
 if [[ -e ${SCRIPT_TOP_DIR}/src/completion/complete.sh ]]; then
 	. ${SCRIPT_TOP_DIR}/src/completion/complete.sh
 fi
+
+${SCRIPT_TOOL_NAME}() {
+	if [[ "\$1" == "note" && "\$2" == "cd" ]]; then
+		local __hikrun_cd_cmd
+		__hikrun_cd_cmd="\$(HIKRUN_PRINT_CD=1 command ${SCRIPT_TOOL_NAME} "\$@")" || return
+		eval "\${__hikrun_cd_cmd}"
+		return
+	fi
+	command ${SCRIPT_TOOL_NAME} "\$@"
+}
 EOF
 _task sudo mv ${SCRIPT_TOP_DIR}/${SCRIPT_TOOL_NAME}_prompt /etc/bash_completion.d/${SCRIPT_TOOL_NAME}_prompt
 _task sudo chmod 755 /etc/bash_completion.d/${SCRIPT_TOOL_NAME}_prompt
